@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Receipt" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="517e6e56-cd6d-4f60-9bb2-946b647b9c9d">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="90"/>
+	<parameter name="cmp_address" class="java.lang.String"/>
+	<parameter name="receipt_no" class="java.lang.String"/>
+	<parameter name="receipt_date" class="java.lang.String"/>
+	<parameter name="clg_name" class="java.lang.String"/>
+	<parameter name="total_amount" class="java.lang.String"/>
+	<parameter name="cheque_no" class="java.lang.String"/>
+	<parameter name="payment_date" class="java.lang.String"/>
+	<parameter name="bank_name" class="java.lang.String"/>
+	<parameter name="bill_no" class="java.lang.String"/>
+	<parameter name="towards" class="java.lang.String"/>
+	<parameter name="rupees_words" class="java.lang.String"/>
+	<parameter name="total_amount_words" class="java.lang.String"/>
+	<parameter name="cmp_name" class="java.lang.String"/>
+	<parameter name="payment_details_description" class="java.lang.String"/>
+	<parameter name="signature" class="java.lang.Object"/>
+	<parameter name="roundseal" class="java.lang.Object"/>
+	<parameter name="fullseal" class="java.lang.Object"/>
+	<parameter name="logo" class="java.lang.Object"/>
+	<title>
+		<band height="103" splitType="Stretch">
+			<textField>
+				<reportElement uuid="4b692c2e-112e-4168-824e-d34f1845bc51" x="125" y="4" width="417" height="38"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="16" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{cmp_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="fa581753-4855-4048-a714-8eea3c7653f6" stretchType="RelativeToBandHeight" x="125" y="44" width="417" height="57" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{cmp_address}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="FillFrame">
+				<reportElement uuid="03f52a3a-5426-4a0e-a12d-251b4513b583" x="17" y="4" width="95" height="95"/>
+				<imageExpression><![CDATA[$P{logo}]]></imageExpression>
+			</image>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="35" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="ecdbbd85-9e00-47a2-aaec-6514fd2b8ddc" stretchType="RelativeToBandHeight" x="194" y="2" width="141" height="22" isPrintWhenDetailOverflows="true" forecolor="#FF0000"/>
+				<textElement textAlignment="Center">
+					<font fontName="Verdana" size="18" isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[RECEIPT]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="317" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="5a406bec-a675-4186-bbcd-e350e8538c81" x="31" y="7" width="31" height="14"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[No :  ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="27c469c2-db99-4bcc-8fb1-3ffd73d41327" x="393" y="7" width="35" height="14"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date:  ]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="61a36601-5dec-4e1c-be84-96c638688210" x="64" y="7" width="100" height="14"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{receipt_no}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="8bc276b7-3b22-4ef4-87f6-c7186b1a5f85" x="431" y="7" width="111" height="14"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{receipt_date}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="7c869e11-f0b4-4536-85f1-c3e0ca8ab846" x="11" y="31" width="531" height="77" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Justified" verticalAlignment="Top" markup="html">
+					<font fontName="Verdana" size="12"/>
+					<paragraph lineSpacing="Proportional" lineSpacingSize="1.5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{payment_details_description}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="FillFrame">
+				<reportElement uuid="32e49277-c687-4823-a893-3b8f91055869" positionType="FixRelativeToBottom" x="328" y="155" width="201" height="60" isPrintWhenDetailOverflows="true"/>
+				<imageExpression><![CDATA[$P{signature}]]></imageExpression>
+			</image>
+			<image scaleImage="FillFrame">
+				<reportElement uuid="56128a9d-e93f-4534-99fc-f23b27a02273" positionType="FixRelativeToBottom" x="328" y="240" width="201" height="60" isPrintWhenDetailOverflows="true"/>
+				<imageExpression><![CDATA[$P{fullseal}]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement uuid="c54ea720-f755-43a2-bea9-def48a3eae97" positionType="FixRelativeToBottom" x="0" y="304" width="555" height="13" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[* Computer generated Receipt*]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="952df0b7-71b2-4d9f-99f3-9a2739af4abb" positionType="FixRelativeToBottom" x="378" y="224" width="100" height="13" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Authority Signature]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="0f3fc8fb-0f7b-46df-8b93-aca8d3e2e83e" positionType="FixRelativeToBottom" x="6" y="224" width="211" height="13" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="false" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Cheque payments subject to clearance]]></text>
+			</staticText>
+			<image scaleImage="FillFrame" isUsingCache="false" onErrorType="Blank">
+				<reportElement uuid="652f78e4-9b76-454e-8f1f-9e97a84930e1" positionType="FixRelativeToBottom" x="206" y="125" width="90" height="90" isPrintWhenDetailOverflows="true"/>
+				<imageExpression><![CDATA[$P{roundseal}]]></imageExpression>
+			</image>
+		</band>
+	</columnHeader>
+</jasperReport>

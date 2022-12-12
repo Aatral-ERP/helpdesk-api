@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ServiceCall_Quote" pageWidth="770" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="730" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="1ba43834-a9df-472b-86ae-048084f46fcd">
+	<property name="ireport.zoom" value="1.3310000000000308"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="469"/>
+	<parameter name="All_Query" class="java.lang.String"/>
+	<parameter name="amc_amount" class="java.lang.String"/>
+	<parameter name="institute_name" class="java.lang.String"/>
+	<parameter name="address" class="java.lang.String"/>
+	<parameter name="gst" class="java.lang.String"/>
+	<parameter name="total_amount" class="java.lang.String"/>
+	<parameter name="title" class="java.lang.String"/>
+	<parameter name="invoice_no" class="java.lang.String"/>
+	<parameter name="gst_amount" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[$P!{All_Query}]]>
+	</queryString>
+	<field name="amc_amount" class="java.lang.String"/>
+	<field name="institute_name" class="java.lang.String"/>
+	<field name="address" class="java.lang.String"/>
+	<field name="gst" class="java.lang.String"/>
+	<field name="total_amount" class="java.lang.String"/>
+	<field name="service_type" class="java.lang.String"/>
+	<field name="invoice_no" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="161" splitType="Stretch">
+			<rectangle>
+				<reportElement key="rectangle-1" x="3" y="21" width="725" height="136" uuid="a3cd8276-c646-4a12-b72e-7ae61dba370a"/>
+			</rectangle>
+			<staticText>
+				<reportElement x="150" y="27" width="555" height="36" forecolor="#0000FF" uuid="e7fae7c0-c3b6-4588-8ef2-0b0745f8af74"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="24" isBold="true"/>
+				</textElement>
+				<text><![CDATA[AutoLib Software Systems]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="150" y="66" width="555" height="19" forecolor="#000000" uuid="7e195357-9b4a-4c57-9c1a-42e83b990e09"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="14" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Plot No.32, GF, 2nd Main Road, Sabari Nagar Extension]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="150" y="87" width="555" height="19" forecolor="#000000" uuid="649e82e9-77c0-4753-b1c3-222197fd65a9"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="14" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Mugalivakkam, Chennai – 600125]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="-277" y="-240" width="501" height="19" forecolor="#000000" uuid="d717b0a8-4a99-4be7-b582-f434a358a6dc"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Ph: 044-22522448 / 9841601906 / 07]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="150" y="132" width="306" height="19" forecolor="#000000" uuid="5cc75535-02c6-4491-9872-e43a9221d182"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="false"/>
+				</textElement>
+				<text><![CDATA[autolib@yahoo.com,  info@autolib-india.net]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="467" y="133" width="238" height="19" forecolor="#000000" uuid="6b57ede3-4e76-4a66-b3a6-3987e9ffe071"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="false"/>
+				</textElement>
+				<text><![CDATA[www.autolib-india.net]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="150" y="108" width="555" height="19" forecolor="#000000" uuid="ee0c117c-d4a1-4090-891a-36196eaa6ebd"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Ph: 044-22522448 / 9841601906 / 07]]></text>
+			</staticText>
+			<image scaleImage="FillFrame" vAlign="Top">
+				<reportElement x="4" y="28" width="146" height="123" uuid="08130728-06c6-432a-9512-7c54439b670b"/>
+				<imageExpression><![CDATA["http://smallcart.in:9009/assets/static/images/logo.jpg"]]></imageExpression>
+			</image>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="22" splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="511" splitType="Stretch">
+			<rectangle>
+				<reportElement x="1" y="3" width="729" height="116" uuid="8dd1a5ac-6414-4a46-8d35-80d7a0bd104b"/>
+			</rectangle>
+			<line>
+				<reportElement x="0" y="352" width="730" height="1" uuid="2d64415c-7c6b-41af-ab15-af393a673145"/>
+			</line>
+			<line>
+				<reportElement x="0" y="510" width="730" height="1" uuid="fcdfb616-9ff1-42c6-8e8a-324f23d4aa7e"/>
+			</line>
+			<staticText>
+				<reportElement x="526" y="371" width="189" height="46" uuid="fac13b60-a3e4-4ad5-a478-70fea5fee7fc"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[AutoLib Software Systems]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="9" y="357" width="167" height="16" uuid="bcfbd9c4-28ba-4487-b805-8c136525112a"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true" isItalic="false" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[Terms and Conditions:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="200" y="358" width="285" height="16" uuid="f39a52ea-d286-4779-af37-e0303f36eadb"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true" isItalic="false" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[GSTN : 33AHZPK2875R1Z7]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="9" y="376" width="476" height="113" uuid="15dcf15e-c051-4b01-a975-326a23ade17a"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="false" isItalic="false" isUnderline="false"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[Cheque/DD in favor of M/s AutoLib Software Systems.
+Online Payment: Current Ac.No: 1024341130
+Account Name: AUTOLIB SOFTWARE SYSTEMS
+Bank: Central Bank of India Branch: Nandambakkam (TN)
+IFSC Code : CBIN0282740 MICR Code : 600016028
+AMC should be paid in advance.
+Remote Online Technical Support only will be provided during AMC Period
+This version works only in windows XP. We may not able to customize the software. We can able to maintain only the SW.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="4" y="97" width="43" height="16" uuid="4d7b5f12-cfe0-4761-9d8c-181f98b050d9"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[S. No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="19" y="494" width="686" height="16" uuid="4dab2544-004b-4fca-817f-4b5212f22c5a"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[*** *** This is a computer generated invoice  *** ***]]></text>
+			</staticText>
+			<line>
+				<reportElement x="49" y="92" width="1" height="28" uuid="cb37ec68-2cf4-4c22-8029-f148b84a50bb"/>
+			</line>
+			<line>
+				<reportElement x="506" y="4" width="1" height="116" uuid="f54efa3a-114d-447a-b6ea-35c961bb18b1"/>
+			</line>
+			<line>
+				<reportElement x="569" y="91" width="1" height="28" uuid="e2d75bf8-52fc-4969-b56d-677fbf9b640c"/>
+			</line>
+			<line>
+				<reportElement x="1" y="91" width="729" height="1" uuid="4458d667-4167-4a71-9bee-8a4318e144fb"/>
+			</line>
+			<line>
+				<reportElement x="508" y="44" width="221" height="1" uuid="184fc1fa-3c57-4c89-a34c-1df229f11821"/>
+			</line>
+			<staticText>
+				<reportElement x="539" y="8" width="166" height="29" forecolor="#FF0033" uuid="b7c17ca0-6667-457e-9c86-925a9b42e972"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[QUOTATION]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="514" y="48" width="49" height="19" forecolor="#000000" uuid="9addad92-4f0e-4402-a9f8-77e73e9d8813"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Ref:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="514" y="70" width="49" height="19" forecolor="#000000" uuid="433ae04c-b6d5-442e-8bda-938260d665ce"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Date:]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="568" y="69" width="161" height="20" uuid="b87c54f8-ac10-4a06-a5d8-fa7e62497215"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="9" y="5" width="49" height="19" forecolor="#000000" uuid="ef3b1da6-6a9a-44e1-bc83-8bf84721704e"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[To:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="30" y="24" width="460" height="19" forecolor="#000000" uuid="2d8e17ef-226d-4296-8f75-6cb37ba828b5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="false"/>
+				</textElement>
+				<text><![CDATA[The Principal]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="511" y="96" width="52" height="20" uuid="e9c8d803-70b6-451f-886c-bfe35130b121"/>
+				<textElement textAlignment="Center">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Qty]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="192" y="95" width="100" height="20" uuid="51881be4-4faa-417b-a354-305ab775066d"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Description]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="579" y="96" width="132" height="20" uuid="af8cc4c8-7f57-4ed4-b9d2-27f1c4cdb5ce"/>
+				<textElement textAlignment="Center">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Amount]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="30" y="46" width="460" height="20" uuid="0416185f-5ec4-4027-828d-41a08f0070bf"/>
+				<textElement>
+					<font fontName="Arial" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{institute_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="30" y="67" width="460" height="20" uuid="117f29d7-61c5-4600-8b3d-c4992f83f515"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{address}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="568" y="48" width="160" height="20" uuid="b6f50e09-6b06-4e84-9055-e8d692591429"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{invoice_no}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="-3" y="489" width="49" height="19" forecolor="#000000" uuid="88347b1b-f1c6-4486-aedb-046a09e03126"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="false"/>
+				</textElement>
+			</staticText>
+			<textField>
+				<reportElement x="63" y="126" width="432" height="98" uuid="0ed0b01b-e2ba-4e2c-9bee-d5b28a9c4509"/>
+				<textFieldExpression><![CDATA[$P{title}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="383" y="291" width="73" height="26" forecolor="#000000" uuid="74964730-3bde-4f99-b9e3-366699371972"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[GST ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="386" y="323" width="109" height="26" forecolor="#000000" uuid="3f41bf3d-fc6a-4e50-9f35-c22486d8e8bf"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Grand Total]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="581" y="323" width="139" height="26" uuid="04738d7c-a141-4c03-97c0-175730335da0"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{total_amount}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="580" y="260" width="139" height="24" uuid="89c8f760-b2ee-41aa-a630-a2e59ba207a6"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{amc_amount}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="579" y="291" width="139" height="26" uuid="3f7f5e4d-ff12-401f-8bc2-fc1c204c014a"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{gst_amount}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="582" y="125" width="131" height="20" uuid="fdb50688-83f7-4671-be17-fac1364df3e3"/>
+				<textElement>
+					<font fontName="Arial" size="12" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{amc_amount}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="512" y="125" width="49" height="19" forecolor="#000000" uuid="740ab4c8-3a05-49bb-bd61-8fac12f2b189"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="false"/>
+				</textElement>
+				<text><![CDATA[1]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="383" y="260" width="109" height="26" forecolor="#000000" uuid="a7afff22-7bc7-4580-9b1a-f80301e25be6"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Total
+
+]]></text>
+			</staticText>
+			<line>
+				<reportElement x="569" y="120" width="1" height="232" uuid="c2f432e4-2622-4f1c-94f6-af5ab26b71fe"/>
+			</line>
+			<line>
+				<reportElement x="506" y="120" width="1" height="391" uuid="e0e78a5c-29b1-4bfa-a34d-9b2cfa3059da"/>
+			</line>
+			<line>
+				<reportElement x="729" y="121" width="1" height="390" uuid="3a5e9114-1bda-4bda-9c7a-922a915e5a67"/>
+			</line>
+			<line>
+				<reportElement x="49" y="122" width="1" height="229" uuid="646b3ca6-0266-4a16-b1a1-3982e33ac9f5"/>
+			</line>
+			<line>
+				<reportElement x="1" y="120" width="1" height="389" uuid="fdf5a086-257a-462a-971c-07f440ac9429"/>
+			</line>
+			<staticText>
+				<reportElement x="1" y="126" width="49" height="19" forecolor="#000000" uuid="ef68f80e-d3f2-4984-85c8-58f2826ec45d"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="false"/>
+				</textElement>
+				<text><![CDATA[1]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="456" y="291" width="36" height="26" uuid="68e79c4b-b151-4e12-8712-a236d086ea37"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{gst}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+</jasperReport>

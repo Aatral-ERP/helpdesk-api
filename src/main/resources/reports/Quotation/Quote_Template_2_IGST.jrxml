@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Quote_Template_2_IGST" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="1ba43834-a9df-472b-86ae-048084f46fcd">
+	<property name="ireport.zoom" value="1.0263162364614216"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="26"/>
+	<parameter name="cmp_name" class="java.lang.String"/>
+	<parameter name="cmp_address" class="java.lang.String"/>
+	<parameter name="billing_to" class="java.lang.String"/>
+	<parameter name="shipping_to" class="java.lang.String"/>
+	<parameter name="vailid_until" class="java.lang.String"/>
+	<parameter name="quote_date" class="java.lang.String"/>
+	<parameter name="terms" class="java.lang.String"/>
+	<parameter name="no_of_products" class="java.lang.String"/>
+	<parameter name="quote_no" class="java.lang.String"/>
+	<parameter name="discount" class="java.lang.String"/>
+	<parameter name="cmp_logo_url" class="java.lang.Object"/>
+	<parameter name="bankdetails" class="java.lang.String"/>
+	<parameter name="amount_in_words" class="java.lang.String"/>
+	<parameter name="price_summary_label" class="java.lang.String"/>
+	<parameter name="price_summary_text" class="java.lang.String"/>
+	<parameter name="grand_total" class="java.lang.String"/>
+	<parameter name="roundseal" class="java.lang.Object"/>
+	<parameter name="fullseal" class="java.lang.Object"/>
+	<parameter name="signature" class="java.lang.Object"/>
+	<parameter name="for_label" class="java.lang.String"/>
+	<parameter name="designation" class="java.lang.String"/>
+	<parameter name="online_payment_url" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="name_description" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="quantity" class="java.lang.String"/>
+	<field name="price" class="java.lang.String"/>
+	<field name="gst_percent" class="java.lang.String"/>
+	<field name="gst_amount" class="java.lang.String"/>
+	<field name="discount" class="java.lang.String"/>
+	<field name="total" class="java.lang.String"/>
+	<field name="rate" class="java.lang.String"/>
+	<title>
+		<band height="285" splitType="Stretch">
+			<rectangle>
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="1" width="555" height="283" isPrintWhenDetailOverflows="true" forecolor="#999999" uuid="33e15a21-88ea-4dd1-b54c-812065926c9b"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="0" y="184" width="555" height="18" forecolor="#999999" backcolor="#1979A5" uuid="80ab3e5b-e55f-4b72-aef8-7f1b30243c78"/>
+			</rectangle>
+			<staticText>
+				<reportElement x="12" y="185" width="100" height="17" forecolor="#FFFFFF" uuid="b33f956b-8b67-4691-b7d7-ba4cbc571ff1"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Bill To:]]></text>
+			</staticText>
+			<line>
+				<reportElement x="267" y="185" width="1" height="100" forecolor="#999999" uuid="85bef137-210b-413e-a5ee-296ebbc3dbf6"/>
+			</line>
+			<staticText>
+				<reportElement x="281" y="185" width="100" height="17" forecolor="#FFFFFF" uuid="dd6491ad-3312-47f9-b02d-c3b97dafe0c0"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Ship To:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="397" y="134" width="141" height="22" forecolor="#FF0000" uuid="28aef20c-d733-42dd-b48e-649c36de69e7"/>
+				<textElement textAlignment="Center">
+					<font fontName="Verdana" size="18" isBold="true"/>
+				</textElement>
+				<text><![CDATA[QUOTATION]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="15" y="155" width="91" height="14" uuid="e0cb6b57-262d-416c-b4f0-cc46ff56ac0a"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Verdana" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Valid Until  :  ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="15" y="126" width="91" height="14" uuid="f4d69857-ae4c-4a76-94e5-ac126ac208c3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Verdana" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Quote Number  :  ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="15" y="141" width="91" height="14" uuid="7be735cf-d651-4a0f-a1c7-2696e431b091"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Verdana" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Quote Date  :  ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="92" y="14" width="461" height="28" forecolor="#000099" uuid="2772b562-7e2a-495e-b819-914038dc9695"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="20" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{cmp_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="12" y="208" width="248" height="65" isPrintWhenDetailOverflows="true" uuid="b610a5cc-3aa9-46c4-998b-a49aa9eb3973"/>
+				<textElement verticalAlignment="Top" markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{billing_to}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="279" y="209" width="268" height="65" isPrintWhenDetailOverflows="true" uuid="6fa1b925-97ab-495f-9aa9-671bf2ef7169"/>
+				<textElement verticalAlignment="Top" markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{shipping_to}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="92" y="46" width="460" height="57" isPrintWhenDetailOverflows="true" uuid="5c8660ff-6b05-4051-bdd1-1702bf869d85"/>
+				<textElement textAlignment="Center" markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{cmp_address}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="0" width="555" height="1" forecolor="#B9B9B9" uuid="6399c8d8-e330-44b7-9bc3-0016c342f3ae"/>
+			</line>
+			<image scaleImage="FillFrame">
+				<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="6" y="14" width="82" height="89" uuid="61a92946-4ff4-4117-b53d-7fd7ec193aa3"/>
+				<imageExpression><![CDATA[$P{cmp_logo_url}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="110" y="155" width="124" height="14" uuid="abc603de-ae59-4583-9c0a-1a27806a638f"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{vailid_until}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="110" y="141" width="124" height="14" uuid="268886f6-f154-48b1-9a91-644b9018362f"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{quote_date}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="110" y="126" width="124" height="14" isPrintWhenDetailOverflows="true" uuid="fb5aa4f7-c0b2-4cf9-a09d-2137e9209858"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{quote_no}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="113" width="555" height="1" forecolor="#1979A5" backcolor="#1979A5" uuid="359ca84d-2a6f-43d8-971f-18cab39262ed">
+					<printWhenExpression><![CDATA[$P{terms} != ""]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="2.0" lineStyle="Double" lineColor="#1979A5"/>
+				</graphicElement>
+			</line>
+			<rectangle>
+				<reportElement isPrintRepeatedValues="false" mode="Transparent" x="395" y="136" width="143" height="22" forecolor="#999999" uuid="209635bf-2759-49b1-956a-a75624156ba5"/>
+			</rectangle>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="35" splitType="Stretch">
+			<rectangle>
+				<reportElement x="0" y="0" width="555" height="35" forecolor="#999999" backcolor="#1979A5" uuid="b4fc353c-9429-49ff-a23a-4a3e6dd9a798"/>
+			</rectangle>
+			<staticText>
+				<reportElement x="2" y="2" width="27" height="16" forecolor="#FFFFFF" uuid="e27a5add-f673-4fc0-bb41-9d9d597da437"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[S.No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="36" y="2" width="224" height="16" forecolor="#FFFFFF" uuid="c32ca144-75cc-4d29-8ab7-456426951f20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Item & Description]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="384" y="2" width="27" height="16" forecolor="#FFFFFF" uuid="84d78d78-6dc0-4293-8512-34e6a7e796e2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Qty]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="327" y="2" width="50" height="16" forecolor="#FFFFFF" uuid="e0eb105f-d3eb-4451-ac76-bf8504b5c64e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Price]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="415" y="2" width="74" height="16" forecolor="#FFFFFF" uuid="e01c6d8d-c7ff-48a0-beb3-e04c6a8f293f"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[IGST]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="496" y="2" width="55" height="16" forecolor="#FFFFFF" uuid="94bad7e1-5b83-42a4-9621-32890b336f85"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total]]></text>
+			</staticText>
+			<line>
+				<reportElement x="31" y="0" width="1" height="35" forecolor="#999999" uuid="451a37cd-cd9e-41b6-be84-db7c1467aff9"/>
+			</line>
+			<line>
+				<reportElement x="267" y="0" width="1" height="35" forecolor="#999999" uuid="29e55761-ac9e-4232-bc98-c9c7f0f6f289"/>
+			</line>
+			<line>
+				<reportElement x="324" y="0" width="1" height="35" forecolor="#999999" uuid="8463e0c2-a229-45f7-93e3-fbd5c56b18a2"/>
+			</line>
+			<line>
+				<reportElement x="413" y="0" width="1" height="35" forecolor="#999999" uuid="13627148-13b3-4318-83d6-37db3241a0f6"/>
+			</line>
+			<line>
+				<reportElement x="491" y="0" width="1" height="35" forecolor="#999999" uuid="8796d31c-0574-432f-84c9-456426bdd245"/>
+			</line>
+			<line>
+				<reportElement x="414" y="18" width="77" height="1" forecolor="#999999" uuid="982de8f7-cb2f-4944-b16f-ce88c01e0c69"/>
+			</line>
+			<line>
+				<reportElement x="441" y="19" width="1" height="16" forecolor="#999999" uuid="faafc73f-3f5a-4366-aa52-c4e8d27e802e"/>
+			</line>
+			<staticText>
+				<reportElement x="415" y="19" width="25" height="16" forecolor="#FFFFFF" uuid="9b2c3cdc-0839-49cf-9f5d-414b36ac3d76"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[%]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="444" y="19" width="45" height="16" forecolor="#FFFFFF" uuid="004cfb94-6058-452a-b4e1-db3a5f8d8a1e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Amt]]></text>
+			</staticText>
+			<line>
+				<reportElement x="380" y="0" width="1" height="35" forecolor="#999999" uuid="3e40bc89-5de6-45c7-9c5f-8415b28c27ff"/>
+			</line>
+			<staticText>
+				<reportElement x="270" y="2" width="50" height="16" forecolor="#FFFFFF" uuid="d2c054c9-9aa0-4811-9ea7-84d1b385cf27"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Rate]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="18" splitType="Stretch">
+			<rectangle>
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="555" height="18" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#FFFFFF" uuid="d32a3504-8af8-4eff-b11d-e2fbbdaf6a70"/>
+			</rectangle>
+			<line>
+				<reportElement stretchType="RelativeToBandHeight" x="267" y="0" width="1" height="18" isPrintWhenDetailOverflows="true" forecolor="#999999" uuid="f84a29c3-5b6a-499a-a23d-b77dcd88bec0"/>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToBandHeight" x="413" y="0" width="1" height="18" isPrintWhenDetailOverflows="true" forecolor="#999999" uuid="5403ab29-5360-4f50-bc9d-6611a3143e82"/>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToBandHeight" x="324" y="0" width="1" height="18" isPrintWhenDetailOverflows="true" forecolor="#999999" uuid="5d14f044-5757-4cec-b8cd-a35143396859"/>
+			</line>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="2" y="2" width="27" height="14" isPrintWhenDetailOverflows="true" uuid="81132c00-ac5f-459d-b0fd-ffe86abfdd55"/>
+				<textElement>
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement stretchType="RelativeToBandHeight" x="31" y="0" width="1" height="18" isPrintWhenDetailOverflows="true" forecolor="#999999" uuid="e3d0ca71-df02-4bba-af45-fac8da31c688"/>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToBandHeight" x="491" y="0" width="1" height="18" isPrintWhenDetailOverflows="true" forecolor="#999999" uuid="7de73f4b-352e-4ad6-a3ee-65f1f0e05a32"/>
+			</line>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="34" y="2" width="230" height="14" isPrintWhenDetailOverflows="true" uuid="5fe8aee1-af1c-4aa0-9b93-17ac6de003dd"/>
+				<textElement verticalAlignment="Top" markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{name_description}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="383" y="2" width="27" height="14" isPrintWhenDetailOverflows="true" uuid="a2702234-eef7-41ab-9e72-f6a222ecd3a7"/>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="325" y="2" width="54" height="14" isPrintWhenDetailOverflows="true" uuid="e023d4de-4ec0-487d-952d-cfb3bb2f30ae"/>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{price}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="444" y="2" width="45" height="14" isPrintWhenDetailOverflows="true" uuid="c19401f2-2907-422c-a975-dbf53cf4d5c6"/>
+				<textElement textAlignment="Right" verticalAlignment="Top" markup="none">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{gst_amount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="493" y="2" width="60" height="14" isPrintWhenDetailOverflows="true" uuid="8db11810-5232-4142-9e5d-b139bb3d9e61"/>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{total}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement stretchType="RelativeToBandHeight" x="441" y="0" width="1" height="18" isPrintWhenDetailOverflows="true" forecolor="#999999" uuid="5b46402a-a27a-440f-8557-6517ac7acc92"/>
+			</line>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToBandHeight" x="415" y="2" width="25" height="14" isPrintWhenDetailOverflows="true" uuid="8249da72-0e83-4051-871e-60784c35e99b"/>
+				<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{gst_percent}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement stretchType="RelativeToBandHeight" x="380" y="0" width="1" height="18" isPrintWhenDetailOverflows="true" forecolor="#999999" uuid="35ed6336-55a7-423a-9d89-f2d115fd5564"/>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="269" y="2" width="53" height="14" isPrintWhenDetailOverflows="true" uuid="04e48e11-b36c-4e2d-b7e9-ff06f82c67ea"/>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{rate}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="341">
+			<rectangle>
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="-1" width="555" height="313" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#FFFFFF" uuid="8769b8f6-fdcd-4946-9a81-6e1640308cb0"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="346" y="93" width="205" height="23" forecolor="#999999" backcolor="#E0E0E0" uuid="d9f6a736-dded-4a66-93ea-c56be3a5640c"/>
+			</rectangle>
+			<line>
+				<reportElement x="0" y="119" width="555" height="1" forecolor="#CCCCCC" uuid="a65b5afc-5faf-4e1a-b46e-fa708f68ec91">
+					<printWhenExpression><![CDATA[$P{terms} != ""]]></printWhenExpression>
+				</reportElement>
+			</line>
+			<staticText>
+				<reportElement x="4" y="121" width="229" height="21" uuid="ade5f7da-6b8c-42dc-822e-9c7e374194d2">
+					<printWhenExpression><![CDATA[$P{terms} != ""]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[Terms and Conditions:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="8" y="142" width="318" height="145" isPrintWhenDetailOverflows="true" uuid="ee7872aa-58ed-4748-9ae5-4d1ece613221"/>
+				<textElement markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{terms}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="6" y="68" width="270" height="49" isPrintWhenDetailOverflows="true" uuid="7f297e5f-b11a-4dce-b77d-5be0e8333e3e"/>
+				<textElement markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{bankdetails}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="4" y="56" width="154" height="13" uuid="6548b3f3-2bf0-4de1-838d-ecfc431633c6">
+					<printWhenExpression><![CDATA[$P{bankdetails} != ""]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[Bank Details:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="6" y="12" width="270" height="14" isPrintWhenDetailOverflows="true" uuid="e2f3743c-c3be-4430-9137-63483ede3267"/>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="Verdana" size="8" isBold="true" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{amount_in_words}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="4" y="-1" width="154" height="13" uuid="5764609f-1078-44a8-b40b-e105acdb43f9">
+					<printWhenExpression><![CDATA[$P{amount_in_words} != ""]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[Amount in words:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="466" y="3" width="86" height="14" isPrintWhenDetailOverflows="true" uuid="9b6d62d6-fdd6-45c5-9011-33ea00f273e1"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="Verdana" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{price_summary_text}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="348" y="97" width="102" height="16" uuid="80e305d6-fac0-4e61-a093-b5d1a3b4d22b"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Verdana" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Grand Total : ]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="450" y="97" width="99" height="16" isPrintWhenDetailOverflows="true" uuid="8ea3c23b-063b-4d41-9df4-e52552bad55b"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{grand_total}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="370" y="3" width="96" height="14" isPrintWhenDetailOverflows="true" uuid="8c642aa6-6779-4525-a709-5c2ebdda6331"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="Verdana" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{price_summary_label}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="FillFrame" isUsingCache="true" onErrorType="Blank">
+				<reportElement isPrintRepeatedValues="false" x="277" y="0" width="90" height="80" uuid="0b22466f-7568-428e-9e34-2030b5106dd9"/>
+				<imageExpression><![CDATA[$P{roundseal}]]></imageExpression>
+			</image>
+			<image scaleImage="FillFrame" isUsingCache="false">
+				<reportElement isPrintRepeatedValues="false" x="348" y="227" width="201" height="60" uuid="52bbcc2f-16f3-4d14-ac77-ab53d15ccfba"/>
+				<imageExpression><![CDATA[$P{fullseal}]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement isPrintRepeatedValues="false" x="348" y="214" width="201" height="14" uuid="366e3b67-fea1-41b0-b4a2-c04e3ca9ea7d">
+					<printWhenExpression><![CDATA[$P{terms} != ""]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="false" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Authorised Signatory]]></text>
+			</staticText>
+			<image scaleImage="FillFrame" isUsingCache="false">
+				<reportElement isPrintRepeatedValues="false" x="348" y="142" width="201" height="60" uuid="47991b6d-0a3c-4184-9956-391f2374fae7"/>
+				<imageExpression><![CDATA[$P{signature}]]></imageExpression>
+			</image>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="346" y="125" width="204" height="16" isPrintWhenDetailOverflows="true" uuid="e4144d5a-f898-4001-b4b9-8eb03b35b88b"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{for_label}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="349" y="201" width="200" height="14" isPrintWhenDetailOverflows="true" uuid="c6763c58-9db1-497c-8877-3ef5dc9537de"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{designation}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="4" y="27" width="154" height="13" uuid="ad9528ac-67d7-4c85-9bf2-eb0f2bc9135f">
+					<printWhenExpression><![CDATA[!$P{online_payment_url}.equals( null ) && !$P{online_payment_url}.equals( "" )]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[Online payment Link:]]></text>
+			</staticText>
+			<textField hyperlinkType="Reference" hyperlinkTarget="Blank">
+				<reportElement x="6" y="42" width="270" height="12" forecolor="#000099" uuid="1d7ef497-d5b4-4e78-8ffb-55804c6ff8e5">
+					<printWhenExpression><![CDATA[!$P{online_payment_url}.equals( null ) && !$P{online_payment_url}.equals( "" )]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="Verdana" size="8" isUnderline="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{online_payment_url}]]></textFieldExpression>
+				<anchorNameExpression><![CDATA[$P{online_payment_url}]]></anchorNameExpression>
+				<hyperlinkReferenceExpression><![CDATA[$P{online_payment_url}]]></hyperlinkReferenceExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

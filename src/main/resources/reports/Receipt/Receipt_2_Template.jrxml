@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Invoice_Template_1_IGST" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="1ba43834-a9df-472b-86ae-048084f46fcd">
+	<property name="ireport.zoom" value="1.9487171000000107"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="612"/>
+	<parameter name="cmp_name" class="java.lang.String"/>
+	<parameter name="cmp_address" class="java.lang.String"/>
+	<parameter name="billing_to" class="java.lang.String"/>
+	<parameter name="shipping_to" class="java.lang.String"/>
+	<parameter name="cmp_logo_url" class="java.lang.Object"/>
+	<parameter name="amount_in_words" class="java.lang.String"/>
+	<parameter name="roundseal" class="java.lang.Object"/>
+	<parameter name="fullseal" class="java.lang.Object"/>
+	<parameter name="signature" class="java.lang.Object"/>
+	<parameter name="for_label" class="java.lang.String"/>
+	<parameter name="designation" class="java.lang.String"/>
+	<parameter name="reference_no" class="java.lang.String"/>
+	<parameter name="grand_total" class="java.lang.String"/>
+	<parameter name="invoiceno" class="java.lang.String"/>
+	<parameter name="paymode" class="java.lang.String"/>
+	<parameter name="receipt_no" class="java.lang.String"/>
+	<parameter name="terms" class="java.lang.String"/>
+	<parameter name="payment_date" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="cgst_percent" class="java.lang.String"/>
+	<field name="name_description" class="java.lang.String"/>
+	<field name="quantity" class="java.lang.String"/>
+	<field name="price" class="java.lang.String"/>
+	<field name="sgst_percent" class="java.lang.String"/>
+	<field name="cgst_amount" class="java.lang.String"/>
+	<field name="discount" class="java.lang.String"/>
+	<field name="total" class="java.lang.String"/>
+	<field name="rate" class="java.lang.String"/>
+	<field name="sgst_amount" class="java.lang.String"/>
+	<title>
+		<band height="389" splitType="Stretch">
+			<staticText>
+				<reportElement x="4" y="152" width="100" height="17" uuid="b33f956b-8b67-4691-b7d7-ba4cbc571ff1"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BILL TO]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="3" y="4" width="406" height="44" forecolor="#000000" uuid="2772b562-7e2a-495e-b819-914038dc9695"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{cmp_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="4" y="172" width="218" height="75" isPrintWhenDetailOverflows="true" uuid="b610a5cc-3aa9-46c4-998b-a49aa9eb3973"/>
+				<textElement verticalAlignment="Top" markup="html">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{billing_to}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="2" y="50" width="230" height="68" isPrintWhenDetailOverflows="true" uuid="5c8660ff-6b05-4051-bdd1-1702bf869d85"/>
+				<textElement markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{cmp_address}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="FillFrame">
+				<reportElement stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="420" y="3" width="132" height="115" uuid="61a92946-4ff4-4117-b53d-7fd7ec193aa3"/>
+				<imageExpression><![CDATA[$P{cmp_logo_url}]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="4" y="118" width="194" height="28" forecolor="#FF0000" uuid="aca19dc7-e259-4caa-aff0-cf0735e564e1"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PAYMENT RECEIPT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="419" y="132" width="31" height="14" uuid="8835ecfb-cd55-4098-8cc8-4772f011e108"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[No :  ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="451" y="132" width="100" height="14" uuid="7b1e9f7c-b9e8-4d6f-bf3c-2f7a424a716f"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{receipt_no}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="132" y="275" width="222" height="14" uuid="ea6e6d71-b3f1-42d5-98ff-d5a48f3064d6"/>
+				<textElement>
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{invoiceno}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="7" y="275" width="111" height="14" uuid="e345b55b-35f2-471a-9afe-33f698f6da3a">
+					<printWhenExpression><![CDATA[$P{amount_in_words} != ""]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Invoice No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="7" y="316" width="111" height="14" uuid="3a1052e5-4b19-4982-8dee-750ab7629cf8">
+					<printWhenExpression><![CDATA[$P{amount_in_words} != ""]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Payment Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="7" y="295" width="111" height="14" uuid="7650e0c7-5d1c-41aa-9f1a-bcaaf4100ba1">
+					<printWhenExpression><![CDATA[$P{amount_in_words} != ""]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Reference No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="7" y="336" width="111" height="14" uuid="4e69ea82-fb24-4fcd-a4ea-c28bdc204fda">
+					<printWhenExpression><![CDATA[$P{amount_in_words} != ""]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Payment Mode]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="7" y="358" width="111" height="14" uuid="ec4d8cc5-e286-45e8-bf55-e9195431905b">
+					<printWhenExpression><![CDATA[$P{amount_in_words} != ""]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Amount in words]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement x="373" y="286" width="179" height="85" forecolor="#999999" backcolor="#E0E0E0" uuid="9894f804-ccb6-487f-9b05-970572159065"/>
+			</rectangle>
+			<staticText>
+				<reportElement x="393" y="308" width="138" height="17" uuid="c6c02efa-98ea-4848-abce-4407a3d611fa">
+					<printWhenExpression><![CDATA[$P{amount_in_words} != ""]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="12" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Amount Received
+]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="132" y="358" width="222" height="14" uuid="7a6e4d3c-844c-467a-a767-9a6d0b20740b"/>
+				<textElement>
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{amount_in_words}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="132" y="336" width="222" height="14" uuid="b99fb28a-1f57-447f-a130-34be3ae5d67a"/>
+				<textElement>
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{paymode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="132" y="295" width="222" height="14" uuid="abca8746-266c-4853-b540-1b83dd5d3c4d"/>
+				<textElement>
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{reference_no}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="402" y="327" width="124" height="18" uuid="ffd20c9d-5f1a-48d5-b82b-42bb20258960"/>
+				<textElement textAlignment="Center">
+					<font size="14"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{grand_total}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="132" y="316" width="222" height="14" uuid="306ee0ea-c713-4e08-866a-3079542c110d"/>
+				<textElement>
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{payment_date}]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement mode="Transparent" x="2" y="271" width="360" height="110" forecolor="#999999" backcolor="#E1E1E1" uuid="dad3e7b0-4b75-4bee-a088-ec5af36a11bd"/>
+			</rectangle>
+			<line>
+				<reportElement x="125" y="271" width="1" height="110" forecolor="#999999" uuid="fd1928cb-8b39-4404-b439-b03b5fc3c780"/>
+			</line>
+			<line>
+				<reportElement x="2" y="291" width="360" height="1" forecolor="#999999" uuid="afd93158-e76f-4600-b8f7-3192427badaa"/>
+			</line>
+			<line>
+				<reportElement x="2" y="312" width="360" height="1" forecolor="#999999" uuid="e1389b07-dcac-4542-a91b-723bbfda79ee"/>
+			</line>
+			<line>
+				<reportElement x="2" y="332" width="360" height="1" forecolor="#999999" uuid="211bc0d4-5630-4a3a-a7d8-9e3e992644b7"/>
+			</line>
+			<line>
+				<reportElement x="2" y="353" width="360" height="1" forecolor="#999999" uuid="b98a1924-68b2-4fc9-b46f-4f4e2a9c7654"/>
+			</line>
+		</band>
+	</title>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band splitType="Stretch"/>
+	</detail>
+	<summary>
+		<band height="291">
+			<image scaleImage="FillFrame" isUsingCache="true" onErrorType="Blank">
+				<reportElement isPrintRepeatedValues="false" x="77" y="44" width="82" height="60" uuid="7e16a003-ab05-4af4-8baf-ffdcdd288882"/>
+				<imageExpression><![CDATA[$P{roundseal}]]></imageExpression>
+			</image>
+			<image scaleImage="FillFrame" isUsingCache="false">
+				<reportElement isPrintRepeatedValues="false" x="348" y="91" width="201" height="60" uuid="22b0deb7-f2a0-42d1-b52c-dd210b9de2c8"/>
+				<imageExpression><![CDATA[$P{fullseal}]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement isPrintRepeatedValues="false" x="350" y="79" width="201" height="14" uuid="6404628e-7bfc-40b2-a3ac-3b762a2ce383">
+					<printWhenExpression><![CDATA[$P{terms} != ""]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="false" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Authorised Signatory]]></text>
+			</staticText>
+			<image scaleImage="FillFrame" isUsingCache="false">
+				<reportElement isPrintRepeatedValues="false" x="348" y="6" width="201" height="60" uuid="d2f16767-0134-4751-ba10-f801d6f9fabc"/>
+				<imageExpression><![CDATA[$P{signature}]]></imageExpression>
+			</image>
+			<textField isStretchWithOverflow="true">
+				<reportElement isPrintRepeatedValues="false" x="349" y="65" width="200" height="14" isPrintWhenDetailOverflows="true" uuid="2618658b-5951-4d1f-baad-505e0f99d5c4"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{designation}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="2" y="268" width="555" height="13" isPrintWhenDetailOverflows="true" uuid="2c20aa33-0671-4671-9bf6-22236dd57d22"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[* Computer generated Receipt*]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="164" y="21" width="19" height="4" uuid="ab13a36c-9864-4d30-89ca-e7d59a4faeea"/>
+				<textFieldExpression><![CDATA[$P{terms}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="11" y="174" width="211" height="13" isPrintWhenDetailOverflows="true" uuid="b69e5e45-8146-4f43-9b9a-d6a7b860aefd"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="false" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Cheque payments subject to clearance]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>

@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Quote_Template_1_CGST_SGST" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isIgnorePagination="true" uuid="1ba43834-a9df-472b-86ae-048084f46fcd">
+	<property name="ireport.zoom" value="1.366026910730141"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="204"/>
+	<parameter name="cmp_address" class="java.lang.String"/>
+	<parameter name="cmp_name" class="java.lang.String"/>
+	<parameter name="signature" class="java.lang.Object"/>
+	<parameter name="roundseal" class="java.lang.Object"/>
+	<parameter name="fullseal" class="java.lang.Object"/>
+	<parameter name="logo" class="java.lang.Object"/>
+	<parameter name="month_year_header" class="java.lang.String"/>
+	<parameter name="receipt_no" class="java.lang.String"/>
+	<parameter name="earning_property" class="java.lang.String"/>
+	<parameter name="earning_amount" class="java.lang.String"/>
+	<parameter name="deduction_property" class="java.lang.String"/>
+	<parameter name="deduction_amount" class="java.lang.String"/>
+	<parameter name="gross_earning" class="java.lang.String"/>
+	<parameter name="gross_deduction" class="java.lang.String"/>
+	<parameter name="net_pay" class="java.lang.String"/>
+	<parameter name="amount_in_words" class="java.lang.String"/>
+	<parameter name="employee_id" class="java.lang.String"/>
+	<parameter name="designation" class="java.lang.String"/>
+	<parameter name="bank_name" class="java.lang.String"/>
+	<parameter name="pf_number" class="java.lang.String"/>
+	<parameter name="uan_number" class="java.lang.String"/>
+	<parameter name="employee_name" class="java.lang.String"/>
+	<parameter name="doj" class="java.lang.String"/>
+	<parameter name="bank_acc_no" class="java.lang.String"/>
+	<parameter name="pan_number" class="java.lang.String"/>
+	<parameter name="esic_number" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="earning_property" class="java.lang.String"/>
+	<field name="earning_amount" class="java.lang.String"/>
+	<field name="deduction_property" class="java.lang.String"/>
+	<field name="deduction_amount" class="java.lang.String"/>
+	<title>
+		<band height="232" splitType="Stretch">
+			<textField>
+				<reportElement uuid="d4fbe621-1579-402d-9b98-8bfa40217d9d" x="14" y="102" width="525" height="18"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{month_year_header}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="1c60fd5d-e317-42ae-ad3e-a9a13fdc2122" x="122" y="3" width="417" height="38"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Verdana" size="16" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{cmp_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="9f37dae7-232c-4751-a53f-7282a839251e" stretchType="RelativeToBandHeight" x="122" y="43" width="417" height="57" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{cmp_address}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="FillFrame">
+				<reportElement uuid="55e8fd3d-64f4-48f3-8689-13963bed05a6" x="14" y="3" width="95" height="95"/>
+				<imageExpression><![CDATA[$P{logo}]]></imageExpression>
+			</image>
+			<rectangle>
+				<reportElement uuid="676f153c-72f7-4bab-a638-3a9d7595b7d6" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="122" width="105" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#CCCCCC"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="f930915a-1c29-48d0-ba72-9b30d59f1c7b" stretchType="RelativeToBandHeight" mode="Transparent" x="105" y="122" width="172" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="658b9618-aefe-470c-83e0-0410ccb7900a" stretchType="RelativeToBandHeight" mode="Opaque" x="277" y="122" width="105" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#CCCCCC"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="d336885e-e6f0-4da8-8a53-48ab5991ce8c" stretchType="RelativeToBandHeight" mode="Transparent" x="382" y="122" width="173" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="e438a2fe-1989-4d1f-828b-952ee2bf47df" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="144" width="105" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#CCCCCC"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="e1ceeeeb-afb7-4e4b-b778-6594e91e61b1" stretchType="RelativeToBandHeight" mode="Transparent" x="105" y="144" width="172" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="e837ff7e-e606-4c90-808e-e4801ec14f49" stretchType="RelativeToBandHeight" mode="Opaque" x="277" y="144" width="105" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#CCCCCC"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="4e64cdf7-bc2d-47df-b123-bc73489b210c" stretchType="RelativeToBandHeight" mode="Transparent" x="382" y="144" width="173" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="37264d7f-a97e-4114-94c1-4c84f4c3a088" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="166" width="105" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#CCCCCC"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="cde71c0c-2c8a-4caa-80ef-15ba5b9c0b74" stretchType="RelativeToBandHeight" mode="Transparent" x="105" y="166" width="172" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="d1a242a7-17d8-4b82-be9a-7d2105015b13" stretchType="RelativeToBandHeight" mode="Opaque" x="277" y="166" width="105" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#CCCCCC"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="2e2c1b3e-1ab5-4a50-a878-b1f5304fbb51" stretchType="RelativeToBandHeight" mode="Transparent" x="382" y="166" width="173" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="97f67ef7-8673-47df-aece-757f83023cc3" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="188" width="105" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#CCCCCC"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="e43cc012-ba9e-44a7-a2c1-c3ed80a099a9" stretchType="RelativeToBandHeight" mode="Transparent" x="105" y="188" width="172" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="28284a19-0039-4cf2-91f4-a7b55478ff6f" stretchType="RelativeToBandHeight" mode="Opaque" x="277" y="188" width="105" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#CCCCCC"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="df61a53e-e5ad-4b71-8a6c-23d295bab2e6" stretchType="RelativeToBandHeight" mode="Transparent" x="382" y="188" width="173" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="ac561092-99bd-4cbd-b57a-231680bfb775" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="210" width="105" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#CCCCCC"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="413886d0-1b0d-4707-92c7-78f5ef195e59" stretchType="RelativeToBandHeight" mode="Transparent" x="105" y="210" width="172" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="485bbc5a-e19d-45af-be4b-dd6806bbaba0" stretchType="RelativeToBandHeight" mode="Opaque" x="277" y="210" width="105" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#CCCCCC"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="93ee5574-b2d7-4a5a-a168-cc9501284270" stretchType="RelativeToBandHeight" mode="Transparent" x="382" y="210" width="173" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</rectangle>
+			<staticText>
+				<reportElement uuid="325c43f2-64e5-4ae7-8d73-17bab6948013" x="3" y="125" width="100" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Employee Id ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="0fe1bf8c-2848-434f-addd-64ed11343ef7" x="280" y="125" width="100" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5cc0af42-b725-4b77-a801-77602f0f0acb" x="3" y="146" width="100" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Designation]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b4f0c3ae-725e-49de-ba17-81f599823948" x="280" y="146" width="100" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date Of Joining]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="629f3940-c9bc-4d66-974e-622f982c332b" x="280" y="168" width="100" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Bank Acc. No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="893837ec-2e48-4eb5-9c75-1b669c0d03c8" x="3" y="168" width="100" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Bank]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="00ff6a07-8a0f-4e65-b442-cc6fd18b865a" x="3" y="190" width="100" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PF Number]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="50602f43-76d6-49fb-b645-6a1bd271f1d1" x="3" y="212" width="100" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[UAN Number]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="06c9bd2d-723e-4350-a8b5-268bfa98dc50" x="280" y="190" width="100" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PAN Number]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="4a265449-9c30-4569-9513-20ffa7ea6b61" x="280" y="212" width="100" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ESIC Number]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="6b6f1806-fe2e-4907-b45a-0350181ff007" x="107" y="125" width="168" height="18"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{employee_id}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="beb053c0-0fce-45a5-880e-4886ab0c22a3" x="107" y="146" width="168" height="18"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{designation}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="c6a6adef-bde6-4cc3-974b-fa378281590b" x="107" y="168" width="168" height="18"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{bank_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="26cb4270-4a02-4a9d-8c00-2030030d65f3" x="107" y="190" width="168" height="18"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{pf_number}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="0026b7e8-4c2e-45be-9617-a21b2b96c8c9" x="107" y="212" width="168" height="18"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{uan_number}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="a9a7ab9a-10c1-458d-8c44-8bcd9fcdd952" x="385" y="125" width="168" height="18"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{employee_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="9e8ccb66-60e8-48f1-bdb4-2302b1f8f3ca" x="385" y="146" width="168" height="18"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{doj}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="d11cdb7e-da50-4044-ae49-f3376794221d" x="385" y="168" width="168" height="18"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{bank_acc_no}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="3ea0c7f5-94a2-4534-93e2-bfb3caabb6e4" x="385" y="190" width="168" height="18"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{pan_number}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="f9e402f9-2c54-4187-abe6-871568e884ed" x="385" y="212" width="168" height="18"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{esic_number}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="22" splitType="Stretch">
+			<rectangle>
+				<reportElement uuid="f01cfe94-5bf9-41b4-9d6f-47eb6a432be2" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="0" width="555" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#CCCCCC"/>
+			</rectangle>
+			<line>
+				<reportElement uuid="4812773a-908f-4812-be47-68f521a02af7" stretchType="RelativeToBandHeight" x="277" y="0" width="1" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</line>
+			<staticText>
+				<reportElement uuid="1206139b-2368-4d0c-90a0-3b8fba856863" x="4" y="2" width="170" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Earnings]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="84865101-7c45-4c5b-aed9-597d1d2c8614" x="177" y="2" width="100" height="17"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Amount in Rs.  ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ffcd5a4b-4bfc-4d91-8f8f-db3cda42b4cd" x="281" y="2" width="170" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Deductions]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="9d4cabc3-dfbd-47c3-8b79-dbb85a00e337" x="453" y="2" width="100" height="17"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Amount in Rs.  ]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="51db0255-c424-4998-a254-b3a94390ec46" stretchType="RelativeToBandHeight" x="175" y="0" width="1" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</line>
+			<line>
+				<reportElement uuid="99fce01f-557f-4e88-872e-7b44a27a71e6" stretchType="RelativeToBandHeight" x="450" y="0" width="1" height="22" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="18" splitType="Stretch">
+			<textField>
+				<reportElement uuid="cb3ffa2e-fedf-4310-a8b1-a2fd5e9819ce" x="2" y="1" width="173" height="17" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{earning_property}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="00034170-5de5-4804-9a46-b817a465c13b" x="177" y="1" width="98" height="17" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{earning_amount}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="f74384de-2f11-4846-8852-778b9ae4b0bc" stretchType="RelativeToBandHeight" x="276" y="0" width="1" height="18" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</line>
+			<rectangle>
+				<reportElement uuid="d0a082f6-4278-4fbf-a202-6aec84faa33f" stretchType="RelativeToBandHeight" mode="Transparent" x="0" y="0" width="555" height="18" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#FFFFFF"/>
+			</rectangle>
+			<textField>
+				<reportElement uuid="eca9e226-028e-42d7-ba46-aeb23802111f" x="453" y="1" width="99" height="17" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{deduction_amount}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="86732cba-3423-4eab-85ce-47b394d03606" x="279" y="1" width="173" height="17" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{deduction_property}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="332">
+			<textField>
+				<reportElement uuid="37ed6e7c-ad7d-4839-8a72-102353de4472" x="175" y="0" width="100" height="18" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{gross_earning}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="46be2b7e-bfe9-4fc6-93bc-218f050ae157" stretchType="RelativeToBandHeight" x="276" y="0" width="1" height="18" isPrintWhenDetailOverflows="true" forecolor="#999999"/>
+			</line>
+			<rectangle>
+				<reportElement uuid="97139d2e-4c0a-4c18-b0fb-54fa38efee79" stretchType="RelativeToBandHeight" mode="Transparent" x="0" y="0" width="555" height="18" isPrintWhenDetailOverflows="true" forecolor="#999999" backcolor="#FFFFFF"/>
+			</rectangle>
+			<textField>
+				<reportElement uuid="44f54d5f-77db-4ee5-a367-abfd506b31e6" x="452" y="0" width="103" height="18" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{gross_deduction}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="e691a95c-2b69-4165-b437-b6a91d5b4c04" x="2" y="0" width="170" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Gross Earnings]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="a71b0580-f06e-4fc7-8724-efe490003e2a" x="278" y="1" width="170" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Gross Deductions]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="af53b07a-72dd-4904-9942-1a7ce2414602" x="450" y="18" width="103" height="18" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="Verdana" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{net_pay}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="99f6012d-e476-4ec2-90a4-dd1569fd9da6" x="278" y="19" width="170" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Net Pay]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8f9017d5-0e55-4025-9813-a665b0c51f5e" x="4" y="23" width="229" height="14"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Verdana" size="10" isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[Amount in words:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="025c1652-3568-44f2-b2bf-1f3f793fa577" stretchType="RelativeToBandHeight" x="7" y="37" width="268" height="14" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="Verdana" size="8" isBold="true" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{amount_in_words}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="FillFrame" isUsingCache="false" onErrorType="Blank">
+				<reportElement uuid="555c2780-1511-435d-b389-e7dc5fbe8edd" positionType="FixRelativeToBottom" x="206" y="58" width="90" height="90" isPrintWhenDetailOverflows="true"/>
+				<imageExpression><![CDATA[$P{roundseal}]]></imageExpression>
+			</image>
+			<image scaleImage="FillFrame">
+				<reportElement uuid="b49bc0af-ce70-4b16-a5f0-86b871984bff" positionType="FixRelativeToBottom" x="328" y="88" width="201" height="60" isPrintWhenDetailOverflows="true"/>
+				<imageExpression><![CDATA[$P{signature}]]></imageExpression>
+			</image>
+		</band>
+	</columnFooter>
+</jasperReport>
