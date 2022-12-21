@@ -23,6 +23,4 @@ public interface TaskRepository extends JpaRepository<Task, Integer> {
 
 	Task findByTaskId(int taskId);
 
-	List<Task> findByFeatureId(Integer featureId);
-
 }

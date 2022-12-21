@@ -25,6 +25,7 @@ import com.autolib.helpdesk.Accounting.model.AccountBankStatementReq;
 import com.autolib.helpdesk.Accounting.model.AccountCategory;
 import com.autolib.helpdesk.Accounting.model.AccountStatementRequest;
 import com.autolib.helpdesk.Accounting.model.AccountingReportRequest;
+import com.autolib.helpdesk.Accounting.model.AmcReportRequest;
 import com.autolib.helpdesk.Accounting.model.IncomeExpense;
 import com.autolib.helpdesk.Accounting.model.IncomeExpenseRequest;
 import com.autolib.helpdesk.Accounting.model.LetterPad;
@@ -35,6 +36,7 @@ import com.autolib.helpdesk.Accounting.repository.LetterpadRepository;
 import com.autolib.helpdesk.Agents.entity.Agent;
 import com.autolib.helpdesk.Agents.entity.AgentLedger;
 import com.autolib.helpdesk.Agents.entity.InfoDetails;
+import com.autolib.helpdesk.Agents.entity.Product;
 import com.autolib.helpdesk.Agents.entity.Vendor;
 import com.autolib.helpdesk.Agents.repository.AgentLedgerRepository;
 import com.autolib.helpdesk.Agents.repository.AgentRepository;
@@ -42,17 +44,14 @@ import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
 import com.autolib.helpdesk.Agents.repository.VendorRepository;
 import com.autolib.helpdesk.Institutes.model.Institute;
 import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
-import com.autolib.helpdesk.Sales.model.DealProducts;
 import com.autolib.helpdesk.common.Util;
 
-import net.sf.jasperreports.engine.JRExporterParameter;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.engine.export.JRRtfExporter;
 
 @Repository
 public class AccountingDAOImpl implements AccountingDAO {
@@ -80,19 +79,19 @@ public class AccountingDAOImpl implements AccountingDAO {
 
 	@Value("${al.ticket.content-path}")
 	private String contentPath;
-	
+
 	@Autowired
 	LetterpadRepository letterpadRepo;
-	
-	@Autowired	
+
+	@Autowired
 	InfoDetailsRepository infoDetailRepo;
-	
+
 	@Autowired
 	InstituteRepository instRepo;
-	
+
 	@Value("${al.letterpad.cmpInstituteName}")
 	private String cmp;
-	
+
 	@Override
 	public Map<String, Object> getAccountingDashboardData() {
 		Map<String, Object> resp = new HashMap<>();
@@ -480,7 +479,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 
 		Map<String, Object> respMap = new HashMap<>();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-		
+
 //		request.setTransactionDate(sdf.format(request.getTransactionDate()));
 //		request.setPostDate(sdf.format(request.getPostDate()));
 
@@ -506,7 +505,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 
 			if (!req.getRefNo().isEmpty() && req.getRefNo() != null) {
 				filterQuery = filterQuery + " and bs.refNo like '%" + req.getRefNo() + "%'";
- 		}
+			}
 
 			if (!req.getDescription().isEmpty() && req.getDescription() != null) {
 				filterQuery = filterQuery + " and bs.description like '%" + req.getDescription() + "%'";
@@ -531,15 +530,12 @@ public class AccountingDAOImpl implements AccountingDAO {
 		return resp;
 	}
 
-
-	
-
 	@Override
 	public Map<String, Object> saveLetterPad(LetterPad letterpad) {
-		Map<String ,Object> respMap = new HashMap<>();
-		
+		Map<String, Object> respMap = new HashMap<>();
+
 		try {
-			
+
 //			if (letterpad.getSubject() == null || letterpad.getSubject().isEmpty())
 //				respMap.putAll(Util.invalidMessage("Subject Cannot be empty..!!"));
 //			if (letterpad.getContent() == null || letterpad.getContent().isEmpty())
@@ -550,16 +546,15 @@ public class AccountingDAOImpl implements AccountingDAO {
 //				respMap.putAll(Util.invalidMessage("Address Cannot be empty..!!"));
 //			
 //			else {
-			
-			    //letterpad.getInstitute().setInstituteId("5555709");
 
-				letterpad = letterpadRepo.save(letterpad);
-				respMap.put("letterpad", letterpad);
-				respMap.putAll(Util.SuccessResponse());			
-		//	}
-			
-		}catch(Exception ex)
-		{
+			// letterpad.getInstitute().setInstituteId("5555709");
+
+			letterpad = letterpadRepo.save(letterpad);
+			respMap.put("letterpad", letterpad);
+			respMap.putAll(Util.SuccessResponse());
+			// }
+
+		} catch (Exception ex) {
 			respMap.putAll(Util.FailedResponse(ex.getMessage()));
 			ex.printStackTrace();
 		}
@@ -568,20 +563,19 @@ public class AccountingDAOImpl implements AccountingDAO {
 
 	@Override
 	public Map<String, Object> getLetterPad(int id) {
-		Map<String,Object> respMap = new HashMap<>();
+		Map<String, Object> respMap = new HashMap<>();
 		LetterPad letterpad = new LetterPad();
 		Institute inst = new Institute();
 		try {
-			
+
 			letterpad = letterpadRepo.findById(id);
 			inst = instRepo.findByInstituteId(letterpad.getInstitute().getInstituteId());
-			
+
 			respMap.put("letterpad", letterpad);
 			respMap.put("institute", inst);
-			respMap.putAll(Util.SuccessResponse());	
-			
-		}catch(Exception ex)
-		{
+			respMap.putAll(Util.SuccessResponse());
+
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 		return respMap;
@@ -598,8 +592,9 @@ public class AccountingDAOImpl implements AccountingDAO {
 
 			InputStream stream = null;
 
-		//	stream = this.getClass().getResourceAsStream("/reports/Letter_Pad/LetterPad_Template2.jrxml");
-			
+			// stream =
+			// this.getClass().getResourceAsStream("/reports/Letter_Pad/LetterPad_Template2.jrxml");
+
 			stream = this.getClass().getResourceAsStream("/reports/Letter_Pad/LetterPad_Template1.jrxml");
 
 			final Map<String, Object> parameters = new HashMap<>();
@@ -607,111 +602,111 @@ public class AccountingDAOImpl implements AccountingDAO {
 			System.out.println("Email Id:::::::" + letterpadReq.getSignatureBy());
 
 			InfoDetails info = infoDetailRepo.findById(1);
-			
+
 			lp = letterpadRepo.findById(letterpadReq.getId());
 			letterpadReq.setLetterpad(letterpadRepo.findById(letterpadReq.getId()));
 			Agent agent = agentRepo.findByEmailId(letterpadReq.getSignatureBy());
 			Institute inst = instRepo.findByInstituteId(lp.getInstitute().getInstituteId());
 
 			System.out.println(info.toString());
-			
-			System.out.println("LetterPad Data::::::::"+letterpadReq.getLetterpad());
-			
-			
+
+			System.out.println("LetterPad Data::::::::" + letterpadReq.getLetterpad());
+
 			parameters.put("cmp_logo_footer", info.getLogoAsFile());
 			parameters.put("background_image", info.getBackgroundImageAsFile());
 			parameters.put("cmp_logo_url", letterpadReq.isAddLogo() ? info.getLogoAsFile() : null);
 			parameters.put("roundseal", letterpadReq.isAddRoundSeal() ? info.getRoundSealAsFile() : null);
 			parameters.put("fullseal", letterpadReq.isAddFullSeal() ? info.getFullSealAsFile() : null);
-			parameters.put("signature",letterpadReq.isAddSign() ? agent.getSignatureAsFile() : null);
-			parameters.put("letterpad_no", "Reference No :  2CQR/"+letterpadReq.getId());
-			
-			//parameters.put("header_label", letterpadReq.isAddRoundSeal() ? info.getRoundSealAsFile() : null);
+			parameters.put("signature", letterpadReq.isAddSign() ? agent.getSignatureAsFile() : null);
+			parameters.put("letterpad_no", "Reference No :  2CQR/" + letterpadReq.getId());
+
+			// parameters.put("header_label", letterpadReq.isAddRoundSeal() ?
+			// info.getRoundSealAsFile() : null);
 			parameters.put("designation", letterpadReq.getDesignation());
 
 			parameters.put("cmp_name", info.getCmpName());
-			
-			String website_template="";
-			
-			if(!info.getCmpWebsiteUrl().equals("") && !info.getCmpWebsiteUrl().equals(null)  )
-			{
-				website_template=website_template+info.getCmpWebsiteUrl()+"<br>";
+
+			String website_template = "";
+
+			if (!info.getCmpWebsiteUrl().equals("") && !info.getCmpWebsiteUrl().equals(null)) {
+				website_template = website_template + info.getCmpWebsiteUrl() + "<br>";
 			}
-			if(!info.getCmpEmail().equals("") && !info.getCmpEmail().equals(null)  )
-			{
-				website_template=website_template+info.getCmpEmail()+"<br>";
+			if (!info.getCmpEmail().equals("") && !info.getCmpEmail().equals(null)) {
+				website_template = website_template + info.getCmpEmail() + "<br>";
 			}
-			if(!info.getCmpPhone().equals("") && !info.getCmpPhone().equals(null)  )
-			{
-				website_template=website_template+info.getCmpPhone()+"/";
+			if (!info.getCmpPhone().equals("") && !info.getCmpPhone().equals(null)) {
+				website_template = website_template + info.getCmpPhone() + "/";
 			}
-			if(!info.getCmpLandLine().equals("") && !info.getCmpLandLine().equals(null)  )
-			{
-				website_template=website_template+info.getCmpLandLine()+"";
+			if (!info.getCmpLandLine().equals("") && !info.getCmpLandLine().equals(null)) {
+				website_template = website_template + info.getCmpLandLine() + "";
 			}
-			
-			
+
 			parameters.put("cmp_website", website_template);
 			parameters.put("cmp_address", info.getCompanyAddressHTML1());
-			
 
-	        parameters.put("date", "Date : "
-			+ Util.sdfFormatter(letterpadReq.getLetterpad().getLetterPadDate(), "dd-MM-yyyy"));
-			
-	        
-	        String toaddress_label = "To :"+"<br><br>";
-	        if(!letterpadReq.getLetterpad().getBillingTo().equals("")&&!letterpadReq.getLetterpad().getBillingTo().equals(null)) {
+			parameters.put("date",
+					"Date : " + Util.sdfFormatter(letterpadReq.getLetterpad().getLetterPadDate(), "dd-MM-yyyy"));
 
-	        	toaddress_label = toaddress_label+letterpadReq.getLetterpad().getBillingTo()+",<br>";
-	        }
-	        if(!inst.getInstituteName().equals("")&&!inst.getInstituteName().equals(null)) {
+			String toaddress_label = "To :" + "<br><br>";
+			if (!letterpadReq.getLetterpad().getBillingTo().equals("")
+					&& !letterpadReq.getLetterpad().getBillingTo().equals(null)) {
 
-	        	toaddress_label = toaddress_label+inst.getInstituteName()+",";
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingStreet1().equals("")&& !letterpadReq.getLetterpad().getBillingStreet1().equals(null)) {
+				toaddress_label = toaddress_label + letterpadReq.getLetterpad().getBillingTo() + ",<br>";
+			}
+			if (!inst.getInstituteName().equals("") && !inst.getInstituteName().equals(null)) {
 
-	        	toaddress_label = toaddress_label+"<br>"+letterpadReq.getLetterpad().getBillingStreet1();
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingStreet2().equals("")&&!letterpadReq.getLetterpad().getBillingStreet2().equals(null)) {
+				toaddress_label = toaddress_label + inst.getInstituteName() + ",";
+			}
+			if (!letterpadReq.getLetterpad().getBillingStreet1().equals("")
+					&& !letterpadReq.getLetterpad().getBillingStreet1().equals(null)) {
 
-	        	toaddress_label = toaddress_label+","+letterpadReq.getLetterpad().getBillingStreet2()+",";
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingCity().equals("")&&!letterpadReq.getLetterpad().getBillingCity().equals(null)) {
+				toaddress_label = toaddress_label + "<br>" + letterpadReq.getLetterpad().getBillingStreet1();
+			}
+			if (!letterpadReq.getLetterpad().getBillingStreet2().equals("")
+					&& !letterpadReq.getLetterpad().getBillingStreet2().equals(null)) {
 
-	        	toaddress_label = toaddress_label+"<br>"+letterpadReq.getLetterpad().getBillingCity()+",";
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingState().equals("")&&!letterpadReq.getLetterpad().getBillingState().equals(null)) {
+				toaddress_label = toaddress_label + "," + letterpadReq.getLetterpad().getBillingStreet2() + ",";
+			}
+			if (!letterpadReq.getLetterpad().getBillingCity().equals("")
+					&& !letterpadReq.getLetterpad().getBillingCity().equals(null)) {
 
-	        	toaddress_label = toaddress_label+"<br>"+letterpadReq.getLetterpad().getBillingState();
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingCountry().equals("")&&!letterpadReq.getLetterpad().getBillingCountry().equals(null)) {
+				toaddress_label = toaddress_label + "<br>" + letterpadReq.getLetterpad().getBillingCity() + ",";
+			}
+			if (!letterpadReq.getLetterpad().getBillingState().equals("")
+					&& !letterpadReq.getLetterpad().getBillingState().equals(null)) {
 
-	        	toaddress_label = toaddress_label+","+letterpadReq.getLetterpad().getBillingCountry();
-	        }
-	        
-	        if(!letterpadReq.getLetterpad().getBillingZIPCode().equals("")&&!letterpadReq.getLetterpad().getBillingZIPCode().equals(null)) {
+				toaddress_label = toaddress_label + "<br>" + letterpadReq.getLetterpad().getBillingState();
+			}
+			if (!letterpadReq.getLetterpad().getBillingCountry().equals("")
+					&& !letterpadReq.getLetterpad().getBillingCountry().equals(null)) {
 
-	        	toaddress_label = toaddress_label+","+letterpadReq.getLetterpad().getBillingZIPCode();
-	        }
+				toaddress_label = toaddress_label + "," + letterpadReq.getLetterpad().getBillingCountry();
+			}
 
-	      //  parameters.put("toaddress", toaddress_label);
-	      //  parameters.put("subject", "Sub: " + letterpadReq.getLetterpad().getSubject());
-		//	parameters.put("content", letterpadReq.getLetterpad().getContent().replaceAll("\n", "<br>"));			
-		
-			
+			if (!letterpadReq.getLetterpad().getBillingZIPCode().equals("")
+					&& !letterpadReq.getLetterpad().getBillingZIPCode().equals(null)) {
+
+				toaddress_label = toaddress_label + "," + letterpadReq.getLetterpad().getBillingZIPCode();
+			}
+
+			// parameters.put("toaddress", toaddress_label);
+			// parameters.put("subject", "Sub: " +
+			// letterpadReq.getLetterpad().getSubject());
+			// parameters.put("content",
+			// letterpadReq.getLetterpad().getContent().replaceAll("\n", "<br>"));
+
 			String contentLabel = "";
-	        contentLabel = contentLabel + toaddress_label+"<br><br>Sub: " + letterpadReq.getLetterpad().getSubject()+"";
-	        contentLabel = contentLabel +"<br><br>"+letterpadReq.getLetterpad().getContent().replaceAll("\n", "<br>");
-	        
-			
-			
+			contentLabel = contentLabel + toaddress_label + "<br><br>Sub: " + letterpadReq.getLetterpad().getSubject()
+					+ "";
+			contentLabel = contentLabel + "<br><br>"
+					+ letterpadReq.getLetterpad().getContent().replaceAll("\n", "<br>");
+
 			parameters.put("content", contentLabel);
-			
-			
+
 			parameters.put("thanks", "Thanking You");
-			parameters.put("header_label", letterpadReq.isAddLetterHead()? letterpadReq.getHeader() : "LETTERPAD");
-			parameters.put("regards",agent.getFirstName()+" "+ agent.getLastName() + "<br>" +letterpadReq.getDesignation()+"<br>"+info.getCmpName());
-		
+			parameters.put("header_label", letterpadReq.isAddLetterHead() ? letterpadReq.getHeader() : "LETTERPAD");
+			parameters.put("regards", agent.getFirstName() + " " + agent.getLastName() + "<br>"
+					+ letterpadReq.getDesignation() + "<br>" + info.getCmpName());
 
 			System.out.println(parameters.toString());
 
@@ -752,8 +747,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 		resp.put("Letterpad", letterpadReq.getLetterpad());
 		return resp;
 	}
-	
-	
+
 	public Map<String, Object> getLetterpadReportPdfTemplate2(LetterpadRequest letterpadReq) {
 		Map<String, Object> resp = new HashMap<>();
 		LetterPad lp = new LetterPad();
@@ -764,8 +758,9 @@ public class AccountingDAOImpl implements AccountingDAO {
 
 			InputStream stream = null;
 
-		//	stream = this.getClass().getResourceAsStream("/reports/Letter_Pad/LetterPad_Template2.jrxml");
-			
+			// stream =
+			// this.getClass().getResourceAsStream("/reports/Letter_Pad/LetterPad_Template2.jrxml");
+
 			stream = this.getClass().getResourceAsStream("/reports/Letter_Pad/LetterPad_Template2.jrxml");
 
 			final Map<String, Object> parameters = new HashMap<>();
@@ -773,113 +768,110 @@ public class AccountingDAOImpl implements AccountingDAO {
 			System.out.println("Email Id:::::::" + letterpadReq.getSignatureBy());
 
 			InfoDetails info = infoDetailRepo.findById(1);
-			
+
 			lp = letterpadRepo.findById(letterpadReq.getId());
 			letterpadReq.setLetterpad(letterpadRepo.findById(letterpadReq.getId()));
 			Agent agent = agentRepo.findByEmailId(letterpadReq.getSignatureBy());
 			Institute inst = instRepo.findByInstituteId(lp.getInstitute().getInstituteId());
 
 			System.out.println(info.toString());
-			
-			System.out.println("LetterPad Data::::::::"+letterpadReq.getLetterpad());
-			
-			
+
+			System.out.println("LetterPad Data::::::::" + letterpadReq.getLetterpad());
+
 			parameters.put("cmp_logo_footer", info.getLogoAsFile());
 			parameters.put("cmp_logo_url", letterpadReq.isAddLogo() ? info.getLogoAsFile() : null);
 			parameters.put("roundseal", letterpadReq.isAddRoundSeal() ? info.getRoundSealAsFile() : null);
 			parameters.put("fullseal", letterpadReq.isAddFullSeal() ? info.getFullSealAsFile() : null);
-			parameters.put("signature",letterpadReq.isAddSign() ? agent.getSignatureAsFile() : null);
-			parameters.put("letterpad_no", "Reference No :  AL/"+letterpadReq.getId());
-			
-			//parameters.put("header_label", letterpadReq.isAddRoundSeal() ? info.getRoundSealAsFile() : null);
+			parameters.put("signature", letterpadReq.isAddSign() ? agent.getSignatureAsFile() : null);
+			parameters.put("letterpad_no", "Reference No :  AL/" + letterpadReq.getId());
+
+			// parameters.put("header_label", letterpadReq.isAddRoundSeal() ?
+			// info.getRoundSealAsFile() : null);
 			parameters.put("designation", letterpadReq.getDesignation());
 
 			parameters.put("cmp_name", info.getCmpName());
-			
-			String website_template="";
-			
-			if(!info.getCmpWebsiteUrl().equals("") && !info.getCmpWebsiteUrl().equals(null)  )
-			{
-				website_template=website_template+info.getCmpWebsiteUrl()+"<br>";
+
+			String website_template = "";
+
+			if (!info.getCmpWebsiteUrl().equals("") && !info.getCmpWebsiteUrl().equals(null)) {
+				website_template = website_template + info.getCmpWebsiteUrl() + "<br>";
 			}
-			if(!info.getCmpEmail().equals("") && !info.getCmpEmail().equals(null)  )
-			{
-				website_template=website_template+info.getCmpEmail()+"<br>";
+			if (!info.getCmpEmail().equals("") && !info.getCmpEmail().equals(null)) {
+				website_template = website_template + info.getCmpEmail() + "<br>";
 			}
-			if(!info.getCmpPhone().equals("") && !info.getCmpPhone().equals(null)  )
-			{
-				website_template=website_template+info.getCmpPhone()+"/";
+			if (!info.getCmpPhone().equals("") && !info.getCmpPhone().equals(null)) {
+				website_template = website_template + info.getCmpPhone() + "/";
 			}
-			if(!info.getCmpLandLine().equals("") && !info.getCmpLandLine().equals(null)  )
-			{
-				website_template=website_template+info.getCmpLandLine()+"";
+			if (!info.getCmpLandLine().equals("") && !info.getCmpLandLine().equals(null)) {
+				website_template = website_template + info.getCmpLandLine() + "";
 			}
-			
-			
+
 			parameters.put("cmp_website", website_template);
 			parameters.put("cmp_address", info.getCompanyAddressHTML1());
-			
 
-	        parameters.put("date", "Date : "
-			+ Util.sdfFormatter(letterpadReq.getLetterpad().getLetterPadDate(), "dd-MM-yyyy"));
-			
-	        
-	        String toaddress_label = "To :"+"<br><br>";
-	        if(!letterpadReq.getLetterpad().getBillingTo().equals("")&&!letterpadReq.getLetterpad().getBillingTo().equals(null)) {
+			parameters.put("date",
+					"Date : " + Util.sdfFormatter(letterpadReq.getLetterpad().getLetterPadDate(), "dd-MM-yyyy"));
 
-	        	toaddress_label = toaddress_label+letterpadReq.getLetterpad().getBillingTo()+",<br>";
-	        }
-	        if(!inst.getInstituteName().equals("")&&!inst.getInstituteName().equals(null)) {
+			String toaddress_label = "To :" + "<br><br>";
+			if (!letterpadReq.getLetterpad().getBillingTo().equals("")
+					&& !letterpadReq.getLetterpad().getBillingTo().equals(null)) {
 
-	        	toaddress_label = toaddress_label+inst.getInstituteName()+",";
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingStreet1().equals("")&& !letterpadReq.getLetterpad().getBillingStreet1().equals(null)) {
+				toaddress_label = toaddress_label + letterpadReq.getLetterpad().getBillingTo() + ",<br>";
+			}
+			if (!inst.getInstituteName().equals("") && !inst.getInstituteName().equals(null)) {
 
-	        	toaddress_label = toaddress_label+"<br>"+letterpadReq.getLetterpad().getBillingStreet1();
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingStreet2().equals("")&&!letterpadReq.getLetterpad().getBillingStreet2().equals(null)) {
+				toaddress_label = toaddress_label + inst.getInstituteName() + ",";
+			}
+			if (!letterpadReq.getLetterpad().getBillingStreet1().equals("")
+					&& !letterpadReq.getLetterpad().getBillingStreet1().equals(null)) {
 
-	        	toaddress_label = toaddress_label+","+letterpadReq.getLetterpad().getBillingStreet2()+",";
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingCity().equals("")&&!letterpadReq.getLetterpad().getBillingCity().equals(null)) {
+				toaddress_label = toaddress_label + "<br>" + letterpadReq.getLetterpad().getBillingStreet1();
+			}
+			if (!letterpadReq.getLetterpad().getBillingStreet2().equals("")
+					&& !letterpadReq.getLetterpad().getBillingStreet2().equals(null)) {
 
-	        	toaddress_label = toaddress_label+"<br>"+letterpadReq.getLetterpad().getBillingCity()+",";
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingState().equals("")&&!letterpadReq.getLetterpad().getBillingState().equals(null)) {
+				toaddress_label = toaddress_label + "," + letterpadReq.getLetterpad().getBillingStreet2() + ",";
+			}
+			if (!letterpadReq.getLetterpad().getBillingCity().equals("")
+					&& !letterpadReq.getLetterpad().getBillingCity().equals(null)) {
 
-	        	toaddress_label = toaddress_label+"<br>"+letterpadReq.getLetterpad().getBillingState();
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingCountry().equals("")&&!letterpadReq.getLetterpad().getBillingCountry().equals(null)) {
+				toaddress_label = toaddress_label + "<br>" + letterpadReq.getLetterpad().getBillingCity() + ",";
+			}
+			if (!letterpadReq.getLetterpad().getBillingState().equals("")
+					&& !letterpadReq.getLetterpad().getBillingState().equals(null)) {
 
-	        	toaddress_label = toaddress_label+","+letterpadReq.getLetterpad().getBillingCountry();
-	        }
-	        
-	        if(!letterpadReq.getLetterpad().getBillingZIPCode().equals("")&&!letterpadReq.getLetterpad().getBillingZIPCode().equals(null)) {
+				toaddress_label = toaddress_label + "<br>" + letterpadReq.getLetterpad().getBillingState();
+			}
+			if (!letterpadReq.getLetterpad().getBillingCountry().equals("")
+					&& !letterpadReq.getLetterpad().getBillingCountry().equals(null)) {
 
-	        	toaddress_label = toaddress_label+","+letterpadReq.getLetterpad().getBillingZIPCode();
-	        }
-	        
-	        
-	        
-	        
-	        //parameters.put("toaddress", toaddress_label);
-	        //parameters.put("subject", "Sub: " + letterpadReq.getLetterpad().getSubject());
-	        //parameters.put("content", letterpadReq.getLetterpad().getContent().replaceAll("\n", "<br>"));
-	        
-	        String contentLabel = "";
-	        contentLabel = contentLabel + toaddress_label+"<br><br>Sub: " + letterpadReq.getLetterpad().getSubject()+"";
-	        contentLabel = contentLabel +"<br><br>"+letterpadReq.getLetterpad().getContent().replaceAll("\n", "<br>");
-	        
-			
-			
+				toaddress_label = toaddress_label + "," + letterpadReq.getLetterpad().getBillingCountry();
+			}
+
+			if (!letterpadReq.getLetterpad().getBillingZIPCode().equals("")
+					&& !letterpadReq.getLetterpad().getBillingZIPCode().equals(null)) {
+
+				toaddress_label = toaddress_label + "," + letterpadReq.getLetterpad().getBillingZIPCode();
+			}
+
+			// parameters.put("toaddress", toaddress_label);
+			// parameters.put("subject", "Sub: " +
+			// letterpadReq.getLetterpad().getSubject());
+			// parameters.put("content",
+			// letterpadReq.getLetterpad().getContent().replaceAll("\n", "<br>"));
+
+			String contentLabel = "";
+			contentLabel = contentLabel + toaddress_label + "<br><br>Sub: " + letterpadReq.getLetterpad().getSubject()
+					+ "";
+			contentLabel = contentLabel + "<br><br>"
+					+ letterpadReq.getLetterpad().getContent().replaceAll("\n", "<br>");
+
 			parameters.put("content", contentLabel);
-		
-			
-			
+
 			parameters.put("thanks", "Thanking You");
-			parameters.put("header_label", letterpadReq.isAddLetterHead()? letterpadReq.getHeader() : "LETTERPAD");
-			parameters.put("regards",agent.getFirstName()+" "+ agent.getLastName() + "<br>" +letterpadReq.getDesignation()+"<br>"+info.getCmpName());
-		
+			parameters.put("header_label", letterpadReq.isAddLetterHead() ? letterpadReq.getHeader() : "LETTERPAD");
+			parameters.put("regards", agent.getFirstName() + " " + agent.getLastName() + "<br>"
+					+ letterpadReq.getDesignation() + "<br>" + info.getCmpName());
 
 			System.out.println(parameters.toString());
 
@@ -923,47 +915,44 @@ public class AccountingDAOImpl implements AccountingDAO {
 
 	@Override
 	public Map<String, Object> deleteLetterPad(LetterPad letterpad) {
-		
-		Map<String ,Object> respMap = new HashMap<>();
+
+		Map<String, Object> respMap = new HashMap<>();
 		try {
-			
+
 			letterpadRepo.delete(letterpad);
 			respMap.putAll(Util.SuccessResponse());
 		} catch (Exception e) {
 			respMap.putAll(Util.FailedResponse(e.getMessage()));
 			e.printStackTrace();
 		}
-		
+
 		return respMap;
 	}
 
-
 	public Map<String, Object> getAllLetterPad(LetterpadRequest req) {
-		Map<String,Object> respMap = new HashMap<>();
+		Map<String, Object> respMap = new HashMap<>();
 		List<LetterPad> list = new ArrayList<>();
 		List<Map<String, Object>> categoryList = new ArrayList<>();
 		try {
-			
-			
+
 			String filterQuery = "";
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-
 			if (req.getInstitutes().size() > 0 && req.getInstitutes() != null) {
-				
+
 				String instituteIds = "'0'";
 				for (Institute inst : req.getInstitutes()) {
 					instituteIds = instituteIds + ",'" + inst.getInstituteId() + "'";
 				}
 				filterQuery = filterQuery + " and i.institute_id in (" + instituteIds + ") ";
 			}
-			
-			if (req.getId()!=0) {
-				filterQuery = filterQuery + " and lp.id ='"+req.getId()+"'";
+
+			if (req.getId() != 0) {
+				filterQuery = filterQuery + " and lp.id ='" + req.getId() + "'";
 			}
-			
+
 			if (!req.getSubject().isEmpty() && req.getSubject() != null) {
-				filterQuery = filterQuery + " and lp.subject like '"+req.getSubject()+"%'";
+				filterQuery = filterQuery + " and lp.subject like '" + req.getSubject() + "%'";
 			}
 
 			if (req.getLatterpadDateFrom() != null && req.getLatterpadDateTo() != null) {
@@ -972,24 +961,18 @@ public class AccountingDAOImpl implements AccountingDAO {
 			}
 
 			System.out.println(":::FilterQuery::" + filterQuery);
-			
-			
-			categoryList = jdbcTemp.queryForList("SELECT lp.id AS id,lp.subject AS SUBJECT,lp.content AS content,lp.date AS DATE,lp.file_name AS file_name,i.institute_id AS institute_id,i.institute_name AS institute_name FROM letterpad lp JOIN institutes i ON(lp.institute_id = i.institute_id) WHERE 2>1 "+filterQuery);
+
+			categoryList = jdbcTemp.queryForList(
+					"SELECT lp.id AS id,lp.subject AS SUBJECT,lp.content AS content,lp.date AS DATE,lp.file_name AS file_name,i.institute_id AS institute_id,i.institute_name AS institute_name FROM letterpad lp JOIN institutes i ON(lp.institute_id = i.institute_id) WHERE 2>1 "
+							+ filterQuery+" ORDER BY lp.id DESC");
 
 //			Query query = em.createQuery("Select lp from letterpad lp where 2>1" + filterQuery);
-    		respMap.put("letterpadData", categoryList);
+			respMap.put("letterpadData", categoryList);
 			respMap.putAll(Util.SuccessResponse());
-			
-			
-			
-			
-     	//	list = letterpadRepo.findAll();
-     		
-     		
-			
-		}
-		catch(Exception ex)
-		{
+
+			// list = letterpadRepo.findAll();
+
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			respMap.putAll(Util.FailedResponse(ex.getMessage()));
 		}
@@ -1039,8 +1022,9 @@ public class AccountingDAOImpl implements AccountingDAO {
 
 			InputStream stream = null;
 
-		//	stream = this.getClass().getResourceAsStream("/reports/Letter_Pad/LetterPad_Template2.jrxml");
-			
+			// stream =
+			// this.getClass().getResourceAsStream("/reports/Letter_Pad/LetterPad_Template2.jrxml");
+
 			stream = this.getClass().getResourceAsStream("/reports/Letter_Pad/Template_3_2CQR.jrxml");
 
 			final Map<String, Object> parameters = new HashMap<>();
@@ -1048,132 +1032,126 @@ public class AccountingDAOImpl implements AccountingDAO {
 			System.out.println("Email Id:::::::" + letterpadReq.getSignatureBy());
 
 			InfoDetails info = infoDetailRepo.findById(1);
-			
+
 			lp = letterpadRepo.findById(letterpadReq.getId());
 			letterpadReq.setLetterpad(letterpadRepo.findById(letterpadReq.getId()));
 			Agent agent = agentRepo.findByEmailId(letterpadReq.getSignatureBy());
 			Institute inst = instRepo.findByInstituteId(lp.getInstitute().getInstituteId());
 
-		//	
-			
-			
+			//
+
 			parameters.put("cmp_name", info.getCmpName());
 			parameters.put("cmp_address", info.getCompanyAddressHTML1());
-			//parameters.put("cmp_logo_url", info.getLogoAsFile());
+			// parameters.put("cmp_logo_url", info.getLogoAsFile());
 //			parameters.put("roundseal", letterpadReq.isAddRoundSeal() ? info.getRoundSealAsFile() : null);
-			
+
 			parameters.put("cmp_logo_url", letterpadReq.isAddLogo() ? info.getLogoAsFile() : null);
 			parameters.put("roundseal", letterpadReq.isAddRoundSeal() ? info.getRoundSealAsFile() : null);
-			
-			
-		
+
 			parameters.put("fullseal", letterpadReq.isAddFullSeal() ? info.getFullSealAsFile() : null);
-			parameters.put("signature",letterpadReq.isAddSign() ? agent.getSignatureAsFile() : null);
+			parameters.put("signature", letterpadReq.isAddSign() ? agent.getSignatureAsFile() : null);
 			parameters.put("for_label", "For " + info.getCmpName());
 			parameters.put("designation", letterpadReq.getDesignation());
-			
-			parameters.put("dealtype_label",!letterpadReq.isAddLetterHead() ? letterpadReq.getHeader() : "LETTER");
-		
-			String website_template="";
-			
-			if(!info.getCmpWebsiteUrl().equals("") && !info.getCmpWebsiteUrl().equals(null)  )
-			{
-				website_template=website_template+info.getCmpWebsiteUrl()+"<br>";
+
+			parameters.put("dealtype_label", !letterpadReq.isAddLetterHead() ? letterpadReq.getHeader() : "LETTER");
+
+			String website_template = "";
+
+			if (!info.getCmpWebsiteUrl().equals("") && !info.getCmpWebsiteUrl().equals(null)) {
+				website_template = website_template + info.getCmpWebsiteUrl() + "<br>";
 			}
-			if(!info.getCmpEmail().equals("") && !info.getCmpEmail().equals(null)  )
-			{
-				website_template=website_template+info.getCmpEmail()+"<br>";
+			if (!info.getCmpEmail().equals("") && !info.getCmpEmail().equals(null)) {
+				website_template = website_template + info.getCmpEmail() + "<br>";
 			}
-			if(!info.getCmpPhone().equals("") && !info.getCmpPhone().equals(null)  )
-			{
-				website_template=website_template+info.getCmpPhone()+"/";
+			if (!info.getCmpPhone().equals("") && !info.getCmpPhone().equals(null)) {
+				website_template = website_template + info.getCmpPhone() + "/";
 			}
-			if(!info.getCmpLandLine().equals("") && !info.getCmpLandLine().equals(null)  )
-			{
-				website_template=website_template+info.getCmpLandLine()+"";
+			if (!info.getCmpLandLine().equals("") && !info.getCmpLandLine().equals(null)) {
+				website_template = website_template + info.getCmpLandLine() + "";
 			}
-			
-			
+
 			parameters.put("cmp_website", website_template);
 			parameters.put("cmp_address", info.getCompanyAddressHTML1());
-			
 
-	        parameters.put("date", "Date : "
-			+ Util.sdfFormatter(letterpadReq.getLetterpad().getLetterPadDate(), "dd-MM-yyyy"));
-			
-	        
-	        String toaddress_label = "<font color ='red'><b>TO :</b></font><br>";
-	        if(!letterpadReq.getLetterpad().getBillingTo().equals("")&&!letterpadReq.getLetterpad().getBillingTo().equals(null)) {
+			parameters.put("date",
+					"Date : " + Util.sdfFormatter(letterpadReq.getLetterpad().getLetterPadDate(), "dd-MM-yyyy"));
 
-	        	toaddress_label = toaddress_label+letterpadReq.getLetterpad().getBillingTo()+",<br>";
-	        }
-	        if(!inst.getInstituteName().equals("")&&!inst.getInstituteName().equals(null)) {
+			String toaddress_label = "<font color ='red'><b>TO :</b></font><br>";
+			if (!letterpadReq.getLetterpad().getBillingTo().equals("")
+					&& !letterpadReq.getLetterpad().getBillingTo().equals(null)) {
 
-	        	toaddress_label = toaddress_label+inst.getInstituteName()+",";
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingStreet1().equals("")&& !letterpadReq.getLetterpad().getBillingStreet1().equals(null)) {
+				toaddress_label = toaddress_label + letterpadReq.getLetterpad().getBillingTo() + ",<br>";
+			}
+			if (!inst.getInstituteName().equals("") && !inst.getInstituteName().equals(null)) {
 
-	        	toaddress_label = toaddress_label+"<br>"+letterpadReq.getLetterpad().getBillingStreet1();
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingStreet2().equals("")&&!letterpadReq.getLetterpad().getBillingStreet2().equals(null)) {
+				toaddress_label = toaddress_label + inst.getInstituteName() + ",";
+			}
+			if (!letterpadReq.getLetterpad().getBillingStreet1().equals("")
+					&& !letterpadReq.getLetterpad().getBillingStreet1().equals(null)) {
 
-	        	toaddress_label = toaddress_label+","+letterpadReq.getLetterpad().getBillingStreet2()+",";
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingCity().equals("")&&!letterpadReq.getLetterpad().getBillingCity().equals(null)) {
+				toaddress_label = toaddress_label + "<br>" + letterpadReq.getLetterpad().getBillingStreet1();
+			}
+			if (!letterpadReq.getLetterpad().getBillingStreet2().equals("")
+					&& !letterpadReq.getLetterpad().getBillingStreet2().equals(null)) {
 
-	        	toaddress_label = toaddress_label+"<br>"+letterpadReq.getLetterpad().getBillingCity()+",";
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingState().equals("")&&!letterpadReq.getLetterpad().getBillingState().equals(null)) {
+				toaddress_label = toaddress_label + "," + letterpadReq.getLetterpad().getBillingStreet2() + ",";
+			}
+			if (!letterpadReq.getLetterpad().getBillingCity().equals("")
+					&& !letterpadReq.getLetterpad().getBillingCity().equals(null)) {
 
-	        	toaddress_label = toaddress_label+"<br>"+letterpadReq.getLetterpad().getBillingState();
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingCountry().equals("")&&!letterpadReq.getLetterpad().getBillingCountry().equals(null)) {
+				toaddress_label = toaddress_label + "<br>" + letterpadReq.getLetterpad().getBillingCity() + ",";
+			}
+			if (!letterpadReq.getLetterpad().getBillingState().equals("")
+					&& !letterpadReq.getLetterpad().getBillingState().equals(null)) {
 
-	        	toaddress_label = toaddress_label+","+letterpadReq.getLetterpad().getBillingCountry();
-	        }
-	        
-	        if(!letterpadReq.getLetterpad().getBillingZIPCode().equals("")&&!letterpadReq.getLetterpad().getBillingZIPCode().equals(null)) {
+				toaddress_label = toaddress_label + "<br>" + letterpadReq.getLetterpad().getBillingState();
+			}
+			if (!letterpadReq.getLetterpad().getBillingCountry().equals("")
+					&& !letterpadReq.getLetterpad().getBillingCountry().equals(null)) {
 
-	        	toaddress_label = toaddress_label+","+letterpadReq.getLetterpad().getBillingZIPCode();
-	        }
-	        
-	    
-	        String contentLabel = "";
-	        String subjectLabel = "";
-	         
-	        subjectLabel = subjectLabel +"Sub: " + letterpadReq.getLetterpad().getSubject()+"<br>";
-	        contentLabel = contentLabel +"<br>"+letterpadReq.getLetterpad().getContent().replaceAll("\n", "<br>");
-	        
-	        
-	        String deal_date_label = "", deal_date_text = "";
-	        
-	        
-	       // parameters.put("letterpad_no", "Reference No :  2CQR/"+letterpadReq.getId());
-	        
-	    //    deal_date_label = deal_date_label + "Reference No :  2CQR/"+letterpadReq.getId()+"<br>";
+				toaddress_label = toaddress_label + "," + letterpadReq.getLetterpad().getBillingCountry();
+			}
+
+			if (!letterpadReq.getLetterpad().getBillingZIPCode().equals("")
+					&& !letterpadReq.getLetterpad().getBillingZIPCode().equals(null)) {
+
+				toaddress_label = toaddress_label + "," + letterpadReq.getLetterpad().getBillingZIPCode();
+			}
+
+			String contentLabel = "";
+			String subjectLabel = "";
+
+			subjectLabel = subjectLabel + "Sub: " + letterpadReq.getLetterpad().getSubject() + "<br>";
+			contentLabel = contentLabel + "<br>" + letterpadReq.getLetterpad().getContent().replaceAll("\n", "<br>");
+
+			String deal_date_label = "", deal_date_text = "";
+
+			// parameters.put("letterpad_no", "Reference No : 2CQR/"+letterpadReq.getId());
+
+			// deal_date_label = deal_date_label + "Reference No :
+			// 2CQR/"+letterpadReq.getId()+"<br>";
 
 			deal_date_label = deal_date_label + "Reference No : <br>";
-			deal_date_text = deal_date_text +"2CQR/"+letterpadReq.getId()+ "<br>";
+			deal_date_text = deal_date_text + "2CQR/" + letterpadReq.getId() + "<br>";
 			deal_date_label = deal_date_label + "Date : <br>";
 			deal_date_text = deal_date_text
-					+Util.sdfFormatter(letterpadReq.getLetterpad().getLetterPadDate(), "dd-MM-yyyy")+"<br>";
+					+ Util.sdfFormatter(letterpadReq.getLetterpad().getLetterPadDate(), "dd-MM-yyyy") + "<br>";
 			/*
 			 * deal_date_label = deal_date_label + "PO No : <br>"; deal_date_text =
 			 * deal_date_text +
 			 * String.valueOf(dealReq.getDealProformaInvoice().getPurchaseOrderNo()) +
 			 * "<br>";
 			 */
-	        
 
 			parameters.put("deal_date_label", deal_date_label);
 			parameters.put("deal_date_text", deal_date_text);
-	        
+
 			parameters.put("billing_to", toaddress_label);
-			//parameters.put("subject", subjectLabel);
-			parameters.put("content", subjectLabel+contentLabel);
+			// parameters.put("subject", subjectLabel);
+			parameters.put("content", subjectLabel + contentLabel);
 			parameters.put("thanks", "Thanking You");
-			parameters.put("regards",agent.getFirstName()+" "+ agent.getLastName() + "<br>" +letterpadReq.getDesignation()+"<br>"+info.getCmpName());
-		
+			parameters.put("regards", agent.getFirstName() + " " + agent.getLastName() + "<br>"
+					+ letterpadReq.getDesignation() + "<br>" + info.getCmpName());
 
 			System.out.println(parameters.toString());
 
@@ -1226,8 +1204,9 @@ public class AccountingDAOImpl implements AccountingDAO {
 
 			InputStream stream = null;
 
-		//	stream = this.getClass().getResourceAsStream("/reports/Letter_Pad/LetterPad_Template2.jrxml");
-			
+			// stream =
+			// this.getClass().getResourceAsStream("/reports/Letter_Pad/LetterPad_Template2.jrxml");
+
 			stream = this.getClass().getResourceAsStream("/reports/Letter_Pad/Template_4_AutoLib.jrxml");
 
 			final Map<String, Object> parameters = new HashMap<>();
@@ -1235,133 +1214,126 @@ public class AccountingDAOImpl implements AccountingDAO {
 			System.out.println("Email Id:::::::" + letterpadReq.getSignatureBy());
 
 			InfoDetails info = infoDetailRepo.findById(1);
-			
+
 			lp = letterpadRepo.findById(letterpadReq.getId());
 			letterpadReq.setLetterpad(letterpadRepo.findById(letterpadReq.getId()));
 			Agent agent = agentRepo.findByEmailId(letterpadReq.getSignatureBy());
 			Institute inst = instRepo.findByInstituteId(lp.getInstitute().getInstituteId());
 
-		//	
-			
-			
-			parameters.put("cmp_name", "<font color='#000066'>"+info.getCmpName()+"</font>");
+			//
+
+			parameters.put("cmp_name", "<font color='#000066'>" + info.getCmpName() + "</font>");
 			parameters.put("cmp_address", info.getCompanyAddressHTML1());
-			//parameters.put("cmp_logo_url", info.getLogoAsFile());
+			// parameters.put("cmp_logo_url", info.getLogoAsFile());
 //			parameters.put("roundseal", letterpadReq.isAddRoundSeal() ? info.getRoundSealAsFile() : null);
-			
+
 			parameters.put("cmp_logo_url", letterpadReq.isAddLogo() ? info.getLogoAsFile() : null);
 			parameters.put("roundseal", letterpadReq.isAddRoundSeal() ? info.getRoundSealAsFile() : null);
-			
-			
-		
+
 			parameters.put("fullseal", letterpadReq.isAddFullSeal() ? info.getFullSealAsFile() : null);
-			parameters.put("signature",letterpadReq.isAddSign() ? agent.getSignatureAsFile() : null);
+			parameters.put("signature", letterpadReq.isAddSign() ? agent.getSignatureAsFile() : null);
 			parameters.put("for_label", "For " + info.getCmpName());
 			parameters.put("designation", letterpadReq.getDesignation());
-			
-		    parameters.put("dealtype_label",!letterpadReq.isAddLetterHead() ? letterpadReq.getHeader() : "");	
-				
-			
-			String website_template="";
-			
-			if(!info.getCmpWebsiteUrl().equals("") && !info.getCmpWebsiteUrl().equals(null)  )
-			{
-				website_template=website_template+info.getCmpWebsiteUrl()+"<br>";
+
+			parameters.put("dealtype_label", !letterpadReq.isAddLetterHead() ? letterpadReq.getHeader() : "");
+
+			String website_template = "";
+
+			if (!info.getCmpWebsiteUrl().equals("") && !info.getCmpWebsiteUrl().equals(null)) {
+				website_template = website_template + info.getCmpWebsiteUrl() + "<br>";
 			}
-			if(!info.getCmpEmail().equals("") && !info.getCmpEmail().equals(null)  )
-			{
-				website_template=website_template+info.getCmpEmail()+"<br>";
+			if (!info.getCmpEmail().equals("") && !info.getCmpEmail().equals(null)) {
+				website_template = website_template + info.getCmpEmail() + "<br>";
 			}
-			if(!info.getCmpPhone().equals("") && !info.getCmpPhone().equals(null)  )
-			{
-				website_template=website_template+info.getCmpPhone()+"/";
+			if (!info.getCmpPhone().equals("") && !info.getCmpPhone().equals(null)) {
+				website_template = website_template + info.getCmpPhone() + "/";
 			}
-			if(!info.getCmpLandLine().equals("") && !info.getCmpLandLine().equals(null)  )
-			{
-				website_template=website_template+info.getCmpLandLine()+"";
+			if (!info.getCmpLandLine().equals("") && !info.getCmpLandLine().equals(null)) {
+				website_template = website_template + info.getCmpLandLine() + "";
 			}
-			
-			
+
 			parameters.put("cmp_website", website_template);
 			parameters.put("cmp_address", info.getCompanyAddressHTML1());
-			
 
-	        parameters.put("date", "Date : "
-			+ Util.sdfFormatter(letterpadReq.getLetterpad().getLetterPadDate(), "dd-MM-yyyy"));
-			
-	        
-	        String toaddress_label = "<b>TO :</b><br>";
-	        if(!letterpadReq.getLetterpad().getBillingTo().equals("")&&!letterpadReq.getLetterpad().getBillingTo().equals(null)) {
+			parameters.put("date",
+					"Date : " + Util.sdfFormatter(letterpadReq.getLetterpad().getLetterPadDate(), "dd-MM-yyyy"));
 
-	        	toaddress_label = toaddress_label+letterpadReq.getLetterpad().getBillingTo()+",<br>";
-	        }
-	        if(!inst.getInstituteName().equals("")&&!inst.getInstituteName().equals(null)) {
+			String toaddress_label = "<b>TO :</b><br>";
+			if (!letterpadReq.getLetterpad().getBillingTo().equals("")
+					&& !letterpadReq.getLetterpad().getBillingTo().equals(null)) {
 
-	        	toaddress_label = toaddress_label+inst.getInstituteName()+",";
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingStreet1().equals("")&& !letterpadReq.getLetterpad().getBillingStreet1().equals(null)) {
+				toaddress_label = toaddress_label + letterpadReq.getLetterpad().getBillingTo() + ",<br>";
+			}
+			if (!inst.getInstituteName().equals("") && !inst.getInstituteName().equals(null)) {
 
-	        	toaddress_label = toaddress_label+"<br>"+letterpadReq.getLetterpad().getBillingStreet1();
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingStreet2().equals("")&&!letterpadReq.getLetterpad().getBillingStreet2().equals(null)) {
+				toaddress_label = toaddress_label + inst.getInstituteName() + ",";
+			}
+			if (!letterpadReq.getLetterpad().getBillingStreet1().equals("")
+					&& !letterpadReq.getLetterpad().getBillingStreet1().equals(null)) {
 
-	        	toaddress_label = toaddress_label+","+letterpadReq.getLetterpad().getBillingStreet2()+",";
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingCity().equals("")&&!letterpadReq.getLetterpad().getBillingCity().equals(null)) {
+				toaddress_label = toaddress_label + "<br>" + letterpadReq.getLetterpad().getBillingStreet1();
+			}
+			if (!letterpadReq.getLetterpad().getBillingStreet2().equals("")
+					&& !letterpadReq.getLetterpad().getBillingStreet2().equals(null)) {
 
-	        	toaddress_label = toaddress_label+"<br>"+letterpadReq.getLetterpad().getBillingCity()+",";
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingState().equals("")&&!letterpadReq.getLetterpad().getBillingState().equals(null)) {
+				toaddress_label = toaddress_label + "," + letterpadReq.getLetterpad().getBillingStreet2() + ",";
+			}
+			if (!letterpadReq.getLetterpad().getBillingCity().equals("")
+					&& !letterpadReq.getLetterpad().getBillingCity().equals(null)) {
 
-	        	toaddress_label = toaddress_label+"<br>"+letterpadReq.getLetterpad().getBillingState();
-	        }
-	        if(!letterpadReq.getLetterpad().getBillingCountry().equals("")&&!letterpadReq.getLetterpad().getBillingCountry().equals(null)) {
+				toaddress_label = toaddress_label + "<br>" + letterpadReq.getLetterpad().getBillingCity() + ",";
+			}
+			if (!letterpadReq.getLetterpad().getBillingState().equals("")
+					&& !letterpadReq.getLetterpad().getBillingState().equals(null)) {
 
-	        	toaddress_label = toaddress_label+","+letterpadReq.getLetterpad().getBillingCountry();
-	        }
-	        
-	        if(!letterpadReq.getLetterpad().getBillingZIPCode().equals("")&&!letterpadReq.getLetterpad().getBillingZIPCode().equals(null)) {
+				toaddress_label = toaddress_label + "<br>" + letterpadReq.getLetterpad().getBillingState();
+			}
+			if (!letterpadReq.getLetterpad().getBillingCountry().equals("")
+					&& !letterpadReq.getLetterpad().getBillingCountry().equals(null)) {
 
-	        	toaddress_label = toaddress_label+","+letterpadReq.getLetterpad().getBillingZIPCode();
-	        }
-	        
-	    
-	        String contentLabel = "";
-	        String subjectLabel = "";
-	         
-	        subjectLabel = subjectLabel +"Sub: " + letterpadReq.getLetterpad().getSubject()+"<br>";
-	        contentLabel = contentLabel +"<br>"+letterpadReq.getLetterpad().getContent().replaceAll("\n", "<br>");
-	        
-	        
-	        String deal_date_label = "", deal_date_text = "";
-	        
-	        
-	       // parameters.put("letterpad_no", "Reference No :  2CQR/"+letterpadReq.getId());
-	        
-	    //    deal_date_label = deal_date_label + "Reference No :  2CQR/"+letterpadReq.getId()+"<br>";
+				toaddress_label = toaddress_label + "," + letterpadReq.getLetterpad().getBillingCountry();
+			}
+
+			if (!letterpadReq.getLetterpad().getBillingZIPCode().equals("")
+					&& !letterpadReq.getLetterpad().getBillingZIPCode().equals(null)) {
+
+				toaddress_label = toaddress_label + "," + letterpadReq.getLetterpad().getBillingZIPCode();
+			}
+
+			String contentLabel = "";
+			String subjectLabel = "";
+
+			subjectLabel = subjectLabel + "Sub: " + letterpadReq.getLetterpad().getSubject() + "<br>";
+			contentLabel = contentLabel + "<br>" + letterpadReq.getLetterpad().getContent().replaceAll("\n", "<br>");
+
+			String deal_date_label = "", deal_date_text = "";
+
+			// parameters.put("letterpad_no", "Reference No : 2CQR/"+letterpadReq.getId());
+
+			// deal_date_label = deal_date_label + "Reference No :
+			// 2CQR/"+letterpadReq.getId()+"<br>";
 
 			deal_date_label = deal_date_label + "Reference No : <br>";
-			deal_date_text = deal_date_text +"AL/"+letterpadReq.getId()+ "<br>";
+			deal_date_text = deal_date_text + "AL/" + letterpadReq.getId() + "<br>";
 			deal_date_label = deal_date_label + "Date : <br>";
 			deal_date_text = deal_date_text
-					+Util.sdfFormatter(letterpadReq.getLetterpad().getLetterPadDate(), "dd-MM-yyyy")+"<br>";
+					+ Util.sdfFormatter(letterpadReq.getLetterpad().getLetterPadDate(), "dd-MM-yyyy") + "<br>";
 			/*
 			 * deal_date_label = deal_date_label + "PO No : <br>"; deal_date_text =
 			 * deal_date_text +
 			 * String.valueOf(dealReq.getDealProformaInvoice().getPurchaseOrderNo()) +
 			 * "<br>";
 			 */
-	        
 
 			parameters.put("deal_date_label", deal_date_label);
 			parameters.put("deal_date_text", deal_date_text);
-	        
+
 			parameters.put("billing_to", toaddress_label);
-			//parameters.put("subject", subjectLabel);
-			parameters.put("content", subjectLabel+contentLabel);
+			// parameters.put("subject", subjectLabel);
+			parameters.put("content", subjectLabel + contentLabel);
 			parameters.put("thanks", "Thanking You");
-			parameters.put("regards",agent.getFirstName()+" "+ agent.getLastName() + "<br>" +letterpadReq.getDesignation()+"<br>"+info.getCmpName());
-		
+			parameters.put("regards", agent.getFirstName() + " " + agent.getLastName() + "<br>"
+					+ letterpadReq.getDesignation() + "<br>" + info.getCmpName());
 
 			System.out.println(parameters.toString());
 
@@ -1401,6 +1373,68 @@ public class AccountingDAOImpl implements AccountingDAO {
 		}
 		resp.put("Letterpad", letterpadReq.getLetterpad());
 		return resp;
-	}	
+	}
+
+	@Override
+	public Map<String, Object> getAmcReport(AmcReportRequest amcReport) {
+		Map<String, Object> respMap = new HashMap<>();
+		List<Map<String, Object>> amcReportData = new ArrayList<>();
+		try {
+			String filterQuery = "";
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-DD-mm");
+
+			
+			  if(amcReport.getInstitutes().size()>0) { String inst="0"; 
+			  for(Institute institute: amcReport.getInstitutes()) {
+			  
+			  inst = inst +","+institute.getInstituteId(); } filterQuery = filterQuery +
+			  "AND i.institute_id in ("+inst+")"; }
+			  
+			  
+			  if(amcReport.getProducts().size()>0) { 
+				  String prod="0"; 
+				  for(Product product:amcReport.getProducts()) {
+			  
+			      prod = prod +","+product.getId(); } 
+				  filterQuery = filterQuery +" AND p.product_id in ("+prod+")"; 
+				  }
+			  
+			  if(amcReport.getPaymentFromDate()!=null &&
+			  amcReport.getPaymentToDate()!=null) {
+			  
+			  filterQuery = filterQuery
+			  +" AND dp.payment_date between '"+sdf.format(amcReport.getPaymentFromDate())
+			  +"' AND '"+sdf.format(amcReport.getPaymentToDate())+"' "; }
+			  
+			  if(amcReport.getFromDate()!=null && amcReport.getToDate()!=null) {
+			  
+			  filterQuery = filterQuery
+			  +" AND d.amc_to_date between '"+sdf.format(amcReport.getFromDate())
+			  +"' AND '"+sdf.format(amcReport.getToDate())+"' "; 
+			  }
+			 
+
+			
+			/*
+			 * Query query = em.createQuery(
+			 * "SELECT new com.autolib.helpdesk.Accounting.model.AmcReportResponse(dp,d) " +
+			 * "FROM DealPayments dp JOIN Deal d ON (dp.dealId=d.id) " + filterQuery,
+			 * AmcReportResponse.class);
+			 */
+
+			
+			  amcReportData=jdbcTemp.
+			  queryForList("SELECT i.institute_name,dp.payment_date,dp.total_amount AS paid_amount,dp.mode,d.amc_from_date,d.amc_to_date,p.name,di.invoice_no,di.invoice_date FROM deal_payments dp JOIN deals d   ON(d.id=dp.deal_id) JOIN institutes i ON (d.institute_id=i.institute_id AND d.deal_type='AMC') JOIN deal_products p ON(d.id=p.deal_id)\r\n"
+			  + " JOIN deal_invoices di ON(d.id=di.deal_id) WHERE 2>1 "+filterQuery );
+			 
+			respMap.put("amcList", amcReportData);
+			respMap.putAll(Util.SuccessResponse());
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			respMap.putAll(Util.FailedResponse(ex.getMessage()));
+		}
+		return respMap;
+	}
 
 }
