@@ -37,6 +37,5 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
 	List<Attendance> findByWorkingDateBetweenAndEmployeeIdIn(Date fromDate, Date toDate, List<String> employeeId);
 
 	Attendance findByEmployeeIdAndWorkingDate(String empId, Date date);
-	
 
 }

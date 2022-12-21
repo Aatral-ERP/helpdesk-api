@@ -29,6 +29,7 @@ import com.autolib.helpdesk.Agents.entity.AgentReportRequest;
 import com.autolib.helpdesk.Agents.entity.InfoDetails;
 import com.autolib.helpdesk.Agents.entity.Product;
 import com.autolib.helpdesk.Agents.entity.ProductRequest;
+import com.autolib.helpdesk.Agents.entity.PushNotification;
 import com.autolib.helpdesk.Agents.entity.RawMaterialReportRequests;
 import com.autolib.helpdesk.Agents.entity.RawMaterialRequest;
 import com.autolib.helpdesk.Agents.entity.RawMaterialRequestProducts;
@@ -141,7 +142,6 @@ public class AgentDAOImpl implements AgentDAO {
 			resp.put("UnAssignedTickets", ticketRepo.findByAssignedToAndStatus(null, TicketStatus.Raised));
 
 			resp.put("Attendance", attRepo.findByEmployeeIdAndWorkingDate(agent.getEmployeeId(), new Date()));
-			
 
 			resp.putAll(Util.SuccessResponse());
 		} catch (Exception ex) {

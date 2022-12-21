@@ -53,7 +53,7 @@ public class TeamsDAOImpl implements TeamsDAO {
 
 	@Autowired
 	EmailSender emailSender;
-	
+
 	@Autowired
 	PushNotification pushNotify;
 
@@ -171,6 +171,7 @@ public class TeamsDAOImpl implements TeamsDAO {
 		return resp;
 	}
 
+	@Transactional
 	@Override
 	public Map<String, Object> deleteTeam(TeamRequest teamReq) {
 		Map<String, Object> resp = new HashMap<>();
@@ -181,12 +182,15 @@ public class TeamsDAOImpl implements TeamsDAO {
 
 			if (memberTemp == null) {
 				resp.putAll(Util.invalidMessage("You are not a member of this Team"));
-			} else if (memberTemp.getMemberRole().equalsIgnoreCase("administrator")) {
+			} else if (!memberTemp.getMemberRole().equalsIgnoreCase("administrator")) {
 				resp.putAll(Util.invalidMessage("You are not an Administrator of this Team"));
 			} else {
-				teamRepo.delete(teamReq.getTeams());
 
+				emailSettingRepo.deleteByTeamId(teamReq.getTeams().getId());
 				teamMemberRepo.deleteByTeamId(teamReq.getTeams().getId());
+				pushNotifySettingRepo.deleteByTeamId(teamReq.getTeams().getId());
+				teamSettingRepo.deleteByTeamId(teamReq.getTeams().getId());
+				teamRepo.delete(teamReq.getTeams());
 
 				resp.putAll(Util.SuccessResponse());
 			}

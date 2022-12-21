@@ -2,6 +2,7 @@ package com.autolib.helpdesk.Agents.repository;
 
 import com.autolib.helpdesk.Agents.entity.Product;
 import com.autolib.helpdesk.Agents.entity.StockEntry;
+import com.autolib.helpdesk.Institutes.model.AMCDetails;
 
 public class StockDetailResp {
 	

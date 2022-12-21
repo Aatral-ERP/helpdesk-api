@@ -7,7 +7,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.autolib.helpdesk.Accounting.model.AccountBankStatementReq;
 import com.autolib.helpdesk.Accounting.model.AccountStatementRequest;
 import com.autolib.helpdesk.Accounting.model.AccountingReportRequest;
-import com.autolib.helpdesk.Accounting.model.AmcReportRequest;
 import com.autolib.helpdesk.Accounting.model.IncomeExpense;
 import com.autolib.helpdesk.Accounting.model.IncomeExpenseRequest;
 import com.autolib.helpdesk.Accounting.model.LetterPad;
@@ -66,8 +65,6 @@ public interface AccountingDAO {
 	Map<String, Object> getAllLetterPad(LetterpadRequest req);
 
 	Map<String, Object> UploadGeneratedLetterpadPDF(int id, MultipartFile file);
-	
-	Map<String, Object> getAmcReport(AmcReportRequest amcReport);
 
 	
 

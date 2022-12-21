@@ -54,11 +54,6 @@ public class NeededDAOImpl implements NeededDAO {
 			if (needed.contains("products_min")) {
 				resp.put("products_min", prodRepo.findAllMinDetails());
 			}
-			
-			if (needed.contains("active_agents")) {
-				resp.put("active_agents", agentRepo.findAllActiveAgentDetails());
-			}
-
 
 			if (needed.contains("products_category")) {
 				resp.put("products_category", prodRepo.findDistinctCategory());

@@ -18,8 +18,5 @@ public interface ProductsRepository extends JpaRepository<Product, Integer> {
 
 	@Query(value = "select new Product(p.id,p.name,p.amount,p.amcAmount,p.hsn,p.amchsn,p.finishedProduct,p.stock,p.category) from Product p")
 	List<Product> findAllMinDetails();
-	
-	
-	
 
 }

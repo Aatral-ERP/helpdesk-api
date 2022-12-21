@@ -349,14 +349,7 @@ public class InstituteDAOImpl implements InstituteDAO {
 //				filePath = new File(contentPath + "/InstituteLogo/" + logoURL);
 //
 //				institute.setLogourl(filePath.toString());
-				
-			 //	List<InstituteContact> instContact= instContRepo.findByInstituteId(institute.getInstituteId());
-				
-				
-				//List<Map<String,Object>>instContact=jdbcTemp.queryForList("SELECT first_name AS `name`,email_id AS emailId,phone AS phoneNo,1 as active FROM institute_contact WHERE institute_id='"+institute.getInstituteId()+"' ");
-				resp.put("Institute", institute);
-				//resp.put("InstituteContact", instContact);
-			
+				resp.putAll(Util.SuccessResponse());
 			}
 
 		} catch (Exception Ex) {
@@ -364,7 +357,7 @@ public class InstituteDAOImpl implements InstituteDAO {
 			resp.putAll(Util.FailedResponse(Ex.getMessage()));
 		}
 
-		
+		resp.put("Institute", institute);
 
 		return resp;
 	}
