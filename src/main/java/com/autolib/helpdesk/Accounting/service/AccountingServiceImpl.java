@@ -11,6 +11,7 @@ import com.autolib.helpdesk.Accounting.dao.AccountingDAO;
 import com.autolib.helpdesk.Accounting.model.AccountBankStatementReq;
 import com.autolib.helpdesk.Accounting.model.AccountStatementRequest;
 import com.autolib.helpdesk.Accounting.model.AccountingReportRequest;
+import com.autolib.helpdesk.Accounting.model.AmcReportRequest;
 import com.autolib.helpdesk.Accounting.model.IncomeExpense;
 import com.autolib.helpdesk.Accounting.model.IncomeExpenseRequest;
 import com.autolib.helpdesk.Accounting.model.LetterPad;
@@ -128,6 +129,11 @@ public class AccountingServiceImpl implements AccountingService {
 	@Override
 	public Map<String, Object> UploadGeneratedLetterpadPDF(int id, MultipartFile file) {
 		return acntDAO.UploadGeneratedLetterpadPDF(id,file);
+	}
+
+	@Override
+	public Map<String, Object> getAmcReport(AmcReportRequest amcReport) {
+		return acntDAO.getAmcReport(amcReport);
 	}
 
 }

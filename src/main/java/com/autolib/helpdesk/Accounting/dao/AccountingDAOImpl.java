@@ -25,6 +25,7 @@ import com.autolib.helpdesk.Accounting.model.AccountBankStatementReq;
 import com.autolib.helpdesk.Accounting.model.AccountCategory;
 import com.autolib.helpdesk.Accounting.model.AccountStatementRequest;
 import com.autolib.helpdesk.Accounting.model.AccountingReportRequest;
+import com.autolib.helpdesk.Accounting.model.AmcReportRequest;
 import com.autolib.helpdesk.Accounting.model.IncomeExpense;
 import com.autolib.helpdesk.Accounting.model.IncomeExpenseRequest;
 import com.autolib.helpdesk.Accounting.model.LetterPad;
@@ -35,6 +36,7 @@ import com.autolib.helpdesk.Accounting.repository.LetterpadRepository;
 import com.autolib.helpdesk.Agents.entity.Agent;
 import com.autolib.helpdesk.Agents.entity.AgentLedger;
 import com.autolib.helpdesk.Agents.entity.InfoDetails;
+import com.autolib.helpdesk.Agents.entity.Product;
 import com.autolib.helpdesk.Agents.entity.Vendor;
 import com.autolib.helpdesk.Agents.repository.AgentLedgerRepository;
 import com.autolib.helpdesk.Agents.repository.AgentRepository;
@@ -42,7 +44,6 @@ import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
 import com.autolib.helpdesk.Agents.repository.VendorRepository;
 import com.autolib.helpdesk.Institutes.model.Institute;
 import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
-import com.autolib.helpdesk.LeadManagement.model.Lead;
 import com.autolib.helpdesk.common.Util;
 
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -250,7 +251,6 @@ public class AccountingDAOImpl implements AccountingDAO {
 		List<String> _expense_category = new ArrayList<>();
 		List<Agent> _agents = new ArrayList<>();
 		List<Vendor> _vendors = new ArrayList<>();
-		List<AgentLedger> _recentLegderPerAgent = new ArrayList<>();
 		try {
 
 			_income_category = inExRepo.findDistinctCategory("Income");
@@ -262,23 +262,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 					.collect(Collectors.toList());
 
 			_vendors = vendorRepo.findAllMinDetails();
-//
-//			String filterQuery = "";
-//			if (_agents.size() > 0) {
-//				String str = "'0'";
-//				for (Agent _agent : _agents) {
-//					str = str + ",'" + _agent.getEmailId() + "'";
-//				}
-//				filterQuery = filterQuery + " and ledger.agentEmailId in (" + str + ") ";
-//			}
-//
-//			filterQuery = filterQuery + " GROUP BY ledger.agentEmailId ORDER BY ledger.id DESC LIMIT 1";
-//
-//			Query query = em.createQuery("Select ledger from AgentLedger ledger where 2 > 1 " + filterQuery,
-//					AgentLedger.class);
 
-			_recentLegderPerAgent = agentLedgerRepo
-					.findRecentLegderPerAgent(_agents.stream().map(Agent::getEmailId).collect(Collectors.toList()));
 			resp.putAll(Util.SuccessResponse());
 		} catch (Exception e) {
 			resp.putAll(Util.FailedResponse(e.getMessage()));
@@ -288,7 +272,6 @@ public class AccountingDAOImpl implements AccountingDAO {
 		resp.put("ExpenseCategorys", _expense_category);
 		resp.put("Vendors", _vendors);
 		resp.put("Agents", _agents);
-		resp.put("RecentLegderPerAgent", _recentLegderPerAgent);
 		return resp;
 	}
 
@@ -355,13 +338,6 @@ public class AccountingDAOImpl implements AccountingDAO {
 	public Map<String, Object> addAgentLedger(AgentLedger ledger) {
 		Map<String, Object> resp = new HashMap<>();
 		try {
-			if (ledger.getId() == 0) {
-				List<AgentLedger> ledgers = agentLedgerRepo.findByAgentEmailId(ledger.getAgentEmailId());
-				ledgers.add(ledger);
-				Double creditAmount = ledgers.stream().mapToDouble(AgentLedger::getCredit).sum();
-				Double debitAmount = ledgers.stream().mapToDouble(AgentLedger::getDebit).sum();
-				ledger.setBalance(creditAmount - debitAmount);
-			}
 
 			ledger = agentLedgerRepo.save(ledger);
 
@@ -988,7 +964,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 
 			categoryList = jdbcTemp.queryForList(
 					"SELECT lp.id AS id,lp.subject AS SUBJECT,lp.content AS content,lp.date AS DATE,lp.file_name AS file_name,i.institute_id AS institute_id,i.institute_name AS institute_name FROM letterpad lp JOIN institutes i ON(lp.institute_id = i.institute_id) WHERE 2>1 "
-							+ filterQuery);
+							+ filterQuery+" ORDER BY lp.id DESC");
 
 //			Query query = em.createQuery("Select lp from letterpad lp where 2>1" + filterQuery);
 			respMap.put("letterpadData", categoryList);
@@ -1397,6 +1373,68 @@ public class AccountingDAOImpl implements AccountingDAO {
 		}
 		resp.put("Letterpad", letterpadReq.getLetterpad());
 		return resp;
+	}
+
+	@Override
+	public Map<String, Object> getAmcReport(AmcReportRequest amcReport) {
+		Map<String, Object> respMap = new HashMap<>();
+		List<Map<String, Object>> amcReportData = new ArrayList<>();
+		try {
+			String filterQuery = "";
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-DD-mm");
+
+			
+			  if(amcReport.getInstitutes().size()>0) { String inst="0"; 
+			  for(Institute institute: amcReport.getInstitutes()) {
+			  
+			  inst = inst +","+institute.getInstituteId(); } filterQuery = filterQuery +
+			  "AND i.institute_id in ("+inst+")"; }
+			  
+			  
+			  if(amcReport.getProducts().size()>0) { 
+				  String prod="0"; 
+				  for(Product product:amcReport.getProducts()) {
+			  
+			      prod = prod +","+product.getId(); } 
+				  filterQuery = filterQuery +" AND p.product_id in ("+prod+")"; 
+				  }
+			  
+			  if(amcReport.getPaymentFromDate()!=null &&
+			  amcReport.getPaymentToDate()!=null) {
+			  
+			  filterQuery = filterQuery
+			  +" AND dp.payment_date between '"+sdf.format(amcReport.getPaymentFromDate())
+			  +"' AND '"+sdf.format(amcReport.getPaymentToDate())+"' "; }
+			  
+			  if(amcReport.getFromDate()!=null && amcReport.getToDate()!=null) {
+			  
+			  filterQuery = filterQuery
+			  +" AND d.amc_to_date between '"+sdf.format(amcReport.getFromDate())
+			  +"' AND '"+sdf.format(amcReport.getToDate())+"' "; 
+			  }
+			 
+
+			
+			/*
+			 * Query query = em.createQuery(
+			 * "SELECT new com.autolib.helpdesk.Accounting.model.AmcReportResponse(dp,d) " +
+			 * "FROM DealPayments dp JOIN Deal d ON (dp.dealId=d.id) " + filterQuery,
+			 * AmcReportResponse.class);
+			 */
+
+			
+			  amcReportData=jdbcTemp.
+			  queryForList("SELECT i.institute_name,dp.payment_date,dp.total_amount AS paid_amount,dp.mode,d.amc_from_date,d.amc_to_date,p.name,di.invoice_no,di.invoice_date FROM deal_payments dp JOIN deals d   ON(d.id=dp.deal_id) JOIN institutes i ON (d.institute_id=i.institute_id AND d.deal_type='AMC') JOIN deal_products p ON(d.id=p.deal_id)\r\n"
+			  + " JOIN deal_invoices di ON(d.id=di.deal_id) WHERE 2>1 "+filterQuery );
+			 
+			respMap.put("amcList", amcReportData);
+			respMap.putAll(Util.SuccessResponse());
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			respMap.putAll(Util.FailedResponse(ex.getMessage()));
+		}
+		return respMap;
 	}
 
 }

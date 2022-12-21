@@ -230,6 +230,7 @@ public class LeadDAOImpl implements LeadDAO {
 				filterQuery = filterQuery + " and l.industryType in (" + str + ") ";
 			}
 			
+
 			if (request.getLeadSources() != null && request.getLeadSources().size() > 0) {
 				String str = "'0'";
 				for (String _str : request.getLeadSources()) {

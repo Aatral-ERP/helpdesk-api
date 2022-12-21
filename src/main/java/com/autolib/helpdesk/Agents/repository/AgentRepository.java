@@ -81,5 +81,8 @@ public interface AgentRepository extends JpaRepository<Agent, String> {
 	
 	@Query(value = "select new Agent(a.employeeId, a.firstName, a.lastName, a.emailId, a.isBlocked, a.workingStatus, a.photoFileName, a.designation) from Agent a where a.agentType in (select id from RoleMaster where hr = 'Full Access')")
 	List<Agent> findAllHRAdmins();
+	
+	@Query(value = "select new Agent(a.employeeId, a.firstName, a.lastName, a.emailId, a.isBlocked, a.workingStatus, a.photoFileName, a.designation) from Agent a WHERE a.isBlocked=0")
+	List<Agent> findAllActiveAgentDetails();
 
 }

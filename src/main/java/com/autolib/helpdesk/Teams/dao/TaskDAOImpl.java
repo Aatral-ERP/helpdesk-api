@@ -178,7 +178,7 @@ public class TaskDAOImpl implements TaskDAO {
 
 			Query query = em.createQuery(
 					"select new com.autolib.helpdesk.Teams.model.Tasks.Task(t.taskId,t.teamId,t.instituteId,t.subject,t.status,t.priority,"
-							+ "t.assignee,t.reporter,t.dueDateTime,t.lastupdatedatetime,t.featureId) from Task t where t.status != 'Done' and t.teamId = :teamId "
+							+ "t.assignee,t.reporter,t.dueDateTime,t.lastupdatedatetime) from Task t where t.status != 'Done' and t.teamId = :teamId "
 							+ filterQuery,
 					Task.class);
 			query.setParameter("teamId", taskReq.getTask().getTeamId());
@@ -192,7 +192,7 @@ public class TaskDAOImpl implements TaskDAO {
 
 			Query queryDone = em.createQuery(
 					"select new com.autolib.helpdesk.Teams.model.Tasks.Task(t.taskId,t.teamId,t.instituteId,t.subject,t.status,t.priority,"
-							+ "t.assignee,t.reporter,t.dueDateTime,t.lastupdatedatetime,t.featureId) from Task t where t.status = 'Done' and t.lastupdatedatetime > :startDate"
+							+ "t.assignee,t.reporter,t.dueDateTime,t.lastupdatedatetime) from Task t where t.status = 'Done' and t.lastupdatedatetime > :startDate"
 							+ " and t.teamId = :teamId " + filterQuery,
 					Task.class);
 			queryDone.setParameter("teamId", taskReq.getTask().getTeamId());
