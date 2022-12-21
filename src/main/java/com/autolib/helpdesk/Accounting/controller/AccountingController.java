@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.autolib.helpdesk.Accounting.model.AccountBankStatementReq;
 import com.autolib.helpdesk.Accounting.model.AccountStatementRequest;
 import com.autolib.helpdesk.Accounting.model.AccountingReportRequest;
+import com.autolib.helpdesk.Accounting.model.AmcReportRequest;
 import com.autolib.helpdesk.Accounting.model.IncomeExpense;
 import com.autolib.helpdesk.Accounting.model.IncomeExpenseRequest;
 import com.autolib.helpdesk.Accounting.model.LetterPad;
@@ -358,4 +359,21 @@ public class AccountingController {
 		logger.info("UploadGeneratedLetterpadPDF ends:::");
 		return new ResponseEntity<>(resp, HttpStatus.OK);
 	}
+	
+	@PostMapping("amc-report")
+	public ResponseEntity<?> getAmcReport(@RequestBody AmcReportRequest amcReport){
+		
+		Map<String,Object> respMap = new HashMap<>();
+		logger.info("getAmcReport request Starts:::::"+amcReport.toString());
+		try {
+			respMap=acntService.getAmcReport(amcReport);
+		}catch(Exception ex) { ex.printStackTrace();}
+		return new ResponseEntity<>(respMap,HttpStatus.OK);
+		
+	}
+	
 }
+
+
+
+
