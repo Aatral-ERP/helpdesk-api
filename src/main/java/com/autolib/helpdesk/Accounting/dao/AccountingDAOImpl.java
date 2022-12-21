@@ -44,6 +44,7 @@ import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
 import com.autolib.helpdesk.Agents.repository.VendorRepository;
 import com.autolib.helpdesk.Institutes.model.Institute;
 import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
+import com.autolib.helpdesk.LeadManagement.model.Lead;
 import com.autolib.helpdesk.common.Util;
 
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -251,6 +252,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 		List<String> _expense_category = new ArrayList<>();
 		List<Agent> _agents = new ArrayList<>();
 		List<Vendor> _vendors = new ArrayList<>();
+		List<AgentLedger> _recentLegderPerAgent = new ArrayList<>();
 		try {
 
 			_income_category = inExRepo.findDistinctCategory("Income");
@@ -262,7 +264,8 @@ public class AccountingDAOImpl implements AccountingDAO {
 					.collect(Collectors.toList());
 
 			_vendors = vendorRepo.findAllMinDetails();
-
+			_recentLegderPerAgent = agentLedgerRepo
+					.findRecentLegderPerAgent(_agents.stream().map(Agent::getEmailId).collect(Collectors.toList()));
 			resp.putAll(Util.SuccessResponse());
 		} catch (Exception e) {
 			resp.putAll(Util.FailedResponse(e.getMessage()));
@@ -272,6 +275,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 		resp.put("ExpenseCategorys", _expense_category);
 		resp.put("Vendors", _vendors);
 		resp.put("Agents", _agents);
+		resp.put("RecentLegderPerAgent", _recentLegderPerAgent);
 		return resp;
 	}
 
@@ -338,6 +342,13 @@ public class AccountingDAOImpl implements AccountingDAO {
 	public Map<String, Object> addAgentLedger(AgentLedger ledger) {
 		Map<String, Object> resp = new HashMap<>();
 		try {
+			if (ledger.getId() == 0) {
+				List<AgentLedger> ledgers = agentLedgerRepo.findByAgentEmailId(ledger.getAgentEmailId());
+				ledgers.add(ledger);
+				Double creditAmount = ledgers.stream().mapToDouble(AgentLedger::getCredit).sum();
+				Double debitAmount = ledgers.stream().mapToDouble(AgentLedger::getDebit).sum();
+				ledger.setBalance(creditAmount - debitAmount);
+			}
 
 			ledger = agentLedgerRepo.save(ledger);
 

@@ -12,6 +12,7 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -32,13 +33,14 @@ public class Task {
 	}
 
 	public Task(int taskId, int teamId, int instituteId, String subject, String status, String priority,
-			String assignee, String reporter, Date dueDateTime, Date lastupdatedatetime) {
+			String assignee, String reporter, Date dueDateTime, Date lastupdatedatetime, int featureId) {
 		super();
 		this.taskId = taskId;
 		this.teamId = teamId;
 		this.instituteId = instituteId;
 		this.subject = subject;
 		this.status = status;
+		this.featureId = featureId;
 		this.priority = priority;
 		this.assignee = assignee;
 		this.reporter = reporter;
@@ -97,6 +99,10 @@ public class Task {
 
 	@Column
 	private String label;
+
+	@NotNull
+	@Column
+	private int featureId;
 
 	@Lob
 	@Column
@@ -266,14 +272,22 @@ public class Task {
 		this.watchers = watchers;
 	}
 
+	public int getFeatureId() {
+		return featureId;
+	}
+
+	public void setFeatureId(int featureId) {
+		this.featureId = featureId;
+	}
+
 	@Override
 	public String toString() {
 		return "Task [taskId=" + taskId + ", teamId=" + teamId + ", instituteId=" + instituteId + ", subject=" + subject
 				+ ", subtasks=" + subtasks + ", description=" + description + ", status=" + status + ", priority="
 				+ priority + ", assignee=" + assignee + ", dueDateTime=" + dueDateTime + ", reporter=" + reporter
-				+ ", label=" + label + ", watchers=" + watchers + ", files=" + files + ", createdBy=" + createdBy
-				+ ", lastUpdatedBy=" + lastUpdatedBy + ", createddatetime=" + createddatetime + ", lastupdatedatetime="
-				+ lastupdatedatetime + "]";
+				+ ", label=" + label + ", featureId=" + featureId + ", watchers=" + watchers + ", files=" + files
+				+ ", createdBy=" + createdBy + ", lastUpdatedBy=" + lastUpdatedBy + ", createddatetime="
+				+ createddatetime + ", lastupdatedatetime=" + lastupdatedatetime + "]";
 	}
 
 }

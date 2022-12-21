@@ -8,4 +8,6 @@ public interface TeamSettingsRepository extends JpaRepository<TeamSetting, Integ
 
 	TeamSetting findByTeamId(int teamId);
 
+	void deleteByTeamId(int id);
+
 }
