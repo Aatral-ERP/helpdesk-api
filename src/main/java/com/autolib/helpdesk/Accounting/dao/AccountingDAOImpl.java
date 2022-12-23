@@ -44,6 +44,7 @@ import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
 import com.autolib.helpdesk.Agents.repository.VendorRepository;
 import com.autolib.helpdesk.Institutes.model.Institute;
 import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
+import com.autolib.helpdesk.LeadManagement.model.Lead;
 import com.autolib.helpdesk.common.Util;
 
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -251,6 +252,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 		List<String> _expense_category = new ArrayList<>();
 		List<Agent> _agents = new ArrayList<>();
 		List<Vendor> _vendors = new ArrayList<>();
+		List<AgentLedger> _recentLegderPerAgent = new ArrayList<>();
 		try {
 
 			_income_category = inExRepo.findDistinctCategory("Income");
@@ -262,7 +264,8 @@ public class AccountingDAOImpl implements AccountingDAO {
 					.collect(Collectors.toList());
 
 			_vendors = vendorRepo.findAllMinDetails();
-
+			_recentLegderPerAgent = agentLedgerRepo
+					.findRecentLegderPerAgent(_agents.stream().map(Agent::getEmailId).collect(Collectors.toList()));
 			resp.putAll(Util.SuccessResponse());
 		} catch (Exception e) {
 			resp.putAll(Util.FailedResponse(e.getMessage()));
@@ -272,6 +275,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 		resp.put("ExpenseCategorys", _expense_category);
 		resp.put("Vendors", _vendors);
 		resp.put("Agents", _agents);
+		resp.put("RecentLegderPerAgent", _recentLegderPerAgent);
 		return resp;
 	}
 
@@ -338,6 +342,13 @@ public class AccountingDAOImpl implements AccountingDAO {
 	public Map<String, Object> addAgentLedger(AgentLedger ledger) {
 		Map<String, Object> resp = new HashMap<>();
 		try {
+			if (ledger.getId() == 0) {
+				List<AgentLedger> ledgers = agentLedgerRepo.findByAgentEmailId(ledger.getAgentEmailId());
+				ledgers.add(ledger);
+				Double creditAmount = ledgers.stream().mapToDouble(AgentLedger::getCredit).sum();
+				Double debitAmount = ledgers.stream().mapToDouble(AgentLedger::getDebit).sum();
+				ledger.setBalance(creditAmount - debitAmount);
+			}
 
 			ledger = agentLedgerRepo.save(ledger);
 
@@ -436,7 +447,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 					"SELECT * FROM(SELECT b.subject,'Income' AS TYPE,'Deal Payments' AS category,b.created_by,b.MODE,b.total_amount AS total_amount,b.amount AS amount,b.payment_date,c.institute_name AS NAME,c.institute_id AS inst_id,'' AS vendor_id,'' AS id,a.invoice_no AS billno FROM deal_invoices a,deal_payments b,institutes c WHERE a.id=b.invoice_id AND a.institute_id=c.institute_id UNION ALL "
 							+ "SELECT b.SUBJECT,'Expense' AS TYPE,'Purchase Bills' AS category,b.created_by,b.MODE,b.total_amount AS total_amount,b.amount AS amount,b.payment_date,c.vendor_name AS NAME,'' AS inst_id,c.id AS vendor_id,'' AS id,a.bill_no AS billno FROM bills a,purchase_inputs_bill_payments b,vendors c WHERE a.id=b.bill_id AND a.vendor_id=c.id UNION ALL "
 							+ "SELECT CONCAT('Salary for ', salary_month) AS SUBJECT,'Expense' AS TYPE,'Salary Credit' AS category,'Accounts Team' AS created_by,mode_of_payment AS MODE,SUM(net_pay) AS total_amount, SUM(net_pay) AS amount,salary_credited_date AS payment_date,employee_name AS NAME,'' AS inst_id, '' AS vendor_id, '' AS id,'' AS billno FROM salary_entries GROUP BY salary_month,employee_name UNION ALL "
-							+ "SELECT a.SUBJECT,'Expense' AS TYPE,a.journal AS category,'Accounts Team' AS created_by,'' AS MODE,a.credit AS total_amount,'' AS amount,a.payment_date,b.first_name AS NAME,'' AS inst_id,'' AS vendor_id,b.email_id AS id,'' AS billno FROM agent_ledger a,agents b WHERE a.agent_email_id=b.email_id UNION ALL "
+							+ "SELECT a.SUBJECT,'Expense' AS TYPE,a.journal AS category,'Accounts Team' AS created_by,'' AS MODE,a.credit AS total_amount,0 AS amount,a.payment_date,b.first_name AS NAME,'' AS inst_id,'' AS vendor_id,b.email_id AS id,'' AS billno FROM agent_ledger a,agents b WHERE a.agent_email_id=b.email_id UNION ALL "
 							+ "SELECT a.SUBJECT,a.TYPE,a.category AS category,a.created_by,a.mode_of_payment AS MODE,a.amount AS total_amount,a.amount AS amount,payment_date,b.vendor_name AS NAME,'' AS inst_id,'' AS vendor_id,b.id AS id,a.invoice_no AS billno FROM unspecified_incomes_expenses a,vendors b WHERE a.related_to_supplier_id=b.id UNION ALL "
 							+ "SELECT a.SUBJECT,a.TYPE,a.category AS category,a.created_by,a.mode_of_payment AS MODE,a.amount AS total_amount,a.amount AS amount,payment_date,'' AS NAME,'' AS inst_id,'' AS vendor_id,'' AS id,'' AS billno FROM unspecified_incomes_expenses a WHERE a.related_to_supplier_id='0') acc WHERE 2>1 "
 							+ filterQuery);

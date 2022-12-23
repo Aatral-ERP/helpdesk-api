@@ -12,4 +12,6 @@ public interface TeamPushNotifySettingRepository extends JpaRepository<TeamPushN
 
 	TeamPushNotifySetting findByTeamIdAndAction(int teamId, String string);
 
+	void deleteByTeamId(int id);
+
 }

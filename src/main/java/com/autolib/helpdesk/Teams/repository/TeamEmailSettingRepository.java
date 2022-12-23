@@ -12,4 +12,6 @@ public interface TeamEmailSettingRepository extends JpaRepository<TeamEmailSetti
 
 	TeamEmailSetting findByTeamIdAndAction(int teamId, String action);
 
+	void deleteByTeamId(int id);
+
 }

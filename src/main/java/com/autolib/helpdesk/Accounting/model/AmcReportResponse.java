@@ -6,8 +6,8 @@ import com.autolib.helpdesk.Sales.model.DealPayments;
 
 public class AmcReportResponse {
 
-	public AmcReportResponse(com.autolib.helpdesk.Sales.model.DealPayments dealPayments,
-			com.autolib.helpdesk.Sales.model.Deal deal) {
+	public AmcReportResponse(DealPayments dealPayments,
+                             Deal deal) {
 
 		super();
 
