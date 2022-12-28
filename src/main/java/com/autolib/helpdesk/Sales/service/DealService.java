@@ -113,40 +113,16 @@ public interface DealService {
 
 	Map<String, Object> getAmcPayment(int id);
 
-	/**
-	 * @param dealProjectImplementation
-	 * @return
-	 */
 	Map<String, Object> saveDealProjectImplementation(DealProjectImplementation dealProjectImplementation);
 
-	/**
-	 * @param dealProjectImplementation
-	 * @return
-	 */
 	Map<String, Object> getDealProjectImplementation(int dealId);
 
-	/**
-	 * @param mailId
-	 * @return
-	 */
 	Map<String, Object> getDealProjectImplementations(ProjectImplemantationRequest projectReq);
 
-	/**
-	 * @param comment
-	 * @return
-	 */
 	Map<String, Object> saveDealProjectImplementationComments(DealProjectImplementationComments comment);
 
-	/**
-	 * @param comment
-	 * @return
-	 */
 	Map<String, Object> deleteDealProjectImplementationComments(DealProjectImplementationComments comment);
 
-	/**
-	 * @param comment
-	 * @return
-	 */
 	Map<String, Object> getAllDealProjectImplementationComments(DealProjectImplementationComments comment);
 
 	Map<String, Object> generateDealInstamojoPaymentURL(Deal deal);

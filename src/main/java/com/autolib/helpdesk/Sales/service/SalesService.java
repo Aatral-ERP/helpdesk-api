@@ -10,10 +10,6 @@ public interface SalesService {
 
 	Map<String, Object> getSalesNeededData(Map<String, Object> needed);
 
-	/**
-	 * @param needed
-	 * @return
-	 */
 	Map<String, Object> getSalesDashboardData(Map<String, Object> req);
 
 	Map<String, Object> uploadPreambleDocuments(MultipartFile file);
