@@ -75,16 +75,8 @@ public class GmailReceiveMailsScheduler {
 	 */
 	private final String CREDENTIALS_FILE_PATH = "/cred-gmail-api.json";
 
-	/**
-	 * Creates an authorized Credential object.
-	 * 
-	 * @param HTTP_TRANSPORT The network HTTP Transport.
-	 * @return An authorized Credential object.
-	 * @throws IOException If the credentials.json file cannot be found.
-	 */
-
 //	@GetMapping("DeleteGmailReceiveMailsScheduler")
-	@Scheduled(cron = "35 12 * * * *")
+//	@Scheduled(cron = "35 12 * * * *")
 	void delete() throws IOException, GeneralSecurityException {
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.DAY_OF_MONTH, -30);
@@ -93,7 +85,7 @@ public class GmailReceiveMailsScheduler {
 	}
 
 //	@GetMapping("GmailReceiveMailsScheduler")
-	@Scheduled(cron = "0 0/30 * * * *")
+//	@Scheduled(cron = "0 0/30 * * * *")
 	void execute() throws IOException, GeneralSecurityException {
 
 		getGmailService();
