@@ -136,26 +136,30 @@ public class TaskDAOImpl implements TaskDAO {
     }
 
     void featureProgressCountForTaskCreateAndUpdate(TaskRequest taskReq, String mode) {
-        TaskFeature taskFeature = taskFeatureRepo.getByFeatureId(taskReq.getTask().getFeatureId());
-        String[] progress = taskFeature.getProgress().split("-");
+        try {
+            TaskFeature taskFeature = taskFeatureRepo.getByFeatureId(taskReq.getTask().getFeatureId());
+            String[] progress = taskFeature.getProgress().split("-");
 
-        if (mode.equalsIgnoreCase("create")) {
-            if (taskReq.getTask().getStatus().equalsIgnoreCase("To Do"))
-                progress[0] = String.valueOf(Integer.parseInt(progress[0]) + 1);
-            else if (taskReq.getTask().getStatus().equalsIgnoreCase("Done"))
-                progress[2] = String.valueOf(Integer.parseInt(progress[2]) + 1);
-            else progress[1] = String.valueOf(Integer.parseInt(progress[1]) + 1);
-        } else if (mode.equalsIgnoreCase("delete")) {
-            if (taskReq.getTask().getStatus().equalsIgnoreCase("To Do"))
-                progress[0] = String.valueOf(Integer.parseInt(progress[0]) - 1);
-            else if (taskReq.getTask().getStatus().equalsIgnoreCase("Done"))
-                progress[2] = String.valueOf(Integer.parseInt(progress[2]) - 1);
-            else progress[1] = String.valueOf(Integer.parseInt(progress[1]) - 1);
+            if (mode.equalsIgnoreCase("create")) {
+                if (taskReq.getTask().getStatus().equalsIgnoreCase("To Do"))
+                    progress[0] = String.valueOf(Integer.parseInt(progress[0]) + 1);
+                else if (taskReq.getTask().getStatus().equalsIgnoreCase("Done"))
+                    progress[2] = String.valueOf(Integer.parseInt(progress[2]) + 1);
+                else progress[1] = String.valueOf(Integer.parseInt(progress[1]) + 1);
+            } else if (mode.equalsIgnoreCase("delete")) {
+                if (taskReq.getTask().getStatus().equalsIgnoreCase("To Do"))
+                    progress[0] = String.valueOf(Integer.parseInt(progress[0]) - 1);
+                else if (taskReq.getTask().getStatus().equalsIgnoreCase("Done"))
+                    progress[2] = String.valueOf(Integer.parseInt(progress[2]) - 1);
+                else progress[1] = String.valueOf(Integer.parseInt(progress[1]) - 1);
+            }
+
+            taskFeature.setProgress(String.join("-", progress));
+            taskFeature.setStatus(getStatusFromProgress(taskFeature.getProgress()));
+            taskFeatureRepo.save(taskFeature);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        taskFeature.setProgress(String.join("-", progress));
-        taskFeature.setStatus(getStatusFromProgress(taskFeature.getProgress()));
-        taskFeatureRepo.save(taskFeature);
     }
 
     String getStatusFromProgress(String progress) {
@@ -265,7 +269,7 @@ public class TaskDAOImpl implements TaskDAO {
                 taskReq.setTaskHistory(historyRepo.save(taskReq.getTaskHistory()));
                 if (taskReq.getTaskHistory().getField().equalsIgnoreCase("Changed Feature"))
                     featureProgressCountUpdateForFeatureChange(taskReq);
-                else if (taskReq.getTaskHistory().getField().equalsIgnoreCase("Changed Status"))
+                else if (taskReq.getTask().getFeatureId() > 0 && taskReq.getTaskHistory().getField().equalsIgnoreCase("Changed Status"))
                     featureProgressCountUpdateForStatusChange(taskReq);
             }
 
@@ -288,57 +292,68 @@ public class TaskDAOImpl implements TaskDAO {
     }
 
     void featureProgressCountUpdateForFeatureChange(TaskRequest taskReq) {
-        Optional<TaskFeature> taskFeatureFrom = Optional.ofNullable(taskFeatureRepo.findByName(taskReq.getTaskHistory().getHistoryFrom()));
-        Optional<TaskFeature> taskFeatureTo = Optional.ofNullable(taskFeatureRepo.findByName(taskReq.getTaskHistory().getHistoryTo()));
+        try {
+            Optional<TaskFeature> taskFeatureFrom = Optional.ofNullable(taskFeatureRepo.findByName(taskReq.getTaskHistory().getHistoryFrom()));
+            Optional<TaskFeature> taskFeatureTo = Optional.ofNullable(taskFeatureRepo.findByName(taskReq.getTaskHistory().getHistoryTo()));
 
-        if (taskFeatureFrom.isPresent()) {
-            String[] progressFrom = taskFeatureFrom.get().getProgress().split("-");
-            if (taskReq.getTask().getStatus().equalsIgnoreCase("To Do"))
-                progressFrom[0] = String.valueOf(Integer.parseInt(progressFrom[0]) - 1);
-            else if (taskReq.getTask().getStatus().equalsIgnoreCase("Done"))
-                progressFrom[2] = String.valueOf(Integer.parseInt(progressFrom[2]) - 1);
-            else progressFrom[1] = String.valueOf(Integer.parseInt(progressFrom[1]) - 1);
+            if (taskFeatureFrom.isPresent()) {
+                String[] progressFrom = taskFeatureFrom.get().getProgress().split("-");
+                if (taskReq.getTask().getStatus().equalsIgnoreCase("To Do"))
+                    progressFrom[0] = String.valueOf(Integer.parseInt(progressFrom[0]) - 1);
+                else if (taskReq.getTask().getStatus().equalsIgnoreCase("Done"))
+                    progressFrom[2] = String.valueOf(Integer.parseInt(progressFrom[2]) - 1);
+                else progressFrom[1] = String.valueOf(Integer.parseInt(progressFrom[1]) - 1);
 
-            taskFeatureFrom.get().setProgress(String.join("-", progressFrom));
-            taskFeatureFrom.get().setStatus(getStatusFromProgress(taskFeatureFrom.get().getProgress()));
-            taskFeatureRepo.save(taskFeatureFrom.get());
+                taskFeatureFrom.get().setProgress(String.join("-", progressFrom));
+                taskFeatureFrom.get().setStatus(getStatusFromProgress(taskFeatureFrom.get().getProgress()));
+                taskFeatureRepo.save(taskFeatureFrom.get());
+            }
+
+            if (taskFeatureTo.isPresent()) {
+                String[] progressTo = taskFeatureTo.get().getProgress().split("-");
+                if (taskReq.getTask().getStatus().equalsIgnoreCase("To Do"))
+                    progressTo[0] = String.valueOf(Integer.parseInt(progressTo[0]) + 1);
+                else if (taskReq.getTask().getStatus().equalsIgnoreCase("Done"))
+                    progressTo[2] = String.valueOf(Integer.parseInt(progressTo[2]) + 1);
+                else progressTo[1] = String.valueOf(Integer.parseInt(progressTo[1]) + 1);
+
+                taskFeatureTo.get().setProgress(String.join("-", progressTo));
+                taskFeatureTo.get().setStatus(getStatusFromProgress(taskFeatureTo.get().getProgress()));
+                taskFeatureRepo.save(taskFeatureTo.get());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        if (taskFeatureTo.isPresent()) {
-            String[] progressTo = taskFeatureTo.get().getProgress().split("-");
-            if (taskReq.getTask().getStatus().equalsIgnoreCase("To Do"))
-                progressTo[0] = String.valueOf(Integer.parseInt(progressTo[0]) + 1);
-            else if (taskReq.getTask().getStatus().equalsIgnoreCase("Done"))
-                progressTo[2] = String.valueOf(Integer.parseInt(progressTo[2]) + 1);
-            else progressTo[1] = String.valueOf(Integer.parseInt(progressTo[1]) + 1);
-
-            taskFeatureTo.get().setProgress(String.join("-", progressTo));
-            taskFeatureTo.get().setStatus(getStatusFromProgress(taskFeatureTo.get().getProgress()));
-            taskFeatureRepo.save(taskFeatureTo.get());
-        }
     }
 
     void featureProgressCountUpdateForStatusChange(TaskRequest taskReq) {
-        Optional<TaskFeature> taskFeature = taskFeatureRepo.findById(taskReq.getTask().getFeatureId());
-        String[] progressFrom = taskFeature.get().getProgress().split("-");
+        try {
+            Optional<TaskFeature> taskFeature = taskFeatureRepo.findById(taskReq.getTask().getFeatureId());
+            if (taskFeature.isPresent()) {
+                String[] progressFrom = taskFeature.get().getProgress().split("-");
 
-        // Adding Count for Current task Status
-        if (taskReq.getTask().getStatus().equalsIgnoreCase("To Do"))
-            progressFrom[0] = String.valueOf(Integer.parseInt(progressFrom[0]) + 1);
-        else if (taskReq.getTask().getStatus().equalsIgnoreCase("Done"))
-            progressFrom[2] = String.valueOf(Integer.parseInt(progressFrom[2]) + 1);
-        else progressFrom[1] = String.valueOf(Integer.parseInt(progressFrom[1]) + 1);
+                // Adding Count for Current task Status
+                if (taskReq.getTask().getStatus().equalsIgnoreCase("To Do"))
+                    progressFrom[0] = String.valueOf(Integer.parseInt(progressFrom[0]) + 1);
+                else if (taskReq.getTask().getStatus().equalsIgnoreCase("Done"))
+                    progressFrom[2] = String.valueOf(Integer.parseInt(progressFrom[2]) + 1);
+                else progressFrom[1] = String.valueOf(Integer.parseInt(progressFrom[1]) + 1);
 
-        // Reducing Count for Previous task Status
-        if (taskReq.getTaskHistory().getHistoryFrom().equalsIgnoreCase("To Do"))
-            progressFrom[0] = String.valueOf(Integer.parseInt(progressFrom[0]) - 1);
-        else if (taskReq.getTaskHistory().getHistoryFrom().equalsIgnoreCase("Done"))
-            progressFrom[2] = String.valueOf(Integer.parseInt(progressFrom[2]) - 1);
-        else progressFrom[1] = String.valueOf(Integer.parseInt(progressFrom[1]) - 1);
+                // Reducing Count for Previous task Status
+                if (taskReq.getTaskHistory().getHistoryFrom().equalsIgnoreCase("To Do"))
+                    progressFrom[0] = String.valueOf(Integer.parseInt(progressFrom[0]) - 1);
+                else if (taskReq.getTaskHistory().getHistoryFrom().equalsIgnoreCase("Done"))
+                    progressFrom[2] = String.valueOf(Integer.parseInt(progressFrom[2]) - 1);
+                else progressFrom[1] = String.valueOf(Integer.parseInt(progressFrom[1]) - 1);
 
-        taskFeature.get().setProgress(String.join("-", progressFrom));
-        taskFeature.get().setStatus(getStatusFromProgress(taskFeature.get().getProgress()));
-        taskFeatureRepo.save(taskFeature.get());
+                taskFeature.get().setProgress(String.join("-", progressFrom));
+                taskFeature.get().setStatus(getStatusFromProgress(taskFeature.get().getProgress()));
+                taskFeatureRepo.save(taskFeature.get());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
