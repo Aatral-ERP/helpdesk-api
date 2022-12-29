@@ -125,11 +125,18 @@ public class DealDCProducts implements Cloneable {
     }
 
     @Transient
-    public String getNameDescHTMLText() {
+    public String getNameDescHTMLText(boolean addRawMaterials) {
         String name_description = getName();
 
         if (!getDescription().isEmpty()) {
             name_description = name_description + "<br>" + getDescription();
+        }
+
+        if (!this.dealDCProductRawMaterials.isEmpty() && addRawMaterials) {
+            name_description = name_description + "<br>";
+            for (DealDCProductRawMaterial raw : dealDCProductRawMaterials) {
+                name_description = name_description + "<br>" + raw.getName() + " (Qty: " + raw.getQuantity() + ")";
+            }
         }
         return name_description;
     }
