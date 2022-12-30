@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.autolib.helpdesk.LeadManagement.dao.LeadDAO;
+import com.autolib.helpdesk.LeadManagement.model.LeadActivityReportRequest;
 import com.autolib.helpdesk.LeadManagement.model.LeadDashboardRequest;
 import com.autolib.helpdesk.LeadManagement.model.LeadRequest;
 import com.autolib.helpdesk.LeadManagement.model.LeadSearchRequest;
@@ -81,6 +82,11 @@ public class LeadServiceImpl implements LeadService {
 	@Override
 	public Map<String, Object> getDashboardData(LeadDashboardRequest request) {
 		return leadDAO.getDashboardData(request);
+	}
+
+	@Override
+	public Map<String, Object> getLeadActivityReport(LeadActivityReportRequest req) {
+		return leadDAO.getLeadActivityReport(req);
 	}
 
 }

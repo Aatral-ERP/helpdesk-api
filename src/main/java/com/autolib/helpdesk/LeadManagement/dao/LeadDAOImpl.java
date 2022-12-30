@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.autolib.helpdesk.Agents.entity.Agent;
 import com.autolib.helpdesk.LeadManagement.model.Lead;
+import com.autolib.helpdesk.LeadManagement.model.LeadActivityReportRequest;
 import com.autolib.helpdesk.LeadManagement.model.LeadContact;
 import com.autolib.helpdesk.LeadManagement.model.LeadDashboardRequest;
 import com.autolib.helpdesk.LeadManagement.model.LeadMeeting;
@@ -31,6 +32,7 @@ import com.autolib.helpdesk.LeadManagement.model.LeadRequest;
 import com.autolib.helpdesk.LeadManagement.model.LeadSearchRequest;
 import com.autolib.helpdesk.LeadManagement.model.LeadTask;
 import com.autolib.helpdesk.LeadManagement.model.LeadUploadDetail;
+import com.autolib.helpdesk.LeadManagement.repository.LeadActivityReportResponse;
 import com.autolib.helpdesk.LeadManagement.repository.LeadContactRepository;
 import com.autolib.helpdesk.LeadManagement.repository.LeadMeetingRepository;
 import com.autolib.helpdesk.LeadManagement.repository.LeadRepository;
@@ -493,6 +495,70 @@ public class LeadDAOImpl implements LeadDAO {
 			ex.printStackTrace();
 		}
 		return resp;
+	}
+
+	@Override
+	public Map<String, Object> getLeadActivityReport(LeadActivityReportRequest req) {
+		
+		Map<String,Object> respMap = new HashMap<String, Object>();
+		String filterQuery ="";
+		
+		try {
+			
+			if(req.getAgent().size()>0) {
+
+				String _agent = "'0'";
+
+				for(Agent agent: req.getAgent()) {
+					_agent = _agent +",'"+agent.getEmailId()+"'";
+				}
+				filterQuery = filterQuery+" AND a.emailId IN("+_agent+")";
+
+			}
+
+			if(req.getLead().size()>0) {
+				
+                   String _lead ="'0'";
+                   
+                   for(Lead lead :req.getLead()) {
+                	   
+                	   _lead= _lead +",'"+lead.getId()+"'";
+                   }
+                   
+                   filterQuery = filterQuery+" AND lead.id IN("+_lead+")";
+                   
+			}
+			if(req.getLastUpdateFromDate()!=null && req.getLastUpdateToDate()!=null) {
+				
+				filterQuery = filterQuery + " and lm.lastupdatedatetime BETWEEN '" + Util.sdfFormatter(req.getLastUpdateToDate())
+				+ "' AND '" + Util.sdfFormatter(req.getLastUpdateToDate()) + " 23:59:59'";
+
+			}
+			if(req.getCreatedFromDate()!=null && req.getCreatedToDate()!=null) {
+				
+				filterQuery = filterQuery + " and lm.createddatetime BETWEEN '" + Util.sdfFormatter(req.getCreatedFromDate())
+				+ "' AND '" + Util.sdfFormatter(req.getCreatedToDate()) + " 23:59:59'";
+
+			}
+			if(req.getFromDateTime()!=null && req.getToDateTime()!=null) {
+				
+				filterQuery = filterQuery + " and lm.fromDateTime BETWEEN '" + Util.sdfFormatter(req.getFromDateTime())
+				+ "' AND '" + Util.sdfFormatter(req.getToDateTime()) + " 23:59:59'";
+
+			}
+			
+			Query query = em.createQuery("SELECT new com.autolib.helpdesk.LeadManagement.repository.LeadActivityReportResponse(lm,lead,a) FROM LeadMeeting lm JOIN Lead lead ON (lm.leadId=lead.id) JOIN Agent a ON(lead.ownerEmailId=a.emailId) WHERE 2>1 "+filterQuery,LeadActivityReportResponse.class);
+			
+			List<LeadActivityReportResponse> activity = query.getResultList();
+			
+			respMap.putAll(Util.SuccessResponse());
+			respMap.put("leadActivities", activity);
+			respMap.put("leadActivitiesCount", activity.size());
+		}catch(Exception ex) {
+			ex.printStackTrace();
+		}
+		
+		return respMap;
 	}
 
 }

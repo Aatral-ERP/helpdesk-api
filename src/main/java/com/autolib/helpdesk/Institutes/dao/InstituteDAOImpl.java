@@ -345,21 +345,17 @@ public class InstituteDAOImpl implements InstituteDAO {
 				resp.putAll(Util.invalidMessage("Institute Not Found"));
 
 			} else {
-//				String logoURL = institute.getLogourl();
-//				filePath = new File(contentPath + "/InstituteLogo/" + logoURL);
-//
-//				institute.setLogourl(filePath.toString());
+				List<Map<String,Object>>instContact=jdbcTemp.queryForList("SELECT first_name AS `name`,email_id AS emailId,phone AS phoneNo,1 as active FROM institute_contact WHERE institute_id='"+institute.getInstituteId()+"' ");
 				resp.putAll(Util.SuccessResponse());
+				resp.put("Institute", institute);
+				resp.put("InstituteContact", instContact);
+			
 			}
-
 		} catch (Exception Ex) {
 			Ex.printStackTrace();
 			resp.putAll(Util.FailedResponse(Ex.getMessage()));
 		}
-
-		resp.put("Institute", institute);
-
-		return resp;
+	return resp;
 	}
 
 	@Override

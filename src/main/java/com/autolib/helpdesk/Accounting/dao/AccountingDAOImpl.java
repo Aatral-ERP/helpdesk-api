@@ -1395,34 +1395,38 @@ public class AccountingDAOImpl implements AccountingDAO {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-DD-mm");
 
 			
-			  if(amcReport.getInstitutes().size()>0) { String inst="0"; 
-			  for(Institute institute: amcReport.getInstitutes()) {
-			  
-			  inst = inst +","+institute.getInstituteId(); } filterQuery = filterQuery +
-			  "AND i.institute_id in ("+inst+")"; }
-			  
-			  
-			  if(amcReport.getProducts().size()>0) { 
-				  String prod="0"; 
-				  for(Product product:amcReport.getProducts()) {
-			  
-			      prod = prod +","+product.getId(); } 
-				  filterQuery = filterQuery +" AND p.product_id in ("+prod+")"; 
-				  }
-			  
-			  if(amcReport.getPaymentFromDate()!=null &&
-			  amcReport.getPaymentToDate()!=null) {
-			  
-			  filterQuery = filterQuery
-			  +" AND dp.payment_date between '"+sdf.format(amcReport.getPaymentFromDate())
-			  +"' AND '"+sdf.format(amcReport.getPaymentToDate())+"' "; }
-			  
-			  if(amcReport.getFromDate()!=null && amcReport.getToDate()!=null) {
-			  
-			  filterQuery = filterQuery
-			  +" AND d.amc_to_date between '"+sdf.format(amcReport.getFromDate())
-			  +"' AND '"+sdf.format(amcReport.getToDate())+"' "; 
-			  }
+			if(amcReport.getInstitutes().size()>0) { 
+				String inst="'0'"; 
+				for(Institute institute: amcReport.getInstitutes()) {
+
+					inst = inst +",'"+institute.getInstituteId()+"'"; 
+				} 
+				filterQuery = filterQuery +" AND i.institute_id IN ("+inst+")"; }
+
+
+			if(amcReport.getProducts().size()>0) { 
+				String prod="'0'"; 
+				for(Product product:amcReport.getProducts()) {
+
+					prod = prod +",'"+product.getId()+"'"; 
+				} 
+				filterQuery = filterQuery +" AND p.product_id IN ("+prod+")"; 
+			}
+
+			if(amcReport.getPaymentFromDate()!=null &&
+					amcReport.getPaymentToDate()!=null) {
+
+				filterQuery = filterQuery
+						+" AND dp.payment_date between '"+sdf.format(amcReport.getPaymentFromDate())
+						+"' AND '"+sdf.format(amcReport.getPaymentToDate())+"' "; 
+			}
+
+			if(amcReport.getFromDate()!=null && amcReport.getToDate()!=null) {
+
+				filterQuery = filterQuery
+						+" AND d.amc_to_date between '"+sdf.format(amcReport.getFromDate())
+						+"' AND '"+sdf.format(amcReport.getToDate())+"' "; 
+			}
 			 
 
 			
@@ -1432,13 +1436,13 @@ public class AccountingDAOImpl implements AccountingDAO {
 			 * "FROM DealPayments dp JOIN Deal d ON (dp.dealId=d.id) " + filterQuery,
 			 * AmcReportResponse.class);
 			 */
-
 			
-			  amcReportData=jdbcTemp.
-			  queryForList("SELECT i.institute_name,dp.payment_date,dp.total_amount AS paid_amount,dp.mode,d.amc_from_date,d.amc_to_date,p.name,di.invoice_no,di.invoice_date FROM deal_payments dp JOIN deals d   ON(d.id=dp.deal_id) JOIN institutes i ON (d.institute_id=i.institute_id AND d.deal_type='AMC') JOIN deal_products p ON(d.id=p.deal_id)\r\n"
-			  + " JOIN deal_invoices di ON(d.id=di.deal_id) WHERE 2>1 "+filterQuery );
-			 
+			amcReportData=jdbcTemp.
+					queryForList("SELECT i.institute_name,dp.payment_date,dp.total_amount AS paid_amount,dp.mode,d.amc_from_date,d.amc_to_date,p.name,di.invoice_no,di.invoice_date FROM deal_payments dp JOIN deals d   ON(d.id=dp.deal_id) JOIN institutes i ON (d.institute_id=i.institute_id AND d.deal_type='AMC') JOIN deal_products p ON(d.id=p.deal_id) "
+							+ " JOIN deal_invoices di ON(d.id=di.deal_id) WHERE 2>1 "+filterQuery );
+
 			respMap.put("amcList", amcReportData);
+			respMap.put("size", amcReportData.size());
 			respMap.putAll(Util.SuccessResponse());
 
 		} catch (Exception ex) {
