@@ -516,11 +516,11 @@ public class DownloadFile {
 		return ResponseEntity.ok().headers(headers).body(resource);
 	}
 
-	@RequestMapping(value = "/download-lettepad-pdf/{mode}/{id}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
+	@RequestMapping(value = "/download-lettepad-pdf/{mode}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
 	public ResponseEntity<InputStreamResource> downloadLetterpadPDFFile(@PathVariable("fileName") String fileName,
-			@PathVariable("id") int id, @PathVariable("mode") String mode) throws IOException {
+			@PathVariable("mode") String mode) throws IOException {
 
-		String path = contentPath + "/Letterpads/" + id + "/" + fileName + "";
+		String path = contentPath + "/Letterpads/" + fileName + "";
 		logger.info("Downloading Letterpads File::" + path);
 		InputStreamResource resource = getFileFromPath(path);
 		HttpHeaders headers = new HttpHeaders();

@@ -3,6 +3,7 @@ package com.autolib.helpdesk.LeadManagement.dao;
 import java.util.List;
 import java.util.Map;
 
+import com.autolib.helpdesk.LeadManagement.model.LeadActivityReportRequest;
 import com.autolib.helpdesk.LeadManagement.model.LeadDashboardRequest;
 import com.autolib.helpdesk.LeadManagement.model.LeadRequest;
 import com.autolib.helpdesk.LeadManagement.model.LeadSearchRequest;
@@ -35,5 +36,7 @@ public interface LeadDAO {
 	Map<String, Object> createMultipleLead(List<LeadUploadDetail> leadDetails);
 
 	Map<String, Object> getDashboardData(LeadDashboardRequest request);
+
+	Map<String, Object> getLeadActivityReport(LeadActivityReportRequest req);
 
 }
