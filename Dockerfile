@@ -9,6 +9,6 @@
 # Package stage
 #
 FROM openjdk:8-jre
-COPY helpdesk-api-0.0.1-SNAPSHOT.jar /usr/local/lib/helpdesk-api.jar
+COPY target/helpdesk-api.jar /usr/local/lib/helpdesk-api.jar
 EXPOSE 9000
 ENTRYPOINT ["java","-jar","/usr/local/lib/helpdesk-api.jar"]
