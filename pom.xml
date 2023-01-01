@@ -213,7 +213,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
-		<finalName>helpdesk-api.jar</finalName>
+		<finalName>helpdesk-api</finalName>
 	</build>
 
 	<repositories>
