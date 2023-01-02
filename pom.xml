@@ -213,8 +213,47 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 		<finalName>helpdesk-api</finalName>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>autolib-test</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>spring.profiles.active</name>
+					<value>autolib-test</value>
+				</property>
+			</activation>
+		</profile>
+		<profile>
+			<id>2cqr</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>spring.profiles.active</name>
+					<value>2cqr</value>
+				</property>
+			</activation>
+		</profile>
+		<profile>
+			<id>autolib</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>spring.profiles.active</name>
+					<value>autolib</value>
+				</property>
+			</activation>
+		</profile>
+	</profiles>
 
 	<repositories>
 		<repository>
