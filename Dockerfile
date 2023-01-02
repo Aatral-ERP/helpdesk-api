@@ -10,5 +10,5 @@
 #
 FROM openjdk:8-jre
 COPY target/helpdesk-api.jar /usr/local/lib/helpdesk-api.jar
-EXPOSE 9000
-ENTRYPOINT ["java","-jar","/usr/local/lib/helpdesk-api.jar"]
+EXPOSE 9001
+ENTRYPOINT ["java","-jar","/usr/local/lib/helpdesk-api.jar","-Dspring.profiles.active=autolib-test"]
