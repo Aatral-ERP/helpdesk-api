@@ -443,6 +443,14 @@ public class TaskDAOImpl implements TaskDAO {
                 filterQuery = filterQuery + " and t.taskId = '" + request.getTaskId() + "'";
             }
 
+            if (request.getFeatureId() != null && request.getFeatureId().size() > 0) {
+                String _featureId = "'-1'";
+                for (String featureId : request.getFeatureId()) {
+                    _featureId = _featureId + ",'" + featureId + "'";
+                }
+                filterQuery = filterQuery + " and t.featureId in (" + _featureId + ") ";
+            }
+
             if (request.getStatus() != null && request.getStatus().size() > 0) {
                 String _status = "'0'";
                 for (String status : request.getStatus()) {
