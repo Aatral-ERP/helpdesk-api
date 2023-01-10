@@ -62,6 +62,9 @@ public class AgentDAOImpl implements AgentDAO {
     AgentRepository agentRepo;
 
     @Autowired
+    AgentPhotoUtil agentPhotoUtil;
+
+    @Autowired
     private JdbcTemplate jdbcTemp;
 
     @Autowired
@@ -196,8 +199,8 @@ public class AgentDAOImpl implements AgentDAO {
 
                 }
 
-                TextToGraphics textToGraphics = new TextToGraphics();
-                agent.setPhotoFileName(textToGraphics.createDefaultProfilePicture(agent.getFirstName(), agent.getLastName(), agent.getEmployeeId(), contentPath));
+                agent.setPhotoFileName(agentPhotoUtil.createDefaultProfilePicture(agent.getFirstName(),
+                        agent.getLastName(), agent.getEmployeeId()));
 
                 agent = agentRepo.save(agent);
 
@@ -236,6 +239,7 @@ public class AgentDAOImpl implements AgentDAO {
         try {
 
             agent = agentRepo.findByEmployeeId(agentId);
+            agent.setPhoto(agentPhotoUtil.getProfilePhoto(agent.getPhotoFileName()));
             resp.putAll(Util.SuccessResponse());
         } catch (Exception e) {
             resp.putAll(Util.FailedResponse(e.getMessage()));
@@ -836,8 +840,7 @@ public class AgentDAOImpl implements AgentDAO {
                 agent.setPhoto(photo.getBytes());
 
                 Query query = em.createQuery(
-                        "Update Agent a set a.photo = :photo , a.photoFileName = :photofilename where a.employeeId = :employeeId");
-                query.setParameter("photo", photo.getBytes());
+                        "Update Agent a set a.photoFileName = :photofilename where a.employeeId = :employeeId");
                 query.setParameter("photofilename", filename);
                 query.setParameter("employeeId", employeeId);
 

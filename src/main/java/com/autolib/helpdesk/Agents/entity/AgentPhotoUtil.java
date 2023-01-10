@@ -1,18 +1,26 @@
 package com.autolib.helpdesk.Agents.entity;
 
 import com.autolib.helpdesk.common.DirectoryUtil;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
 
 @Component
-public class TextToGraphics {
+public class AgentPhotoUtil {
 
-    public String createDefaultProfilePicture(String firstName, String lastName, String employeeId, String contentPath) {
+    @Value("${al.ticket.content-path}")
+    private String contentPath;
+
+    public String createDefaultProfilePicture(String firstName, String lastName, String employeeId) {
         String profilePath = contentPath + "/" + DirectoryUtil.profilePhotosDirectory;
         String filename = employeeId + ".png";
         try {
@@ -64,4 +72,26 @@ public class TextToGraphics {
         return filename;
     }
 
+    public byte[] getProfilePhoto(String fileName) {
+        byte[] photo = null;
+
+        try {
+            String path = contentPath + "/_profile_photos/" + fileName + "";
+            File file = null;
+            try {
+                file = new File(path);
+                if (file.exists()) {
+                    photo = Files.readAllBytes(file.toPath());
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return photo;
+    }
 }
