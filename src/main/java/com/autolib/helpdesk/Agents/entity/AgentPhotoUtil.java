@@ -61,7 +61,7 @@ public class AgentPhotoUtil {
 
             File temp = File.createTempFile(filename, null, null);
             ImageIO.write(img, "png", temp);
-            s3StorageService.pushImageToAWS(S3Directories.AgentProfilePhotos, temp, filename);
+            s3StorageService.pushToAWS(S3Directories.AgentProfilePhotos, temp, filename);
 
         } catch (IOException ex) {
             ex.printStackTrace();

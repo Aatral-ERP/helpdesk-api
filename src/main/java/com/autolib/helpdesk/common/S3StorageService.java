@@ -34,19 +34,19 @@ public class S3StorageService {
     @Autowired
     AmazonS3 s3client;
 
-    public void pushImageToAWS(String directory, MultipartFile file) throws IOException {
-        pushImageToAWS(directory, convertMultipartToFile(file), file.getOriginalFilename());
+    public void pushToAWS(String directory, MultipartFile file) throws IOException {
+        pushToAWS(directory, convertMultipartToFile(file), file.getOriginalFilename());
     }
 
-    public void pushImageToAWS(String directory, MultipartFile file, String fileName) throws IOException {
-        pushImageToAWS(directory, convertMultipartToFile(file), fileName);
+    public void pushToAWS(String directory, MultipartFile file, String fileName) throws IOException {
+        pushToAWS(directory, convertMultipartToFile(file), fileName);
     }
 
-    public void pushImageToAWS(String directory, File file) {
-        pushImageToAWS(directory, file, file.getName());
+    public void pushToAWS(String directory, File file) {
+        pushToAWS(directory, file, file.getName());
     }
 
-    public void pushImageToAWS(String directory, File file, String fileName) {
+    public void pushToAWS(String directory, File file, String fileName) {
         String key = CLIENT_FOLDER_NAME + SUFFIX + directory + SUFFIX + fileName;
         logger.info("PUT :: " + CLIENT_FOLDER_NAME + "::" + key);
         s3client.putObject(new PutObjectRequest(BUCKET_NAME, key, file)

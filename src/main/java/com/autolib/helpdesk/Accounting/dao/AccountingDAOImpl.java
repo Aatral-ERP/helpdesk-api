@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.common.S3StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -92,6 +94,9 @@ public class AccountingDAOImpl implements AccountingDAO {
 
 	@Value("${al.letterpad.cmpInstituteName}")
 	private String cmp;
+
+	@Autowired
+	S3StorageService s3StorageService;
 
 	@Override
 	public Map<String, Object> getAccountingDashboardData() {
@@ -310,19 +315,21 @@ public class AccountingDAOImpl implements AccountingDAO {
 
 			if (legder != null) {
 
-				File directory = new File(contentPath + "/_agent_legder_proof" + "/");
-				System.out.println(directory.getAbsolutePath());
-				if (!directory.exists()) {
-					directory.mkdirs();
-				}
-
-				File convertFile = new File(directory.getAbsoluteFile() + "/" + filename);
-				convertFile.createNewFile();
-				FileOutputStream fout = new FileOutputStream(convertFile);
-				fout.write(photo.getBytes());
-				fout.close();
+//				File directory = new File(contentPath + "/_agent_legder_proof" + "/");
+//				System.out.println(directory.getAbsolutePath());
+//				if (!directory.exists()) {
+//					directory.mkdirs();
+//				}
+//
+//				File convertFile = new File(directory.getAbsoluteFile() + "/" + filename);
+//				convertFile.createNewFile();
+//				FileOutputStream fout = new FileOutputStream(convertFile);
+//				fout.write(photo.getBytes());
+//				fout.close();
 
 				legder.setFilename(filename);
+
+				s3StorageService.pushToAWS(S3Directories.AgentLedgerProofs, photo, filename);
 
 				agentLedgerRepo.save(legder);
 

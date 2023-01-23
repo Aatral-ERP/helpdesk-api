@@ -29,14 +29,12 @@ public class DownloadFile {
     private String contentPath;
 
     @Autowired
-    S3StorageService awss3StorageService;
+    S3StorageService s3StorageService;
 
     @GetMapping(value = "/agent-legder-proof/image/{mode}/{filename}", produces = "image/*")
     public ResponseEntity<InputStreamResource> _agent_legder_proof(@PathVariable("filename") String fileName,
                                                                    @PathVariable("mode") String mode) throws IOException {
         logger.info("Downloading File::" + fileName);
-        String path = contentPath + "/_agent_legder_proof/" + fileName + "";
-        InputStreamResource resource = getFileFromPath(path);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
@@ -47,7 +45,7 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentLedgerProofs + "/" + fileName));
     }
 
     @GetMapping(value = "/agent-legder-proof/pdf/{mode}/{filename}", produces = "application/pdf")
@@ -66,22 +64,20 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentLedgerProofs + "/" + fileName));
     }
 
     @GetMapping(value = "/institute-logo/{filename}", produces = "image/png")
     public ResponseEntity<InputStreamResource> InstituteLogo(@PathVariable("filename") String fileName)
             throws IOException {
         logger.info("Downloading File::" + fileName);
-        String path = contentPath + "/InstituteLogo/" + fileName + "";
-        InputStreamResource resource = getFileFromPath(path);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
         headers.add("Expires", "0");
         headers.add("Content-Disposition", String.format("inline; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.InstituteLogos + "/" + fileName));
     }
 
     @RequestMapping(value = "/task-attachments/{mode}/{taskId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
@@ -152,7 +148,7 @@ public class DownloadFile {
         headers.add("Expires", "0");
         headers.add("Content-Disposition", String.format("inline; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(awss3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentSignatures + "/" + fileName));
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentSignatures + "/" + fileName));
     }
 
     @GetMapping(value = "/profile-photos/{filename}", produces = "image/png")
@@ -165,7 +161,7 @@ public class DownloadFile {
         headers.add("Expires", "0");
         headers.add("Content-Disposition", String.format("inline; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(awss3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentProfilePhotos + "/" + fileName));
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentProfilePhotos + "/" + fileName));
     }
 
     @RequestMapping(value = "_service_invoices/{fileName}", method = RequestMethod.GET, produces = "application/pdf")

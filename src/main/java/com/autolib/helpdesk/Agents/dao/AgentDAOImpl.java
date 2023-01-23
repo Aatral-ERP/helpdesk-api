@@ -809,7 +809,7 @@ public class AgentDAOImpl implements AgentDAO {
 
             if (agent != null) {
 
-                s3StorageService.pushImageToAWS(S3Directories.AgentProfilePhotos, photo, filename);
+                s3StorageService.pushToAWS(S3Directories.AgentProfilePhotos, photo, filename);
 
                 Query query = em.createQuery(
                         "Update Agent a set a.photoFileName = :photofilename where a.employeeId = :employeeId");
@@ -846,7 +846,7 @@ public class AgentDAOImpl implements AgentDAO {
             String filename = employeeId + "_sign." + FilenameUtils.getExtension(signature.getOriginalFilename());
             if (agent != null) {
 
-                s3StorageService.pushImageToAWS(S3Directories.AgentSignatures, signature, filename);
+                s3StorageService.pushToAWS(S3Directories.AgentSignatures, signature, filename);
 
                 Query query = em.createQuery(
                         "Update Agent a set a.signatureFileName = :signatureFileName where a.employeeId = :employeeId");
