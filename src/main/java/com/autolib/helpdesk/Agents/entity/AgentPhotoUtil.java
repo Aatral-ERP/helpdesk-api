@@ -1,27 +1,27 @@
 package com.autolib.helpdesk.Agents.entity;
 
-import com.autolib.helpdesk.common.DirectoryUtil;
+import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.common.S3StorageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
 
 @Component
 public class AgentPhotoUtil {
+
+    @Autowired
+    S3StorageService s3StorageService;
 
     @Value("${al.ticket.content-path}")
     private String contentPath;
 
     public String createDefaultProfilePicture(String firstName, String lastName, String employeeId) {
-        String profilePath = contentPath + "/" + DirectoryUtil.profilePhotosDirectory;
         String filename = employeeId + ".png";
         try {
             String text = " ";
@@ -58,13 +58,10 @@ public class AgentPhotoUtil {
             fm = g2d.getFontMetrics();
             g2d.drawString(text, 0, fm.getAscent());
             g2d.dispose();
-            File directory = new File(profilePath);
-            System.out.println(directory.getAbsolutePath());
-            if (!directory.exists()) {
-                directory.mkdirs();
-            }
 
-            ImageIO.write(img, "png", new File(profilePath + filename));
+            File temp = File.createTempFile(filename, null, null);
+            ImageIO.write(img, "png", temp);
+            s3StorageService.pushImageToAWS(S3Directories.AgentProfilePhotos, temp, filename);
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -73,25 +70,11 @@ public class AgentPhotoUtil {
     }
 
     public byte[] getProfilePhoto(String fileName) {
-        byte[] photo = null;
-
         try {
-            String path = contentPath + "/_profile_photos/" + fileName + "";
-            File file = null;
-            try {
-                file = new File(path);
-                if (file.exists()) {
-                    photo = Files.readAllBytes(file.toPath());
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            return s3StorageService.getFromS3AsByteArray(S3Directories.AgentProfilePhotos + "/" + fileName);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        return photo;
+        return null;
     }
 }

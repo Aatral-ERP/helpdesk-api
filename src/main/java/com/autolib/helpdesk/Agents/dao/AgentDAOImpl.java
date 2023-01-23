@@ -1,22 +1,18 @@
 package com.autolib.helpdesk.Agents.dao;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.transaction.Transactional;
-
 import com.autolib.helpdesk.Agents.entity.*;
+import com.autolib.helpdesk.Agents.repository.*;
+import com.autolib.helpdesk.Agents.service.AgentService;
+import com.autolib.helpdesk.Attendance.repository.AttendanceRepository;
+import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.HR.entity.LeaveBalance;
+import com.autolib.helpdesk.HR.entity.LeaveMaster;
+import com.autolib.helpdesk.HR.repository.LeaveBalanceRepository;
+import com.autolib.helpdesk.HR.repository.LeaveMasterRepository;
+import com.autolib.helpdesk.Tickets.repository.TicketRepository;
+import com.autolib.helpdesk.common.*;
+import com.autolib.helpdesk.common.EnumUtils.TicketStatus;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.Modifying;
@@ -25,28 +21,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.autolib.helpdesk.Agents.repository.AgentRepository;
-import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
-import com.autolib.helpdesk.Agents.repository.ProductsRawMaterialsRepository;
-import com.autolib.helpdesk.Agents.repository.ProductsRepository;
-import com.autolib.helpdesk.Agents.repository.RawMaterialRequestProductsRepository;
-import com.autolib.helpdesk.Agents.repository.RawMaterialRequestRepository;
-import com.autolib.helpdesk.Agents.repository.RoleMasterRepository;
-import com.autolib.helpdesk.Agents.repository.StockDetailResp;
-import com.autolib.helpdesk.Agents.repository.StockEntryRepository;
-import com.autolib.helpdesk.Agents.repository.VendorRepository;
-import com.autolib.helpdesk.Agents.service.AgentService;
-import com.autolib.helpdesk.Attendance.repository.AttendanceRepository;
-import com.autolib.helpdesk.HR.entity.LeaveBalance;
-import com.autolib.helpdesk.HR.entity.LeaveMaster;
-import com.autolib.helpdesk.HR.repository.LeaveBalanceRepository;
-import com.autolib.helpdesk.HR.repository.LeaveMasterRepository;
-import com.autolib.helpdesk.Tickets.repository.TicketRepository;
-import com.autolib.helpdesk.common.DBQueryUtil;
-import com.autolib.helpdesk.common.EmailModel;
-import com.autolib.helpdesk.common.EmailSender;
-import com.autolib.helpdesk.common.EnumUtils.TicketStatus;
-import com.autolib.helpdesk.common.Util;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.transaction.Transactional;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Repository
 public class AgentDAOImpl implements AgentDAO {
@@ -105,6 +86,9 @@ public class AgentDAOImpl implements AgentDAO {
 
     @Autowired
     EntityManager em;
+
+    @Autowired
+    S3StorageService s3StorageService;
 
     @Value("${al.agnet.raw_material_request.url}")
     String viewRawMaterialRequestURI;
@@ -821,23 +805,11 @@ public class AgentDAOImpl implements AgentDAO {
         try {
 
             agent = agentRepo.findByEmployeeId(employeeId);
-            String filename = employeeId + "_" + photo.getOriginalFilename();
+            String filename = employeeId + "." + FilenameUtils.getExtension(photo.getOriginalFilename());
 
             if (agent != null) {
 
-                File directory = new File(contentPath + "/_profile_photos" + "/");
-                System.out.println(directory.getAbsolutePath());
-                if (!directory.exists()) {
-                    directory.mkdirs();
-                }
-
-                File convertFile = new File(directory.getAbsoluteFile() + "/" + filename);
-                convertFile.createNewFile();
-                FileOutputStream fout = new FileOutputStream(convertFile);
-                fout.write(photo.getBytes());
-                fout.close();
-
-                agent.setPhoto(photo.getBytes());
+                s3StorageService.pushImageToAWS(S3Directories.AgentProfilePhotos, photo, filename);
 
                 Query query = em.createQuery(
                         "Update Agent a set a.photoFileName = :photofilename where a.employeeId = :employeeId");
@@ -871,26 +843,13 @@ public class AgentDAOImpl implements AgentDAO {
         try {
 
             agent = agentRepo.findByEmployeeId(employeeId);
-            String filename = employeeId + "_" + signature.getOriginalFilename();
-
+            String filename = employeeId + "_sign." + FilenameUtils.getExtension(signature.getOriginalFilename());
             if (agent != null) {
-                File directory = new File(contentPath + "/_profile_signatures" + "/");
-                System.out.println(directory.getAbsolutePath());
-                if (!directory.exists()) {
-                    directory.mkdirs();
-                }
 
-                File convertFile = new File(directory.getAbsoluteFile() + "/" + filename);
-                convertFile.createNewFile();
-                FileOutputStream fout = new FileOutputStream(convertFile);
-                fout.write(signature.getBytes());
-                fout.close();
-
-                agent.setSignature(signature.getBytes());
+                s3StorageService.pushImageToAWS(S3Directories.AgentSignatures, signature, filename);
 
                 Query query = em.createQuery(
-                        "Update Agent a set a.signature = :signature , a.signatureFileName = :signatureFileName where a.employeeId = :employeeId");
-                query.setParameter("signature", signature.getBytes());
+                        "Update Agent a set a.signatureFileName = :signatureFileName where a.employeeId = :employeeId");
                 query.setParameter("signatureFileName", filename);
                 query.setParameter("employeeId", employeeId);
                 query.executeUpdate();

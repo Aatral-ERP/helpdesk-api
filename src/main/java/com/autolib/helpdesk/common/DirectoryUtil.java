@@ -13,6 +13,5 @@ public class DirectoryUtil {
     public static final String leadTemplateDirectory = leadRootDirectory + "template-file";
     public static final String leadMailTemplateDirectory = leadRootDirectory + "lead-mail-template-file/";
     public static final String leadUploadTempDirectory = leadRootDirectory + "upload-temp-files/";
-    public static final String profilePhotosDirectory = "_profile_photos/";
 
 }
