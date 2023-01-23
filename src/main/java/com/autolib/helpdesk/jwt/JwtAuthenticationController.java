@@ -1,5 +1,6 @@
 package com.autolib.helpdesk.jwt;
 
+import com.autolib.helpdesk.Agents.entity.AgentPhotoUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -34,6 +35,9 @@ public class JwtAuthenticationController {
 
 	@Autowired
 	private InstituteRepository instRepo;
+
+	@Autowired
+	AgentPhotoUtil agentPhotoUtil;
 
 	@RequestMapping(value = "generate-token", method = RequestMethod.POST)
 	public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authRequest) throws Exception {
@@ -150,7 +154,7 @@ public class JwtAuthenticationController {
 
 			agent = userDetailsService.loadAgentDetails(authRequest.getUsername());
 
-			photo = agent.getPhoto();
+			photo = agentPhotoUtil.getProfilePhoto(agent.getPhotoFileName());
 
 			userDetailsService.authenticateAgent(agent, authRequest);
 
@@ -184,7 +188,8 @@ public class JwtAuthenticationController {
 			else if (agent.isBlocked())
 				throw new Exception("Agent is Blocked");
 
-			photo = agent.getPhoto();
+			photo = agentPhotoUtil.getProfilePhoto(agent.getPhotoFileName());
+
 			final RoleMaster role = roleRepo.findById(agent.getAgentType());
 			token = jwtTokenUtil.generateAgentToken(agent, role);
 
@@ -219,7 +224,8 @@ public class JwtAuthenticationController {
 				throw new Exception("Email Id  '" + authRequest.getGoogleEmailId() + "' is Blocked.");
 			}
 
-			photo = agent.getPhoto();
+			photo = agentPhotoUtil.getProfilePhoto(agent.getPhotoFileName());
+
 			final RoleMaster role = roleRepo.findById(agent.getAgentType());
 			token = jwtTokenUtil.generateAgentToken(agent, role);
 			refreshtoken = jwtTokenUtil.generateAgentRefreshToken(agent, role);
