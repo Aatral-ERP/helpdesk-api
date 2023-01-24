@@ -104,10 +104,9 @@ public class TaskDAOImpl implements TaskDAO {
                 filenames.parallelStream()
                         .filter(filename -> filename.length() > 0)
                         .forEach(filename -> {
-                            s3StorageService.copyObjectS3(
-                                    S3Directories.TaskFiles + "/" + taskReq.getDirectoryName() + "/" + filename,
-                                    S3Directories.TaskFiles + "/" + taskReq.getTask().getTaskId() + "/" + filename);
-                            s3StorageService.deleteFromS3(S3Directories.TaskFiles + "/" + taskReq.getDirectoryName() + "/" + filename);
+                            s3StorageService.pushLocalFileToAWS(
+                                    S3Directories.TaskFiles + taskReq.getTask().getTaskId(),
+                                    S3Directories.TaskFiles + taskReq.getDirectoryName() + "/" + filename);
                         });
             }
             if (taskReq.getTask().getFeatureId() > 0) featureProgressCountForTaskCreateAndUpdate(taskReq, "create");

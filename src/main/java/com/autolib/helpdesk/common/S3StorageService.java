@@ -3,6 +3,7 @@ package com.autolib.helpdesk.common;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
+import com.autolib.helpdesk.Config.aws.S3Directories;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,26 +32,31 @@ public class S3StorageService {
     @Autowired
     AmazonS3 s3Client;
 
-    public void pushToAWS(String directory, MultipartFile file) throws IOException {
-        pushToAWS(directory, convertMultipartToFile(file), file.getOriginalFilename());
+    public void pushToAWS(String s3Directory, MultipartFile file) throws IOException {
+        pushToAWS(s3Directory, convertMultipartToFile(file), file.getOriginalFilename());
     }
 
-    public void pushToAWS(String directory, MultipartFile file, String fileName) throws IOException {
-        pushToAWS(directory, convertMultipartToFile(file), fileName);
+    public void pushToAWS(String s3Directory, MultipartFile file, String fileName) throws IOException {
+        pushToAWS(s3Directory, convertMultipartToFile(file), fileName);
     }
 
-    public void pushToAWS(String directory, File file) {
-        pushToAWS(directory, file, file.getName());
+    public void pushToAWS(String s3Directory, File file) {
+        pushToAWS(s3Directory, file, file.getName());
     }
 
-    public void pushToAWS(String directory, File file, String fileName) {
-        String key = CLIENT_FOLDER_NAME + SLASH + directory + SLASH + fileName;
+    public void pushLocalFileToAWS(String s3Directory, String localPath) {
+        pushToAWS(s3Directory, new File(S3Directories.LocalDirectory + localPath));
+    }
+
+    public void pushToAWS(String s3Directory, File file, String fileName) {
+        String key = CLIENT_FOLDER_NAME + SLASH + s3Directory + fileName;
         logger.info("PUT :: " + CLIENT_FOLDER_NAME + "::" + key);
         try {
             s3Client.putObject(new PutObjectRequest(BUCKET_NAME, key, file)
                     .withCannedAcl(CannedAccessControlList.PublicRead));
         } catch (Exception e) {
             logger.error(e.getMessage());
+            e.printStackTrace();
         }
     }
 

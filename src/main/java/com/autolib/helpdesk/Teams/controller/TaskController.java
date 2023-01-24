@@ -1,9 +1,12 @@
 package com.autolib.helpdesk.Teams.controller;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.common.DirectoryUtil;
 import com.autolib.helpdesk.common.S3StorageService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,38 +46,6 @@ public class TaskController {
     @Autowired
     S3StorageService s3StorageService;
 
-//    @Value("${al.ticket.content-path}")
-//    private String contentPath;
-
-//    @PostMapping("create-temp-directory")
-//    public ResponseEntity<?> createTempDirectory(@RequestHeader(value = "Authorization") String token,
-//                                                 @RequestBody TeamRequest teamReq) {
-//
-//        logger.info("createTempDirectory starts:::" + teamReq);
-//        jwtUtil.isValidToken(token);
-//        Map<String, Object> resp = new HashMap<>();
-//
-//        try {
-//            String randomDirectorName = String.valueOf(Util.generateRandomPassword());
-//            File directory = File.createTempFile(DirectoryUtil.taskTempDirectory + randomDirectorName, null, null);
-//            System.out.println(directory.getAbsolutePath());
-//            if (!directory.exists()) {
-//                directory.mkdir();
-//            }
-//
-//            resp.put("directoryName", randomDirectorName);
-//
-//            resp.putAll(Util.SuccessResponse());
-//
-//        } catch (Exception e) {
-//            resp.putAll(Util.FailedResponse());
-//            e.printStackTrace();
-//        }
-//
-//        logger.info("createTempDirectory ends:::");
-//        return new ResponseEntity<>(resp, HttpStatus.OK);
-//    }
-
     @PostMapping("/upload-task-attachments")
     ResponseEntity<?> fileUpload(@RequestHeader(value = "Authorization") String token,
                                  @RequestParam("directoryName") String directoryName, @RequestParam("file") MultipartFile file) {
@@ -83,19 +54,21 @@ public class TaskController {
         try {
             jwtUtil.isValidToken(token);
 
-//            File directory = new File(contentPath + DirectoryUtil.taskRootDirectory + directoryName);
-//            System.out.println(directory.getAbsolutePath());
-//            if (!directory.exists()) {
-//                directory.mkdirs();
-//            }
-//
-//            File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
-//            convertFile.createNewFile();
-//            FileOutputStream fout = new FileOutputStream(convertFile);
-//            fout.write(file.getBytes());
-//            fout.close();
+            if (directoryName.contains("temp-files")) {
+                File directory = new File(S3Directories.LocalDirectory + S3Directories.TaskFiles + directoryName);
+                System.out.println(directory.getAbsolutePath());
+                if (!directory.exists()) {
+                    directory.mkdirs();
+                }
 
-            s3StorageService.pushToAWS(S3Directories.TaskFiles + "/" + directoryName, file);
+                File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
+                convertFile.createNewFile();
+                FileOutputStream fout = new FileOutputStream(convertFile);
+                fout.write(file.getBytes());
+                fout.close();
+            } else {
+                s3StorageService.pushToAWS(S3Directories.TaskFiles + directoryName, file);
+            }
 
             resp.putAll(Util.SuccessResponse());
 

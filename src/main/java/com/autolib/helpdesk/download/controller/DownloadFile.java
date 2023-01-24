@@ -45,7 +45,7 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentLedgerProofs + "/" + fileName));
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentLedgerProofs + fileName));
     }
 
     @GetMapping(value = "/agent-legder-proof/pdf/{mode}/{filename}", produces = "application/pdf")
@@ -64,7 +64,7 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentLedgerProofs + "/" + fileName));
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentLedgerProofs + fileName));
     }
 
     @GetMapping(value = "/institute-logo/{filename}", produces = "image/png")
@@ -77,7 +77,7 @@ public class DownloadFile {
         headers.add("Expires", "0");
         headers.add("Content-Disposition", String.format("inline; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.InstituteLogos + "/" + fileName));
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.InstituteLogos + fileName));
     }
 
     @RequestMapping(value = "/task-attachments/{mode}/{taskId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
@@ -94,7 +94,7 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.TaskFiles + "/" + taskId + "/" + fileName));
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.TaskFiles + taskId + "/" + fileName));
     }
 
     @RequestMapping(value = "/task-feature-attachments/{mode}/{featureId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
@@ -111,7 +111,7 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.TaskFeatureFiles + "/" + featureId + "/" + fileName));
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.TaskFeatureFiles + featureId + "/" + fileName));
     }
 
     @RequestMapping(value = "/lead-attachments/{mode}/{leadId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
@@ -163,7 +163,7 @@ public class DownloadFile {
         headers.add("Expires", "0");
         headers.add("Content-Disposition", String.format("inline; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentSignatures + "/" + fileName));
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentSignatures + fileName));
     }
 
     @GetMapping(value = "/profile-photos/{filename}", produces = "image/png")
@@ -176,7 +176,7 @@ public class DownloadFile {
         headers.add("Expires", "0");
         headers.add("Content-Disposition", String.format("inline; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentProfilePhotos + "/" + fileName));
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.AgentProfilePhotos + fileName));
     }
 
     @RequestMapping(value = "_service_invoices/{fileName}", method = RequestMethod.GET, produces = "application/pdf")

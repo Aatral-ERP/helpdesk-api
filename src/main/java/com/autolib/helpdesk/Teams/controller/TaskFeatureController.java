@@ -141,19 +141,21 @@ public class TaskFeatureController {
         try {
             jwtUtil.isValidToken(token);
 
-//            File directory = new File(contentPath + DirectoryUtil.taskFeatureRootDirectory + directoryName);
-//            System.out.println(directory.getAbsolutePath());
-//            if (!directory.exists()) {
-//                directory.mkdirs();
-//            }
-//
-//            File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
-//            convertFile.createNewFile();
-//            FileOutputStream fout = new FileOutputStream(convertFile);
-//            fout.write(file.getBytes());
-//            fout.close();
+            if (directoryName.contains("temp-files")) {
+                File directory = new File(S3Directories.LocalDirectory + S3Directories.TaskFeatureFiles + directoryName);
+                System.out.println(directory.getAbsolutePath());
+                if (!directory.exists()) {
+                    directory.mkdirs();
+                }
 
-            s3StorageService.pushToAWS(S3Directories.TaskFeatureFiles + "/" + directoryName, file);
+                File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
+                convertFile.createNewFile();
+                FileOutputStream fout = new FileOutputStream(convertFile);
+                fout.write(file.getBytes());
+                fout.close();
+            } else {
+                s3StorageService.pushToAWS(S3Directories.TaskFeatureFiles + directoryName, file);
+            }
 
             resp.putAll(Util.SuccessResponse());
 
