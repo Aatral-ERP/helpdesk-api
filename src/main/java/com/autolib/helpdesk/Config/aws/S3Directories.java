@@ -9,5 +9,6 @@ public class S3Directories {
     public static final String InstituteLogos = "InstituteLogo/";
     public static final String TaskFiles = "_task_files/";
     public static final String TaskFeatureFiles = "_task_feature_files/";
+    public static final String LetterPads = "Letterpads/";
 
 }

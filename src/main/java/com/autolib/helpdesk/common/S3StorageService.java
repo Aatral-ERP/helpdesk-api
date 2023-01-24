@@ -32,11 +32,11 @@ public class S3StorageService {
     @Autowired
     AmazonS3 s3Client;
 
-    public void pushToAWS(String s3Directory, MultipartFile file) throws IOException {
+    public void pushToAWS(String s3Directory, MultipartFile file) {
         pushToAWS(s3Directory, convertMultipartToFile(file), file.getOriginalFilename());
     }
 
-    public void pushToAWS(String s3Directory, MultipartFile file, String fileName) throws IOException {
+    public void pushToAWS(String s3Directory, MultipartFile file, String fileName) {
         pushToAWS(s3Directory, convertMultipartToFile(file), fileName);
     }
 
@@ -108,13 +108,19 @@ public class S3StorageService {
     }
 
 
-    public static File convertMultipartToFile(MultipartFile file) throws IOException {
-        File convFile = new File(file.getOriginalFilename());
-        convFile.createNewFile();
-        try (InputStream is = file.getInputStream()) {
-            Files.copy(is, convFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    public static File convertMultipartToFile(MultipartFile file) {
+        try {
+            File convFile = new File(file.getOriginalFilename());
+            convFile.createNewFile();
+
+            try (InputStream is = file.getInputStream()) {
+                Files.copy(is, convFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+            return convFile;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return convFile;
+        return null;
     }
 
 }

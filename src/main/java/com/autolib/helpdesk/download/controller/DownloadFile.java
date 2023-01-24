@@ -523,13 +523,10 @@ public class DownloadFile {
         return ResponseEntity.ok().headers(headers).body(resource);
     }
 
-    @RequestMapping(value = "/download-lettepad-pdf/{mode}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
+    @RequestMapping(value = "/download-lettepad-pdf/{mode}/{letterPadId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
     public ResponseEntity<InputStreamResource> downloadLetterpadPDFFile(@PathVariable("fileName") String fileName,
+                                                                        @PathVariable("letterPadId") String letterPadId,
                                                                         @PathVariable("mode") String mode) throws IOException {
-
-        String path = contentPath + "/Letterpads/" + fileName + "";
-        logger.info("Downloading Letterpads File::" + path);
-        InputStreamResource resource = getFileFromPath(path);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
@@ -540,7 +537,7 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.LetterPads + letterPadId + "/" + fileName));
     }
 
     @RequestMapping(value = "download-lead-template", method = RequestMethod.GET, produces = "application/pdf")
