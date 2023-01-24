@@ -5,24 +5,34 @@ import com.autolib.helpdesk.Teams.model.Tasks.TaskFeature;
 
 public class TaskFeatureRequest {
 
-	private Agent agent;
+    private Agent agent;
 
-	private TaskFeature feature;
+    private TaskFeature feature;
 
-	public Agent getAgent() {
-		return agent;
-	}
+    private String directoryName;
 
-	public void setAgent(Agent agent) {
-		this.agent = agent;
-	}
+    public String getDirectoryName() {
+        return directoryName;
+    }
 
-	public TaskFeature getFeature() {
-		return feature;
-	}
+    public void setDirectoryName(String directoryName) {
+        this.directoryName = directoryName;
+    }
 
-	public void setFeature(TaskFeature feature) {
-		this.feature = feature;
-	}
+    public Agent getAgent() {
+        return agent;
+    }
+
+    public void setAgent(Agent agent) {
+        this.agent = agent;
+    }
+
+    public TaskFeature getFeature() {
+        return feature;
+    }
+
+    public void setFeature(TaskFeature feature) {
+        this.feature = feature;
+    }
 
 }

@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.common.S3StorageService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,129 +35,134 @@ import com.autolib.helpdesk.jwt.JwtTokenUtil;
 @RequestMapping("task-features")
 public class TaskFeatureController {
 
-	private final Logger logger = LogManager.getLogger(this.getClass());
+    private final Logger logger = LogManager.getLogger(this.getClass());
 
-	@Autowired
-	JwtTokenUtil jwtUtil;
+    @Autowired
+    JwtTokenUtil jwtUtil;
 
-	@Value("${al.ticket.content-path}")
-	private String contentPath;
+    @Value("${al.ticket.content-path}")
+    private String contentPath;
 
-	@Autowired
-	TaskFeatureService featureService;
+    @Autowired
+    S3StorageService s3StorageService;
 
-	@PostMapping("create-task-feature")
-	public ResponseEntity<?> createTask(@RequestHeader(value = "Authorization") String token,
-			@RequestBody TaskFeatureRequest featureReq) {
+    @Autowired
+    TaskFeatureService featureService;
 
-		logger.info("createTask starts:::" + featureReq);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+    @PostMapping("create-task-feature")
+    public ResponseEntity<?> createTask(@RequestHeader(value = "Authorization") String token,
+                                        @RequestBody TaskFeatureRequest featureReq) {
 
-		try {
+        logger.info("createTask starts:::" + featureReq);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-			resp = featureService.createTaskFeature(featureReq);
+        try {
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+            resp = featureService.createTaskFeature(featureReq);
 
-		logger.info("createTask ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-	@GetMapping("get-task-feature/{taskFeatureId}")
-	public ResponseEntity<?> getTaskFeature(@RequestHeader(value = "Authorization") String token,
-			@PathVariable("taskFeatureId") int taskFeatureId) {
+        logger.info("createTask ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-		logger.info("getTaskFeature starts:::" + taskFeatureId);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+    @GetMapping("get-task-feature/{taskFeatureId}")
+    public ResponseEntity<?> getTaskFeature(@RequestHeader(value = "Authorization") String token,
+                                            @PathVariable("taskFeatureId") int taskFeatureId) {
 
-		try {
+        logger.info("getTaskFeature starts:::" + taskFeatureId);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-			resp = featureService.getTaskFeature(taskFeatureId);
+        try {
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+            resp = featureService.getTaskFeature(taskFeatureId);
 
-		logger.info("getTaskFeature ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-	@GetMapping("get-team-task-features/{teamId}")
-	public ResponseEntity<?> getTeamTaskFeatures(@RequestHeader(value = "Authorization") String token,
-			@PathVariable("teamId") int teamId) {
+        logger.info("getTaskFeature ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-		logger.info("getTeamTaskFeatures starts:::" + teamId);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+    @GetMapping("get-team-task-features/{teamId}")
+    public ResponseEntity<?> getTeamTaskFeatures(@RequestHeader(value = "Authorization") String token,
+                                                 @PathVariable("teamId") int teamId) {
 
-		try {
+        logger.info("getTeamTaskFeatures starts:::" + teamId);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-			resp = featureService.getTeamTaskFeatures(teamId);
+        try {
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+            resp = featureService.getTeamTaskFeatures(teamId);
 
-		logger.info("getTeamTaskFeatures ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-	@PostMapping("delete-task-feature")
-	public ResponseEntity<?> deleteTaskFeature(@RequestHeader(value = "Authorization") String token,
-			@RequestBody TaskFeatureRequest featureReq) {
+        logger.info("getTeamTaskFeatures ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-		logger.info("deleteTaskFeature starts:::" + featureReq);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+    @PostMapping("delete-task-feature")
+    public ResponseEntity<?> deleteTaskFeature(@RequestHeader(value = "Authorization") String token,
+                                               @RequestBody TaskFeatureRequest featureReq) {
 
-		try {
+        logger.info("deleteTaskFeature starts:::" + featureReq);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-			resp = featureService.deleteTaskFeature(featureReq);
+        try {
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+            resp = featureService.deleteTaskFeature(featureReq);
 
-		logger.info("deleteTaskFeature ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-	@PostMapping("/upload-task-feature-attachments")
-	ResponseEntity<?> fileUpload(@RequestHeader(value = "Authorization") String token,
-			@RequestParam("directoryName") String directoryName, @RequestParam("file") MultipartFile file) {
-		logger.info("fileUpload req Starts::::::::" + file.getSize());
-		Map<String, Object> resp = new HashMap<>();
-		try {
-			jwtUtil.isValidToken(token);
+        logger.info("deleteTaskFeature ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-			File directory = new File(contentPath + DirectoryUtil.taskFeatureRootDirectory + directoryName);
-			System.out.println(directory.getAbsolutePath());
-			if (!directory.exists()) {
-				directory.mkdirs();
-			}
+    @PostMapping("/upload-task-feature-attachments")
+    ResponseEntity<?> fileUpload(@RequestHeader(value = "Authorization") String token,
+                                 @RequestParam("directoryName") String directoryName, @RequestParam("file") MultipartFile file) {
+        logger.info("fileUpload req Starts::::::::" + file.getSize());
+        Map<String, Object> resp = new HashMap<>();
+        try {
+            jwtUtil.isValidToken(token);
 
-			File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
-			convertFile.createNewFile();
-			FileOutputStream fout = new FileOutputStream(convertFile);
-			fout.write(file.getBytes());
-			fout.close();
+//            File directory = new File(contentPath + DirectoryUtil.taskFeatureRootDirectory + directoryName);
+//            System.out.println(directory.getAbsolutePath());
+//            if (!directory.exists()) {
+//                directory.mkdirs();
+//            }
+//
+//            File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
+//            convertFile.createNewFile();
+//            FileOutputStream fout = new FileOutputStream(convertFile);
+//            fout.write(file.getBytes());
+//            fout.close();
 
-			resp.putAll(Util.SuccessResponse());
+            s3StorageService.pushToAWS(S3Directories.TaskFeatureFiles + "/" + directoryName, file);
 
-		} catch (Exception ex) {
-			resp.putAll(Util.FailedResponse());
-			ex.printStackTrace();
-		}
+            resp.putAll(Util.SuccessResponse());
 
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        } catch (Exception ex) {
+            resp.putAll(Util.FailedResponse());
+            ex.printStackTrace();
+        }
+
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
 }

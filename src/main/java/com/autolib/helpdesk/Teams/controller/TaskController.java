@@ -1,14 +1,13 @@
 package com.autolib.helpdesk.Teams.controller;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.common.S3StorageService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -22,12 +21,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.autolib.helpdesk.Teams.model.TeamRequest;
 import com.autolib.helpdesk.Teams.model.Tasks.TaskComments;
 import com.autolib.helpdesk.Teams.model.Tasks.TaskRequest;
 import com.autolib.helpdesk.Teams.model.Tasks.TaskSearchRequest;
 import com.autolib.helpdesk.Teams.service.TaskService;
-import com.autolib.helpdesk.common.DirectoryUtil;
 import com.autolib.helpdesk.common.Util;
 import com.autolib.helpdesk.jwt.JwtTokenUtil;
 
@@ -35,305 +32,310 @@ import com.autolib.helpdesk.jwt.JwtTokenUtil;
 @CrossOrigin("*")
 @RequestMapping("tasks")
 public class TaskController {
-	private final Logger logger = LogManager.getLogger(this.getClass());
+    private final Logger logger = LogManager.getLogger(this.getClass());
+
+    @Autowired
+    JwtTokenUtil jwtUtil;
+
+    @Autowired
+    private TaskService taskService;
+
+    @Autowired
+    S3StorageService s3StorageService;
+
+//    @Value("${al.ticket.content-path}")
+//    private String contentPath;
+
+//    @PostMapping("create-temp-directory")
+//    public ResponseEntity<?> createTempDirectory(@RequestHeader(value = "Authorization") String token,
+//                                                 @RequestBody TeamRequest teamReq) {
+//
+//        logger.info("createTempDirectory starts:::" + teamReq);
+//        jwtUtil.isValidToken(token);
+//        Map<String, Object> resp = new HashMap<>();
+//
+//        try {
+//            String randomDirectorName = String.valueOf(Util.generateRandomPassword());
+//            File directory = File.createTempFile(DirectoryUtil.taskTempDirectory + randomDirectorName, null, null);
+//            System.out.println(directory.getAbsolutePath());
+//            if (!directory.exists()) {
+//                directory.mkdir();
+//            }
+//
+//            resp.put("directoryName", randomDirectorName);
+//
+//            resp.putAll(Util.SuccessResponse());
+//
+//        } catch (Exception e) {
+//            resp.putAll(Util.FailedResponse());
+//            e.printStackTrace();
+//        }
+//
+//        logger.info("createTempDirectory ends:::");
+//        return new ResponseEntity<>(resp, HttpStatus.OK);
+//    }
+
+    @PostMapping("/upload-task-attachments")
+    ResponseEntity<?> fileUpload(@RequestHeader(value = "Authorization") String token,
+                                 @RequestParam("directoryName") String directoryName, @RequestParam("file") MultipartFile file) {
+        logger.info("fileUpload req Starts::::::::" + file.getSize());
+        Map<String, Object> resp = new HashMap<>();
+        try {
+            jwtUtil.isValidToken(token);
+
+//            File directory = new File(contentPath + DirectoryUtil.taskRootDirectory + directoryName);
+//            System.out.println(directory.getAbsolutePath());
+//            if (!directory.exists()) {
+//                directory.mkdirs();
+//            }
+//
+//            File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
+//            convertFile.createNewFile();
+//            FileOutputStream fout = new FileOutputStream(convertFile);
+//            fout.write(file.getBytes());
+//            fout.close();
+
+            s3StorageService.pushToAWS(S3Directories.TaskFiles + "/" + directoryName, file);
+
+            resp.putAll(Util.SuccessResponse());
+
+        } catch (Exception ex) {
+            resp.putAll(Util.FailedResponse());
+            ex.printStackTrace();
+        }
+
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
+
+    @PostMapping("create-task")
+    public ResponseEntity<?> createTask(@RequestHeader(value = "Authorization") String token,
+                                        @RequestBody TaskRequest taskReq) {
+
+        logger.info("createTask starts:::" + taskReq);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
+
+        try {
+
+            resp = taskService.createTask(taskReq);
+
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
+
+        logger.info("createTask ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
+
+    @PostMapping("delete-task")
+    public ResponseEntity<?> deleteTask(@RequestHeader(value = "Authorization") String token,
+                                        @RequestBody TaskRequest taskReq) {
+
+        logger.info("deleteTask starts:::" + taskReq);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-	@Autowired
-	JwtTokenUtil jwtUtil;
+        try {
 
-	@Autowired
-	private TaskService taskService;
+            resp = taskService.deleteTask(taskReq);
 
-	@Value("${al.ticket.content-path}")
-	private String contentPath;
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-	@PostMapping("create-temp-directory")
-	public ResponseEntity<?> createTempDirectory(@RequestHeader(value = "Authorization") String token,
-			@RequestBody TeamRequest teamReq) {
+        logger.info("deleteTask ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-		logger.info("createTempDirectory starts:::" + teamReq);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+    @PostMapping("get-team-tasks")
+    public ResponseEntity<?> getTeamTask(@RequestHeader(value = "Authorization") String token,
+                                         @RequestBody TaskRequest taskReq) {
 
-		try {
-			String randomDirectorName = String.valueOf(Util.generateRandomPassword());
-			File directory = new File(contentPath + DirectoryUtil.taskTempDirectory + randomDirectorName);
-			System.out.println(directory.getAbsolutePath());
-			if (!directory.exists()) {
-				directory.mkdir();
-			}
+        logger.info("getTeamTask starts:::" + taskReq);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-			resp.put("directoryName", randomDirectorName);
+        try {
 
-			resp.putAll(Util.SuccessResponse());
+            resp = taskService.getTeamTask(taskReq);
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		logger.info("createTempDirectory ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        logger.info("getTeamTask ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-	@PostMapping("/upload-task-attachments")
-	ResponseEntity<?> fileUpload(@RequestHeader(value = "Authorization") String token,
-			@RequestParam("directoryName") String directoryName, @RequestParam("file") MultipartFile file) {
-		logger.info("fileUpload req Starts::::::::" + file.getSize());
-		Map<String, Object> resp = new HashMap<>();
-		try {
-			jwtUtil.isValidToken(token);
+    @GetMapping("get-task/{taskId}")
+    public ResponseEntity<?> getTask(@RequestHeader(value = "Authorization") String token,
+                                     @PathVariable("taskId") int taskId) {
 
-			File directory = new File(contentPath + DirectoryUtil.taskRootDirectory + directoryName);
-			System.out.println(directory.getAbsolutePath());
-			if (!directory.exists()) {
-				directory.mkdirs();
-			}
+        logger.info("getTask starts:::" + taskId);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-			File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
-			convertFile.createNewFile();
-			FileOutputStream fout = new FileOutputStream(convertFile);
-			fout.write(file.getBytes());
-			fout.close();
+        try {
 
-			resp.putAll(Util.SuccessResponse());
+            resp = taskService.getTask(taskId);
 
-		} catch (Exception ex) {
-			resp.putAll(Util.FailedResponse());
-			ex.printStackTrace();
-		}
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        logger.info("getTask ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-	@PostMapping("create-task")
-	public ResponseEntity<?> createTask(@RequestHeader(value = "Authorization") String token,
-			@RequestBody TaskRequest taskReq) {
+    @GetMapping("get-task-history/{taskId}")
+    public ResponseEntity<?> getTaskHistory(@RequestHeader(value = "Authorization") String token,
+                                            @PathVariable("taskId") int taskId) {
 
-		logger.info("createTask starts:::" + taskReq);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+        logger.info("getTask starts:::" + taskId);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-		try {
+        try {
 
-			resp = taskService.createTask(taskReq);
+            resp = taskService.getTaskHistory(taskId);
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		logger.info("createTask ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        logger.info("getTask ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-	@PostMapping("delete-task")
-	public ResponseEntity<?> deleteTask(@RequestHeader(value = "Authorization") String token,
-			@RequestBody TaskRequest taskReq) {
+    @PostMapping("update-task")
+    public ResponseEntity<?> updateTask(@RequestHeader(value = "Authorization") String token,
+                                        @RequestBody TaskRequest taskReq) {
 
-		logger.info("deleteTask starts:::" + taskReq);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+        logger.info("updateTask starts:::" + taskReq);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-		try {
+        try {
 
-			resp = taskService.deleteTask(taskReq);
+            resp = taskService.updateTask(taskReq);
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		logger.info("deleteTask ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        logger.info("updateTask ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-	@PostMapping("get-team-tasks")
-	public ResponseEntity<?> getTeamTask(@RequestHeader(value = "Authorization") String token,
-			@RequestBody TaskRequest taskReq) {
+    @PostMapping("save-task-comment")
+    public ResponseEntity<?> saveTaskComment(@RequestHeader(value = "Authorization") String token,
+                                             @RequestBody TaskComments comment) {
 
-		logger.info("getTeamTask starts:::" + taskReq);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+        logger.info("saveTaskComment starts:::" + comment);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-		try {
+        try {
 
-			resp = taskService.getTeamTask(taskReq);
+            resp = taskService.saveTaskComment(comment);
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		logger.info("getTeamTask ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        logger.info("saveTaskComment ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-	@GetMapping("get-task/{taskId}")
-	public ResponseEntity<?> getTask(@RequestHeader(value = "Authorization") String token,
-			@PathVariable("taskId") int taskId) {
+    @GetMapping("get-all-task-comments/{taskId}")
+    public ResponseEntity<?> getAllTaskComments(@RequestHeader(value = "Authorization") String token,
+                                                @PathVariable("taskId") int taskId) {
 
-		logger.info("getTask starts:::" + taskId);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+        logger.info("getAllTaskComments starts:::" + taskId);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-		try {
+        try {
 
-			resp = taskService.getTask(taskId);
+            resp = taskService.getAllTaskComments(taskId);
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		logger.info("getTask ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        logger.info("getAllTaskComments ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-	@GetMapping("get-task-history/{taskId}")
-	public ResponseEntity<?> getTaskHistory(@RequestHeader(value = "Authorization") String token,
-			@PathVariable("taskId") int taskId) {
+    @PostMapping("get-task-search-needed")
+    public ResponseEntity<?> getTaskSearchNeeded(@RequestHeader(value = "Authorization") String token,
+                                                 @RequestBody TaskSearchRequest request) {
 
-		logger.info("getTask starts:::" + taskId);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+        logger.info("getTaskSearchNeeded starts:::" + request);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-		try {
+        try {
 
-			resp = taskService.getTaskHistory(taskId);
+            resp = taskService.getTaskSearchNeeded(request);
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		logger.info("getTask ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        logger.info("getTaskSearchNeeded ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-	@PostMapping("update-task")
-	public ResponseEntity<?> updateTask(@RequestHeader(value = "Authorization") String token,
-			@RequestBody TaskRequest taskReq) {
+    @PostMapping("search-team-tasks")
+    public ResponseEntity<?> searchTeamTask(@RequestHeader(value = "Authorization") String token,
+                                            @RequestBody TaskSearchRequest request) {
 
-		logger.info("updateTask starts:::" + taskReq);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+        logger.info("searchTeamTask starts:::" + request);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-		try {
+        try {
 
-			resp = taskService.updateTask(taskReq);
+            resp = taskService.searchTeamTask(request);
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		logger.info("updateTask ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        logger.info("searchTeamTask ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-	@PostMapping("save-task-comment")
-	public ResponseEntity<?> saveTaskComment(@RequestHeader(value = "Authorization") String token,
-			@RequestBody TaskComments comment) {
+    @PostMapping("get-my-calendar-tasks-events")
+    public ResponseEntity<?> getMyCalendarTasksEvents(@RequestHeader(value = "Authorization") String token,
+                                                      @RequestBody TaskSearchRequest request) {
 
-		logger.info("saveTaskComment starts:::" + comment);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+        logger.info("getMyCalendarTasksEvents starts:::" + request);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-		try {
+        try {
 
-			resp = taskService.saveTaskComment(comment);
+            resp = taskService.getMyCalendarTasksEvents(request);
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		logger.info("saveTaskComment ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
-
-	@GetMapping("get-all-task-comments/{taskId}")
-	public ResponseEntity<?> getAllTaskComments(@RequestHeader(value = "Authorization") String token,
-			@PathVariable("taskId") int taskId) {
-
-		logger.info("getAllTaskComments starts:::" + taskId);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
-
-		try {
-
-			resp = taskService.getAllTaskComments(taskId);
-
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
-
-		logger.info("getAllTaskComments ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
-
-	@PostMapping("get-task-search-needed")
-	public ResponseEntity<?> getTaskSearchNeeded(@RequestHeader(value = "Authorization") String token,
-			@RequestBody TaskSearchRequest request) {
-
-		logger.info("getTaskSearchNeeded starts:::" + request);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
-
-		try {
-
-			resp = taskService.getTaskSearchNeeded(request);
-
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
-
-		logger.info("getTaskSearchNeeded ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
-
-	@PostMapping("search-team-tasks")
-	public ResponseEntity<?> searchTeamTask(@RequestHeader(value = "Authorization") String token,
-			@RequestBody TaskSearchRequest request) {
-
-		logger.info("searchTeamTask starts:::" + request);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
-
-		try {
-
-			resp = taskService.searchTeamTask(request);
-
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
-
-		logger.info("searchTeamTask ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
-
-	@PostMapping("get-my-calendar-tasks-events")
-	public ResponseEntity<?> getMyCalendarTasksEvents(@RequestHeader(value = "Authorization") String token,
-			@RequestBody TaskSearchRequest request) {
-
-		logger.info("getMyCalendarTasksEvents starts:::" + request);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
-
-		try {
-
-			resp = taskService.getMyCalendarTasksEvents(request);
-
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
-
-		logger.info("getMyCalendarTasksEvents ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        logger.info("getMyCalendarTasksEvents ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
 }

@@ -2,10 +2,7 @@ package com.autolib.helpdesk.common;
 
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,14 +22,14 @@ import java.nio.file.StandardCopyOption;
 public class S3StorageService {
 
     private final Logger logger = LogManager.getLogger(this.getClass());
-    private static final String SUFFIX = "/";
+    private static final String SLASH = "/";
     @Value("${al.aws.bucket_name}")
     private String BUCKET_NAME;
     @Value("${al.aws.client_folder_name}")
     private String CLIENT_FOLDER_NAME;
 
     @Autowired
-    AmazonS3 s3client;
+    AmazonS3 s3Client;
 
     public void pushToAWS(String directory, MultipartFile file) throws IOException {
         pushToAWS(directory, convertMultipartToFile(file), file.getOriginalFilename());
@@ -47,24 +44,52 @@ public class S3StorageService {
     }
 
     public void pushToAWS(String directory, File file, String fileName) {
-        String key = CLIENT_FOLDER_NAME + SUFFIX + directory + SUFFIX + fileName;
+        String key = CLIENT_FOLDER_NAME + SLASH + directory + SLASH + fileName;
         logger.info("PUT :: " + CLIENT_FOLDER_NAME + "::" + key);
-        s3client.putObject(new PutObjectRequest(BUCKET_NAME, key, file)
-                .withCannedAcl(CannedAccessControlList.PublicRead));
+        try {
+            s3Client.putObject(new PutObjectRequest(BUCKET_NAME, key, file)
+                    .withCannedAcl(CannedAccessControlList.PublicRead));
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
     }
 
-    public void deleteFromS3(String fileURL) {
-        logger.info("DELETE :: " + CLIENT_FOLDER_NAME + "::" + fileURL);
-        s3client.deleteObject(new DeleteObjectRequest(BUCKET_NAME, fileURL));
+    public void deleteFromS3(String key) {
+        logger.info("DELETE :: " + CLIENT_FOLDER_NAME + "::" + key);
+        try {
+            s3Client.deleteObject(new DeleteObjectRequest(BUCKET_NAME, CLIENT_FOLDER_NAME + SLASH + key));
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+    }
+
+    public void copyObjectS3(String from, String to) {
+        logger.info("COPY :: " + CLIENT_FOLDER_NAME + "::" + from + " --> " + to);
+        try {
+            CopyObjectRequest copyObjRequest = new CopyObjectRequest(BUCKET_NAME, CLIENT_FOLDER_NAME + SLASH + from, BUCKET_NAME, CLIENT_FOLDER_NAME + SLASH + to);
+            s3Client.copyObject(copyObjRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public java.io.InputStream getFromS3(String key) {
         logger.info("GET :: " + CLIENT_FOLDER_NAME + "::" + key);
-        return s3client.getObject(new GetObjectRequest(BUCKET_NAME, CLIENT_FOLDER_NAME + SUFFIX + key)).getObjectContent().getDelegateStream();
+        try {
+            return s3Client.getObject(new GetObjectRequest(BUCKET_NAME, CLIENT_FOLDER_NAME + SLASH + key)).getObjectContent().getDelegateStream();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return null;
     }
 
     public InputStreamResource getFromS3AsInputStreamResource(String key) {
-        return new InputStreamResource(getFromS3(key));
+        try {
+            return new InputStreamResource(getFromS3(key));
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return null;
     }
 
     public byte[] getFromS3AsByteArray(String key) {

@@ -84,8 +84,6 @@ public class DownloadFile {
     public ResponseEntity<InputStreamResource> downloadTaskAttachments(@PathVariable("fileName") String fileName,
                                                                        @PathVariable("taskId") String taskId, @PathVariable("mode") String mode) throws IOException {
         logger.info("Downloading File::" + taskId + " : " + fileName);
-        String path = contentPath + DirectoryUtil.taskRootDirectory + taskId + "/" + fileName + "";
-        InputStreamResource resource = getFileFromPath(path);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
@@ -96,7 +94,24 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.TaskFiles + "/" + taskId + "/" + fileName));
+    }
+
+    @RequestMapping(value = "/task-feature-attachments/{mode}/{featureId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
+    public ResponseEntity<InputStreamResource> downloadTaskFeatureAttachments(@PathVariable("fileName") String fileName,
+                                                                              @PathVariable("featureId") String featureId, @PathVariable("mode") String mode) throws IOException {
+        logger.info("Downloading File::" + featureId + " : " + fileName);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+        headers.add("Pragma", "no-cache");
+        headers.add("Expires", "0");
+
+        if (mode.equalsIgnoreCase("view"))
+            headers.add("Content-Disposition", String.format("inline; filename=\"%s\"", fileName));
+        else
+            headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
+
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.TaskFeatureFiles + "/" + featureId + "/" + fileName));
     }
 
     @RequestMapping(value = "/lead-attachments/{mode}/{leadId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")

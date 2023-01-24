@@ -13,9 +13,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
+import com.autolib.helpdesk.Config.aws.S3Directories;
 import com.autolib.helpdesk.Teams.model.Tasks.*;
 import com.autolib.helpdesk.Teams.repository.*;
-import org.apache.commons.lang3.StringUtils;
+import com.autolib.helpdesk.common.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.Modifying;
@@ -31,11 +32,6 @@ import com.autolib.helpdesk.Teams.model.Teams;
 import com.autolib.helpdesk.Teams.repository.Tasks.TaskCommentRepository;
 import com.autolib.helpdesk.Teams.repository.Tasks.TaskHistoryRepository;
 import com.autolib.helpdesk.Teams.repository.Tasks.TaskRepository;
-import com.autolib.helpdesk.common.DirectoryUtil;
-import com.autolib.helpdesk.common.EmailModel;
-import com.autolib.helpdesk.common.EmailSender;
-import com.autolib.helpdesk.common.URLutil;
-import com.autolib.helpdesk.common.Util;
 
 @Repository
 public class TaskDAOImpl implements TaskDAO {
@@ -81,6 +77,9 @@ public class TaskDAOImpl implements TaskDAO {
     @Value("${al.agent.web.url}")
     private String agentWebURL;
 
+    @Autowired
+    S3StorageService s3StorageService;
+
     @Transactional
     @Override
     public Map<String, Object> createTask(TaskRequest taskReq) {
@@ -102,23 +101,14 @@ public class TaskDAOImpl implements TaskDAO {
 
                 List<String> filenames = Arrays.asList(taskReq.getTask().getFiles().split(";"));
 
-                filenames.parallelStream().filter(filename -> filename.length() > 0).forEach(filename -> {
-                    Path source = Paths.get(contentPath + DirectoryUtil.taskRootDirectory + taskReq.getDirectoryName() + "/" + filename);
-                    Path destination = Paths.get(contentPath + DirectoryUtil.taskRootDirectory + taskReq.getTask().getTaskId() + "/" + filename);
-
-                    File directory = destination.toFile();
-                    System.out.println(directory.getAbsolutePath());
-                    if (!directory.exists()) {
-                        directory.mkdirs();
-                    }
-                    try {
-                        Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                });
-
+                filenames.parallelStream()
+                        .filter(filename -> filename.length() > 0)
+                        .forEach(filename -> {
+                            s3StorageService.copyObjectS3(
+                                    S3Directories.TaskFiles + "/" + taskReq.getDirectoryName() + "/" + filename,
+                                    S3Directories.TaskFiles + "/" + taskReq.getTask().getTaskId() + "/" + filename);
+                            s3StorageService.deleteFromS3(S3Directories.TaskFiles + "/" + taskReq.getDirectoryName() + "/" + filename);
+                        });
             }
             if (taskReq.getTask().getFeatureId() > 0) featureProgressCountForTaskCreateAndUpdate(taskReq, "create");
 

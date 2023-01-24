@@ -1,9 +1,12 @@
 package com.autolib.helpdesk.Teams.dao;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.common.S3StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -23,6 +26,9 @@ public class TaskFeatureDAOImpl implements TaskFeatureDAO {
 	@Autowired
 	TaskRepository taskRepo;
 
+	@Autowired
+	S3StorageService s3StorageService;
+
 	@Override
 	public Map<String, Object> createTaskFeature(TaskFeatureRequest featureReq) {
 		Map<String, Object> resp = new HashMap<>();
@@ -39,6 +45,21 @@ public class TaskFeatureDAOImpl implements TaskFeatureDAO {
 					resp.putAll(Util.invalidMessage("Feature Name Already Exist"));
 				} else {
 					featureReq.setFeature(featureRepo.save(featureReq.getFeature()));
+
+					if (featureReq.getFeature().getFiles() != null && featureReq.getFeature().getFiles().length() > 0) {
+
+						List<String> filenames = Arrays.asList(featureReq.getFeature().getFiles().split(";"));
+
+						filenames.parallelStream()
+								.filter(filename -> filename.length() > 0)
+								.forEach(filename -> {
+									s3StorageService.copyObjectS3(
+											S3Directories.TaskFeatureFiles + "/" + featureReq.getDirectoryName() + "/" + filename,
+											S3Directories.TaskFeatureFiles + "/" + featureReq.getFeature().getFeatureId() + "/" + filename);
+									s3StorageService.deleteFromS3(S3Directories.TaskFeatureFiles + "/" + featureReq.getDirectoryName() + "/" + filename);
+								});
+					}
+
 					resp.putAll(Util.SuccessResponse());
 				}
 			}
