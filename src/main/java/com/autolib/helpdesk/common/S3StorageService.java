@@ -49,7 +49,7 @@ public class S3StorageService {
     }
 
     public void pushToAWS(String s3Directory, File file, String fileName) {
-        String key = CLIENT_FOLDER_NAME + SLASH + s3Directory + fileName;
+        String key = CLIENT_FOLDER_NAME + SLASH + s3Directory + SLASH + fileName;
         logger.info("PUT :: " + CLIENT_FOLDER_NAME + "::" + key);
         try {
             s3Client.putObject(new PutObjectRequest(BUCKET_NAME, key, file)

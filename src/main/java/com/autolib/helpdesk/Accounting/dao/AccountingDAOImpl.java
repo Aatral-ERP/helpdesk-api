@@ -1004,7 +1004,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 
         LetterPad letterpad = letterpadRepo.findById(id);
 
-        s3StorageService.pushToAWS(S3Directories.LetterPads + id, file, id + FilenameUtils.getExtension(file.getOriginalFilename()));
+        s3StorageService.pushToAWS(S3Directories.LetterPads + id, file, id + "." + FilenameUtils.getExtension(file.getOriginalFilename()));
 
         letterpad.setFileName(file.getOriginalFilename());
         letterpad = letterpadRepo.save(letterpad);

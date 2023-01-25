@@ -403,8 +403,6 @@ public class DownloadFile {
             @PathVariable("fileName") String fileName, @PathVariable("orderId") String orderId,
             @PathVariable("mode") String mode) throws IOException {
         logger.info("Downloading File::" + orderId + " : " + fileName);
-        String path = contentPath + "/Purchase_Input_Orders/" + fileName + "";
-        InputStreamResource resource = getFileFromPath(path);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
@@ -415,7 +413,7 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.PurchaseInputOrders + orderId + "/" + fileName));
     }
 
     @RequestMapping(value = "/payslip/{mode}/{employeeId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")

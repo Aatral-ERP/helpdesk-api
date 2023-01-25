@@ -10,5 +10,6 @@ public class S3Directories {
     public static final String TaskFiles = "_task_files/";
     public static final String TaskFeatureFiles = "_task_feature_files/";
     public static final String LetterPads = "Letterpads/";
+    public static final String PurchaseInputOrders = "Purchase_Input_Orders/";
 
 }

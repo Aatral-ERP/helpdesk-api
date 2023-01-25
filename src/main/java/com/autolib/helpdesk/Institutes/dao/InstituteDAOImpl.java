@@ -1438,7 +1438,7 @@ public class InstituteDAOImpl implements InstituteDAO {
         try {
 
             Institute ins = instRepo.findByInstituteId(instituteId);
-            String logoURL = instituteId + "_" + ins.getInstituteName() + FilenameUtils.getExtension(file.getOriginalFilename());
+            String logoURL = instituteId + "_" + ins.getInstituteName() + "." + FilenameUtils.getExtension(file.getOriginalFilename());
             ins.setLogourl(logoURL);
 
             s3StorageService.pushToAWS(S3Directories.InstituteLogos, file, logoURL);
