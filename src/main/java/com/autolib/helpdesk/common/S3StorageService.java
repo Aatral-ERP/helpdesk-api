@@ -18,6 +18,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class S3StorageService {
@@ -49,7 +52,8 @@ public class S3StorageService {
     }
 
     public void pushToAWS(String s3Directory, File file, String fileName) {
-        String key = CLIENT_FOLDER_NAME + SLASH + s3Directory + SLASH + fileName;
+        s3Directory = s3Directory.endsWith("/") ? s3Directory : s3Directory + "/";
+        String key = CLIENT_FOLDER_NAME + SLASH + s3Directory + fileName;
         logger.info("PUT :: " + CLIENT_FOLDER_NAME + "::" + key);
         try {
             s3Client.putObject(new PutObjectRequest(BUCKET_NAME, key, file)
@@ -89,6 +93,21 @@ public class S3StorageService {
         return null;
     }
 
+    public List<String> getObjectListFromS3Directory(String key) {
+        logger.info("GET :: " + CLIENT_FOLDER_NAME + "::" + key);
+        try {
+            ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+                    .withBucketName(BUCKET_NAME)
+                    .withPrefix(CLIENT_FOLDER_NAME + SLASH + key);
+            return s3Client.listObjects(listObjectsRequest).getObjectSummaries()
+                    .stream().map(S3ObjectSummary::getKey)
+                    .map(_key -> _key.replaceAll(CLIENT_FOLDER_NAME + SLASH, "")).collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return Collections.emptyList();
+    }
+
     public InputStreamResource getFromS3AsInputStreamResource(String key) {
         try {
             return new InputStreamResource(getFromS3(key));
@@ -106,6 +125,7 @@ public class S3StorageService {
         }
         return null;
     }
+
 
 
     public static File convertMultipartToFile(MultipartFile file) {

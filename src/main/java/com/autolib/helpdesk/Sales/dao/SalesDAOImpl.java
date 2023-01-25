@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.common.S3StorageService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,241 +45,212 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Transactional
 public class SalesDAOImpl implements SalesDAO {
 
-	private final Logger logger = LogManager.getLogger(this.getClass());
+    private final Logger logger = LogManager.getLogger(this.getClass());
 
-	@Autowired
-	AgentRepository agentRepo;
-	@Autowired
-	ProductsRepository prodRepo;
-	@Autowired
-	InstituteRepository instRepo;
-	@Autowired
-	VendorRepository vendorRepo;
-	@Autowired
-	InfoDetailsRepository infoRepo;
-	@Autowired
-	private ObjectMapper objectMapper;
+    @Autowired
+    AgentRepository agentRepo;
+    @Autowired
+    ProductsRepository prodRepo;
+    @Autowired
+    InstituteRepository instRepo;
+    @Autowired
+    VendorRepository vendorRepo;
+    @Autowired
+    InfoDetailsRepository infoRepo;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-	@Autowired
-	private TermsAndConditionsRepository termsRepo;
+    @Autowired
+    private TermsAndConditionsRepository termsRepo;
 
-	@Autowired
-	DealsRepository dealRepo;
+    @Autowired
+    S3StorageService s3StorageService;
+    @Autowired
+    DealsRepository dealRepo;
 
-	@Value("${al.ticket.content-path}")
-	private String contentPath;
+    @Value("${al.ticket.content-path}")
+    private String contentPath;
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public Map<String, Object> getSalesNeededData(Map<String, Object> needed) {
-		Map<String, Object> resp = new HashMap<>();
-		List<String> neededList = (List<String>) needed.get("needed");
+    @SuppressWarnings("unchecked")
+    @Override
+    public Map<String, Object> getSalesNeededData(Map<String, Object> needed) {
+        Map<String, Object> resp = new HashMap<>();
+        List<String> neededList = (List<String>) needed.get("needed");
 
-		List<Institute> institutes = new ArrayList<>();
-		List<String> institutesTypes = new ArrayList<>();
+        List<Institute> institutes = new ArrayList<>();
+        List<String> institutesTypes = new ArrayList<>();
 
-		List<Product> products = new ArrayList<>();
-		List<Agent> agents = new ArrayList<>();
-		List<Vendor> vendors = new ArrayList<>();
-		InfoDetails info = new InfoDetails();
-		try {
-			if (neededList.contains("institutes"))
-				institutes = instRepo.getInstituteMiniAddressDetails();
-			if (neededList.contains("institutes_types"))
-				institutesTypes = instRepo.getDistinctInstituteTypes();
-			if (neededList.contains("products"))
-				products = prodRepo.findAll();
-			if (neededList.contains("agents"))
-				agents = agentRepo.findAllMinDetails();
-			if (neededList.contains("vendors"))
-				vendors = vendorRepo.findAll();
-			if (neededList.contains("info_min"))
-				info = infoRepo.getInfoMinDetails();
-			if (neededList.contains("state_tin")) {
+        List<Product> products = new ArrayList<>();
+        List<Agent> agents = new ArrayList<>();
+        List<Vendor> vendors = new ArrayList<>();
+        InfoDetails info = new InfoDetails();
+        try {
+            if (neededList.contains("institutes")) institutes = instRepo.getInstituteMiniAddressDetails();
+            if (neededList.contains("institutes_types")) institutesTypes = instRepo.getDistinctInstituteTypes();
+            if (neededList.contains("products")) products = prodRepo.findAll();
+            if (neededList.contains("agents")) agents = agentRepo.findAllMinDetails();
+            if (neededList.contains("vendors")) vendors = vendorRepo.findAll();
+            if (neededList.contains("info_min")) info = infoRepo.getInfoMinDetails();
+            if (neededList.contains("state_tin")) {
 //				resp.put("StateTinDetails", objectMapper.readTree(new ClassPathResource("./state_tin.json").getFile()));
-				resp.put("StateTinDetails", Util.getStateTins());
-			}
+                resp.put("StateTinDetails", Util.getStateTins());
+            }
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception e) {
-			e.printStackTrace();
-			resp.putAll(Util.FailedResponse(e.getMessage()));
-			logger.info("Error getSalesNeededData :: " + e.getMessage());
-		}
-		resp.put("Institutes", institutes);
-		resp.put("InstitutesTypes", institutesTypes);
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.putAll(Util.FailedResponse(e.getMessage()));
+            logger.info("Error getSalesNeededData :: " + e.getMessage());
+        }
+        resp.put("Institutes", institutes);
+        resp.put("InstitutesTypes", institutesTypes);
 
-		resp.put("Products", products);
-		resp.put("Agents", agents);
-		resp.put("Vendors", vendors);
-		resp.put("InfoDetails", info);
+        resp.put("Products", products);
+        resp.put("Agents", agents);
+        resp.put("Vendors", vendors);
+        resp.put("InfoDetails", info);
 
-		return resp;
-	}
+        return resp;
+    }
 
-	@Override
-	public Map<String, Object> getSalesDashboardData(Map<String, Object> req) {
-		Map<String, Object> resp = new HashMap<>();
+    @Override
+    public Map<String, Object> getSalesDashboardData(Map<String, Object> req) {
+        Map<String, Object> resp = new HashMap<>();
 
-		try {
-			String fromDate = Util.sdfFormatter(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSX", Locale.getDefault())
-					.parse(String.valueOf(req.get("fromDate"))));
-			String toDate = Util.sdfFormatter(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSX", Locale.getDefault())
-					.parse(String.valueOf(req.get("toDate"))));
+        try {
+            String fromDate = Util.sdfFormatter(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSX", Locale.getDefault()).parse(String.valueOf(req.get("fromDate"))));
+            String toDate = Util.sdfFormatter(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSX", Locale.getDefault()).parse(String.valueOf(req.get("toDate"))));
 
-			List<Map<String, Object>> SalesDashboardPaymentsData = dealRepo.getSalesDashboardPaymentsData(fromDate,
-					toDate);
+            List<Map<String, Object>> SalesDashboardPaymentsData = dealRepo.getSalesDashboardPaymentsData(fromDate, toDate);
 
-			List<Map<String, Object>> productwiseSalesReport = dealRepo.getProductwiseSalesReport(fromDate, toDate);
-			List<Map<String, Object>> last10MonthsSalesData = new ArrayList<>();
+            List<Map<String, Object>> productwiseSalesReport = dealRepo.getProductwiseSalesReport(fromDate, toDate);
+            List<Map<String, Object>> last10MonthsSalesData = new ArrayList<>();
 
-			resp.put("Stats", dealRepo.getSalesDashboardStatsData(fromDate, toDate));
-			resp.put("Payments", SalesDashboardPaymentsData);
+            resp.put("Stats", dealRepo.getSalesDashboardStatsData(fromDate, toDate));
+            resp.put("Payments", SalesDashboardPaymentsData);
 
-			List<String> types = dealRepo.getDistinctDealTypes();
+            List<String> types = dealRepo.getDistinctDealTypes();
 
-			System.out.println(types.toString());
+            System.out.println(types.toString());
 
-			types.parallelStream().forEach(type -> {
-				Map<String, Object> map = new HashMap<>();
+            types.parallelStream().forEach(type -> {
+                Map<String, Object> map = new HashMap<>();
 
-				map.put("name", String.valueOf(type));
-				map.put("series", dealRepo.getMonthlySalesAmountsStatsByDealType(type));
+                map.put("name", String.valueOf(type));
+                map.put("series", dealRepo.getMonthlySalesAmountsStatsByDealType(type));
 
-				last10MonthsSalesData.add(map);
+                last10MonthsSalesData.add(map);
 
-			});
+            });
 
-			resp.put("productwiseSalesReport", productwiseSalesReport);
-			resp.put("last10MonthsSalesData", last10MonthsSalesData);
-			resp.putAll(Util.SuccessResponse());
+            resp.put("productwiseSalesReport", productwiseSalesReport);
+            resp.put("last10MonthsSalesData", last10MonthsSalesData);
+            resp.putAll(Util.SuccessResponse());
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			resp.putAll(Util.FailedResponse(e.getMessage()));
-			logger.info("Error getSalesNeededData :: " + e.getMessage());
-		}
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.putAll(Util.FailedResponse(e.getMessage()));
+            logger.info("Error getSalesNeededData :: " + e.getMessage());
+        }
 
-		return resp;
-	}
+        return resp;
+    }
 
-	@Override
-	public Map<String, Object> uploadPreambleDocuments(MultipartFile file) {
-		Map<String, Object> resp = new HashMap<>();
+    @Override
+    public Map<String, Object> uploadPreambleDocuments(MultipartFile file) {
+        Map<String, Object> resp = new HashMap<>();
 
-		File directory = new File(contentPath + "/_preamble_documents/");
-		System.out.println(directory.getAbsolutePath());
-		if (!directory.exists()) {
-			directory.mkdirs();
-		}
+        s3StorageService.pushToAWS(S3Directories.PreambleDocuments, file);
+        resp.putAll(Util.SuccessResponse());
 
-		File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
+        return resp;
+    }
 
-		try {
-			convertFile.createNewFile();
-			FileOutputStream fout = new FileOutputStream(convertFile);
-			fout.write(file.getBytes());
-			fout.close();
+    @Override
+    public Map<String, Object> getPreambleDocumentsList() {
+        Map<String, Object> resp = new HashMap<>();
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (IOException e) {
-			resp.putAll(Util.FailedResponse(e.getMessage()));
-			e.printStackTrace();
-		}
-		return resp;
-	}
+        try {
+            List<String> names = s3StorageService.getObjectListFromS3Directory(S3Directories.PreambleDocuments)
+                    .stream()
+                    .map(key -> {
+                        String[] keys = key.split("/");
+                        return keys[keys.length - 1];
+                    })
+                    .collect(Collectors.toList());
 
-	@Override
-	public Map<String, Object> getPreambleDocumentsList() {
-		Map<String, Object> resp = new HashMap<>();
-		List<String> names = new ArrayList<>();
-		try {
-//			Path configFilePath = FileSystems.getDefault().getPath(contentPath + "/_preamble_documents/");
-//
-//			List<Path> fileWithName = Files.walk(configFilePath).filter(s -> s.toString().endsWith(".pdf"))
-//					.map(Path::getFileName).sorted().collect(Collectors.toList());
+            resp.put("Files", names);
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.putAll(Util.FailedResponse());
+        }
+        return resp;
+    }
 
-			names = Files.list(Paths.get(contentPath + "/_preamble_documents/")).filter(Files::isRegularFile)
-					.map(p -> p.getFileName().toString()).collect(Collectors.toList());
+    @Override
+    public Map<String, Object> deletePreambleDocumentsList(String filename) {
+        Map<String, Object> resp = new HashMap<>();
 
-//			for (Path name : fileWithName) {
-//				// printing the name of file in every sub folder
-//				System.out.println(name);
-//				names.add(name.toString());
-//			}
+        try {
+            s3StorageService.deleteFromS3(S3Directories.PreambleDocuments + filename);
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		resp.put("Files", names);
-		return resp;
-	}
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse(e.getMessage()));
+            e.printStackTrace();
+        }
+        return resp;
+    }
 
-	@Override
-	public Map<String, Object> deletePreambleDocumentsList(String filename) {
-		Map<String, Object> resp = new HashMap<>();
+    @Override
+    public Map<String, Object> saveTermsAndConditions(TermsAndConditions terms) {
+        Map<String, Object> resp = new HashMap<>();
 
-		try {
-			File file = new File(contentPath + "/_preamble_documents/" + filename);
-			Files.deleteIfExists(file.toPath());
+        try {
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (IOException e) {
-			resp.putAll(Util.FailedResponse(e.getMessage()));
-			e.printStackTrace();
-		}
-		return resp;
-	}
+            terms = termsRepo.save(terms);
 
-	@Override
-	public Map<String, Object> saveTermsAndConditions(TermsAndConditions terms) {
-		Map<String, Object> resp = new HashMap<>();
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse(e.getMessage()));
+            e.printStackTrace();
+        }
+        resp.put("Terms", terms);
+        return resp;
+    }
 
-		try {
+    @Override
+    public Map<String, Object> deleteTermsAndConditions(TermsAndConditions terms) {
+        Map<String, Object> resp = new HashMap<>();
 
-			terms = termsRepo.save(terms);
+        try {
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse(e.getMessage()));
-			e.printStackTrace();
-		}
-		resp.put("Terms", terms);
-		return resp;
-	}
+            termsRepo.delete(terms);
 
-	@Override
-	public Map<String, Object> deleteTermsAndConditions(TermsAndConditions terms) {
-		Map<String, Object> resp = new HashMap<>();
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse(e.getMessage()));
+            e.printStackTrace();
+        }
+        return resp;
+    }
 
-		try {
+    @Override
+    public Map<String, Object> getTermsAndConditions(String type) {
+        Map<String, Object> resp = new HashMap<>();
+        List<TermsAndConditions> terms = new ArrayList<>();
+        try {
 
-			termsRepo.delete(terms);
+            terms = termsRepo.findByType(type);
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse(e.getMessage()));
-			e.printStackTrace();
-		}
-		return resp;
-	}
-
-	@Override
-	public Map<String, Object> getTermsAndConditions(String type) {
-		Map<String, Object> resp = new HashMap<>();
-		List<TermsAndConditions> terms = new ArrayList<>();
-		try {
-
-			terms = termsRepo.findByType(type);
-
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse(e.getMessage()));
-			e.printStackTrace();
-		}
-		resp.put("Terms", terms);
-		return resp;
-	}
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse(e.getMessage()));
+            e.printStackTrace();
+        }
+        resp.put("Terms", terms);
+        return resp;
+    }
 
 }

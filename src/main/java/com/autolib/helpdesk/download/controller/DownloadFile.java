@@ -383,8 +383,6 @@ public class DownloadFile {
     public ResponseEntity<InputStreamResource> downloadPreamblePDFFile(@PathVariable("fileName") String fileName,
                                                                        @PathVariable("mode") String mode) throws IOException {
         logger.info("Downloading File::" + fileName);
-        String path = contentPath + "/_preamble_documents/" + fileName + "";
-        InputStreamResource resource = getFileFromPath(path);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
@@ -395,7 +393,7 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.PreambleDocuments + fileName));
     }
 
     @RequestMapping(value = "/download-purchase-input-pdf/{mode}/{orderId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
