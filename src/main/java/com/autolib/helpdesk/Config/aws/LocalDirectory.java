@@ -6,4 +6,5 @@ public class LocalDirectory {
     public static final String LeadFiles = Temp + S3Directories.LeadFiles;
     public static final String LeadMailTemplate = Temp + S3Directories.LeadMailTemplate;
     public static final String LeadUploadTemp = LeadFiles + "upload-temp-files/";
+    public static final String CallReports = Temp + S3Directories.CallReports;
 }

@@ -14,5 +14,7 @@ public class S3Directories {
     public static final String LeadFiles = "_lead_files/";
     public static final String LeadMailTemplate = LeadFiles + "lead-mail-template-file/";
     public static final String LeadTemplate = LeadFiles + "template-file/";
+    public static final String Tickets = "_tickets/";
+    public static final String CallReports = "CallReports/";
 
 }

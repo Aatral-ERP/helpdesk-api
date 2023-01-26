@@ -431,30 +431,12 @@ public class DownloadFile {
     public ResponseEntity<InputStreamResource> downloadPDFFile(@PathVariable("fileName") String fileName,
                                                                @PathVariable("ticketId") String ticketId) throws IOException {
         logger.info("Downloading File::" + ticketId + " : " + fileName);
-        String path = "";
-
-        InputStreamResource resource = null;
         HttpHeaders headers = new HttpHeaders();
-        File file = null;
-        try {
-
-            path = contentPath + ticketId + "/" + fileName + "";
-
-            System.out.println(path);
-            file = new File(path);
-            resource = new InputStreamResource(new FileInputStream(file));
-        } catch (FileNotFoundException e) {
-            logger.error(e.getMessage());
-            logger.error("\r\nFile Not FOUND Exception::: " + ticketId + " " + fileName);
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.error("\r\nFile Download Exception::: " + ticketId + " " + fileName);
-        }
         headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
         headers.add("Expires", "0");
-        return ResponseEntity.ok().headers(headers).contentLength(file.length()).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.Tickets + ticketId + "/" + fileName));
     }
 
     InputStreamResource getFileFromPath(String path) {
@@ -475,10 +457,6 @@ public class DownloadFile {
     @RequestMapping(value = "/download-call-report-pdf/{mode}/{instituteId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
     public ResponseEntity<InputStreamResource> downloadCallReportPDFFile(@PathVariable("fileName") String fileName,
                                                                          @PathVariable("instituteId") String instituteId, @PathVariable("mode") String mode) throws IOException {
-
-        String path = contentPath + "/CallReports/" + instituteId + "/" + fileName + "";
-        logger.info("Downloading Call Report File::" + path);
-        InputStreamResource resource = getFileFromPath(path);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
@@ -489,7 +467,7 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.CallReports + instituteId + "/" + fileName));
     }
 
     @RequestMapping(value = "/download-service-report-pdf/{mode}/{instituteId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
