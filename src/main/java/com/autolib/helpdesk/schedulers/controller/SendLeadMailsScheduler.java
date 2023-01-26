@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.autolib.helpdesk.Config.aws.LocalDirectory;
+import com.autolib.helpdesk.Config.aws.S3Directories;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,6 @@ import com.autolib.helpdesk.LeadManagement.model.LeadMailTemplate;
 import com.autolib.helpdesk.LeadManagement.repository.LeadContactRepository;
 import com.autolib.helpdesk.LeadManagement.repository.LeadMailTemplateRepository;
 import com.autolib.helpdesk.LeadManagement.repository.LeadRepository;
-import com.autolib.helpdesk.common.DirectoryUtil;
 import com.autolib.helpdesk.common.EmailModel;
 import com.autolib.helpdesk.common.EmailSender;
 import com.autolib.helpdesk.common.Util;
@@ -170,8 +171,7 @@ public class SendLeadMailsScheduler {
 			List<String> attachs = new ArrayList<>();
 			if (template.getFiles() != null && !template.getFiles().isEmpty()) {
 				for (String fileName : Arrays.asList(template.getFiles().split(";"))) {
-					directory = new File(
-							contentPath + DirectoryUtil.leadMailTemplateDirectory + template.getId() + "/" + fileName);
+					directory = new File(LocalDirectory.LeadMailTemplate + template.getId() + "/" + fileName);
 					attachs.add(directory.getAbsolutePath());
 				}
 			}
@@ -179,7 +179,7 @@ public class SendLeadMailsScheduler {
 			if (_lead.getFiles() != null && !_lead.getFiles().isEmpty()) {
 				for (String fileName : Arrays.asList(_lead.getFiles().split(";"))) {
 					directory = new File(
-							contentPath + DirectoryUtil.leadRootDirectory + _lead.getId() + "/" + fileName);
+							contentPath + S3Directories.LeadFiles + _lead.getId() + "/" + fileName);
 					attachs.add(directory.getAbsolutePath());
 				}
 			}

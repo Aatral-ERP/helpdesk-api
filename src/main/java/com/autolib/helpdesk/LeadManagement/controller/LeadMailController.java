@@ -5,6 +5,9 @@ import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.autolib.helpdesk.Config.aws.LocalDirectory;
+import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.common.S3StorageService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +31,6 @@ import com.autolib.helpdesk.LeadManagement.model.LeadMailTemplate;
 import com.autolib.helpdesk.LeadManagement.model.LeadMailTemplateRequest;
 import com.autolib.helpdesk.LeadManagement.model.LeadMailTemplateSearchRequest;
 import com.autolib.helpdesk.LeadManagement.service.LeadMailService;
-import com.autolib.helpdesk.common.DirectoryUtil;
 import com.autolib.helpdesk.common.Util;
 import com.autolib.helpdesk.jwt.JwtTokenUtil;
 
@@ -37,172 +39,177 @@ import com.autolib.helpdesk.jwt.JwtTokenUtil;
 @CrossOrigin("*")
 @RequestMapping("lead-mail")
 public class LeadMailController {
-	private final Logger logger = LogManager.getLogger(this.getClass());
+    private final Logger logger = LogManager.getLogger(this.getClass());
 
-	@Autowired
-	JwtTokenUtil jwtUtil;
+    @Autowired
+    JwtTokenUtil jwtUtil;
 
-	@Autowired
-	LeadMailService leadMailService;
+    @Autowired
+    LeadMailService leadMailService;
 
-	@Value("${al.ticket.content-path}")
-	private String contentPath;
+    @Value("${al.ticket.content-path}")
+    private String contentPath;
+    @Autowired
+    S3StorageService s3StorageService;
 
-	@PostMapping("upload-lead-mail-template-attachments")
-	ResponseEntity<?> fileUpload(@RequestHeader(value = "Authorization") String token,
-			@RequestParam("directoryName") String directoryName, @RequestParam("file") MultipartFile file) {
-		logger.info("fileUpload req Starts::::::::" + file.getSize());
-		logger.info("fileUpload req directoryName::::::::" + directoryName);
-		Map<String, Object> resp = new HashMap<>();
-		try {
-			jwtUtil.isValidToken(token);
+    @PostMapping("upload-lead-mail-template-attachments")
+    ResponseEntity<?> fileUpload(@RequestHeader(value = "Authorization") String token,
+                                 @RequestParam("directoryName") String directoryName, @RequestParam("file") MultipartFile file) {
+        logger.info("fileUpload req Starts::::::::" + file.getSize());
+        logger.info("fileUpload req directoryName::::::::" + directoryName);
+        Map<String, Object> resp = new HashMap<>();
+        try {
+            jwtUtil.isValidToken(token);
 
-			File directory = new File(contentPath + DirectoryUtil.leadMailTemplateDirectory + directoryName);
-			System.out.println(directory.getAbsolutePath());
-			if (!directory.exists()) {
-				directory.mkdirs();
-			}
+            if (directoryName.contains("temp-files")) {
+                File directory = new File(LocalDirectory.LeadMailTemplate + directoryName);
+                System.out.println(directory.getAbsolutePath());
+                if (!directory.exists()) {
+                    directory.mkdirs();
+                }
 
-			File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
-			convertFile.createNewFile();
-			FileOutputStream fout = new FileOutputStream(convertFile);
-			fout.write(file.getBytes());
-			fout.close();
+                File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
+                convertFile.createNewFile();
+                FileOutputStream fout = new FileOutputStream(convertFile);
+                fout.write(file.getBytes());
+                fout.close();
+            } else {
+                s3StorageService.pushToAWS(S3Directories.LeadMailTemplate + directoryName, file);
+            }
+            resp.putAll(Util.SuccessResponse());
 
-			resp.putAll(Util.SuccessResponse());
+        } catch (Exception ex) {
+            resp.putAll(Util.FailedResponse());
+            ex.printStackTrace();
+        }
 
-		} catch (Exception ex) {
-			resp.putAll(Util.FailedResponse());
-			ex.printStackTrace();
-		}
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+    @PostMapping("save-lead-mail-template")
+    public ResponseEntity<?> saveLeadMailTemplate(@RequestHeader(value = "Authorization") String token,
+                                                  @RequestBody LeadMailTemplateRequest template) {
 
-	@PostMapping("save-lead-mail-template")
-	public ResponseEntity<?> saveLeadMailTemplate(@RequestHeader(value = "Authorization") String token,
-			@RequestBody LeadMailTemplateRequest template) {
+        logger.info("saveLeadMailTemplate starts:::" + template);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-		logger.info("saveLeadMailTemplate starts:::" + template);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+        try {
 
-		try {
+            resp = leadMailService.saveLeadMailTemplate(template);
 
-			resp = leadMailService.saveLeadMailTemplate(template);
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+        logger.info("saveLeadMailTemplate ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-		logger.info("saveLeadMailTemplate ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+    @GetMapping("get-lead-mail-template/{templateId}")
+    public ResponseEntity<?> getLeadMailTemplate(@RequestHeader(value = "Authorization") String token,
+                                                 @PathVariable("templateId") int templateId) {
 
-	@GetMapping("get-lead-mail-template/{templateId}")
-	public ResponseEntity<?> getLeadMailTemplate(@RequestHeader(value = "Authorization") String token,
-			@PathVariable("templateId") int templateId) {
+        logger.info("getLeadMailTemplate starts:::" + templateId);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-		logger.info("getLeadMailTemplate starts:::" + templateId);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+        try {
 
-		try {
+            resp = leadMailService.getLeadMailTemplate(templateId);
 
-			resp = leadMailService.getLeadMailTemplate(templateId);
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+        logger.info("getLeadMailTemplate ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-		logger.info("getLeadMailTemplate ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+    @PostMapping("delete-lead-mail-template")
+    public ResponseEntity<?> deleteLeadMailTemplate(@RequestHeader(value = "Authorization") String token,
+                                                    @RequestBody LeadMailTemplate template) {
 
-	@PostMapping("delete-lead-mail-template")
-	public ResponseEntity<?> deleteLeadMailTemplate(@RequestHeader(value = "Authorization") String token,
-			@RequestBody LeadMailTemplate template) {
+        logger.info("deleteLeadMailTemplate starts:::" + template);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-		logger.info("deleteLeadMailTemplate starts:::" + template);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+        try {
 
-		try {
+            resp = leadMailService.deleteLeadMailTemplate(template);
 
-			resp = leadMailService.deleteLeadMailTemplate(template);
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+        logger.info("deleteLeadMailTemplate ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-		logger.info("deleteLeadMailTemplate ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+    @PostMapping("search-lead-mail-templates")
+    public ResponseEntity<?> searchLeadMailTemplates(@RequestHeader(value = "Authorization") String token,
+                                                     @RequestBody LeadMailTemplateSearchRequest request) {
 
-	@PostMapping("search-lead-mail-templates")
-	public ResponseEntity<?> searchLeadMailTemplates(@RequestHeader(value = "Authorization") String token,
-			@RequestBody LeadMailTemplateSearchRequest request) {
+        logger.info("searchLeads starts:::" + request);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-		logger.info("searchLeads starts:::" + request);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+        try {
 
-		try {
+            resp = leadMailService.searchLeadMailTemplates(request);
 
-			resp = leadMailService.searchLeadMailTemplates(request);
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+        logger.info("searchLeads ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-		logger.info("searchLeads ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+    @PostMapping("search-lead-mail-sent-status")
+    public ResponseEntity<?> searchLeadMailSentStatus(@RequestHeader(value = "Authorization") String token,
+                                                      @RequestBody LeadMailSentSearchRequest request) {
 
-	@PostMapping("search-lead-mail-sent-status")
-	public ResponseEntity<?> searchLeadMailSentStatus(@RequestHeader(value = "Authorization") String token,
-			@RequestBody LeadMailSentSearchRequest request) {
+        logger.info("searchLeadMailSentStatus starts:::" + request.toString());
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-		logger.info("searchLeadMailSentStatus starts:::" + request.toString());
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+        try {
 
-		try {
+            resp = leadMailService.searchLeadMailSentStatus(request);
 
-			resp = leadMailService.searchLeadMailSentStatus(request);
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
+        logger.info("searchLeadMailSentStatus ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
-		logger.info("searchLeadMailSentStatus ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+    @PostMapping("sent-lead-mail-by-template/{leadId}/{templateId}")
+    public ResponseEntity<?> sentLeadMailByTemplate(@RequestHeader(value = "Authorization") String token,
+                                                    @PathVariable("leadId") int leadId, @PathVariable("templateId") int templateId) {
 
-	@PostMapping("sent-lead-mail-by-template/{leadId}/{templateId}")
-	public ResponseEntity<?> sentLeadMailByTemplate(@RequestHeader(value = "Authorization") String token,
-			@PathVariable("leadId") int leadId, @PathVariable("templateId") int templateId) {
+        logger.info("sentLeadMailByTemplate starts:::" + templateId + " :: " + leadId);
+        jwtUtil.isValidToken(token);
+        Map<String, Object> resp = new HashMap<>();
 
-		logger.info("sentLeadMailByTemplate starts:::" + templateId + " :: " + leadId);
-		jwtUtil.isValidToken(token);
-		Map<String, Object> resp = new HashMap<>();
+        try {
 
-		try {
+            resp = leadMailService.sentLeadMailByTemplate(leadId, templateId);
 
-			resp = leadMailService.sentLeadMailByTemplate(leadId, templateId);
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse());
+            e.printStackTrace();
+        }
 
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse());
-			e.printStackTrace();
-		}
-
-		logger.info("sentLeadMailByTemplate ends:::");
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-	}
+        logger.info("sentLeadMailByTemplate ends:::");
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
 }

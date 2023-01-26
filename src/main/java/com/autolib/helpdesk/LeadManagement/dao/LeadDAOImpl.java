@@ -1,11 +1,5 @@
 package com.autolib.helpdesk.LeadManagement.dao;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,6 +10,8 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.common.S3StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.Modifying;
@@ -37,7 +33,6 @@ import com.autolib.helpdesk.LeadManagement.repository.LeadContactRepository;
 import com.autolib.helpdesk.LeadManagement.repository.LeadMeetingRepository;
 import com.autolib.helpdesk.LeadManagement.repository.LeadRepository;
 import com.autolib.helpdesk.LeadManagement.repository.LeadTaskRepository;
-import com.autolib.helpdesk.common.DirectoryUtil;
 import com.autolib.helpdesk.common.Util;
 
 @Repository
@@ -60,6 +55,8 @@ public class LeadDAOImpl implements LeadDAO {
 
 	@Autowired
 	EntityManager em;
+	@Autowired
+	S3StorageService s3StorageService;
 
 	@Override
 	public Map<String, Object> createLead(LeadRequest leadReq) {
@@ -87,24 +84,13 @@ public class LeadDAOImpl implements LeadDAO {
 
 					List<String> filenames = Arrays.asList(leadReq.getLead().getFiles().split(";"));
 
-					filenames.parallelStream().filter(filename -> filename.length() > 0).forEach(filename -> {
-						Path source = Paths.get(contentPath + DirectoryUtil.leadRootDirectory
-								+ leadReq.getDirectoryName() + "/" + filename);
-						Path destination = Paths.get(contentPath + DirectoryUtil.leadRootDirectory
-								+ leadReq.getLead().getId() + "/" + filename);
-
-						File directory = destination.toFile();
-						System.out.println(directory.getAbsolutePath());
-						if (!directory.exists()) {
-							directory.mkdirs();
-						}
-						try {
-							Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					});
+					filenames.parallelStream()
+							.filter(filename -> filename.length() > 0)
+							.forEach(filename -> {
+								s3StorageService.pushLocalFileToAWS(
+										S3Directories.LeadFiles + leadReq.getLead().getId(),
+										S3Directories.LeadFiles + leadReq.getDirectoryName() + "/" + filename);
+							});
 				}
 				resp.putAll(Util.SuccessResponse());
 			}

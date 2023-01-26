@@ -11,5 +11,8 @@ public class S3Directories {
     public static final String LetterPads = "Letterpads/";
     public static final String PurchaseInputOrders = "Purchase_Input_Orders/";
     public static final String PreambleDocuments = "_preamble_documents/";
+    public static final String LeadFiles = "_lead_files/";
+    public static final String LeadMailTemplate = LeadFiles + "lead-mail-template-file/";
+    public static final String LeadTemplate = LeadFiles + "template-file/";
 
 }

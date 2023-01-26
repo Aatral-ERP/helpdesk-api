@@ -1,7 +1,6 @@
 package com.autolib.helpdesk.download.controller;
 
 import com.autolib.helpdesk.Config.aws.S3Directories;
-import com.autolib.helpdesk.common.DirectoryUtil;
 import com.autolib.helpdesk.common.S3StorageService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -118,8 +117,6 @@ public class DownloadFile {
     public ResponseEntity<InputStreamResource> downloadLeadAttachments(@PathVariable("fileName") String fileName,
                                                                        @PathVariable("leadId") String leadId, @PathVariable("mode") String mode) throws IOException {
         logger.info("Downloading File::" + leadId + " : " + fileName);
-        String path = contentPath + DirectoryUtil.leadRootDirectory + leadId + "/" + fileName;
-        InputStreamResource resource = getFileFromPath(path);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
@@ -130,7 +127,7 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.LeadFiles + leadId + "/" + fileName));
     }
 
     @RequestMapping(value = "/lead-mail-templateattachments/{mode}/{templateId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
@@ -138,8 +135,6 @@ public class DownloadFile {
             @PathVariable("fileName") String fileName, @PathVariable("templateId") String templateId,
             @PathVariable("mode") String mode) throws IOException {
         logger.info("Downloading File::" + templateId + " : " + fileName);
-        String path = contentPath + DirectoryUtil.leadMailTemplateDirectory + templateId + "/" + fileName;
-        InputStreamResource resource = getFileFromPath(path);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
@@ -150,7 +145,7 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.LeadMailTemplate + templateId + "/" + fileName));
     }
 
     @GetMapping(value = "/profile-signature/{filename}", produces = "image/png")
@@ -539,7 +534,7 @@ public class DownloadFile {
     @RequestMapping(value = "download-lead-template", method = RequestMethod.GET, produces = "application/pdf")
     public ResponseEntity<InputStreamResource> downloadLeadTemplate() throws IOException {
         String fileName = "/lead-template.xls";
-        String path = contentPath + DirectoryUtil.leadTemplateDirectory + "/lead-template.xls";
+        String path = contentPath + S3Directories.LeadTemplate + "lead-template.xls";
         logger.info("Downloading LeadTemplate File::" + path);
         InputStreamResource resource = getFileFromPath(path);
         HttpHeaders headers = new HttpHeaders();

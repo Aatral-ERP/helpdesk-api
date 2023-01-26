@@ -7,7 +7,6 @@ import java.util.Map;
 
 import com.autolib.helpdesk.Config.aws.LocalDirectory;
 import com.autolib.helpdesk.Config.aws.S3Directories;
-import com.autolib.helpdesk.common.DirectoryUtil;
 import com.autolib.helpdesk.common.S3StorageService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
