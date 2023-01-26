@@ -51,8 +51,6 @@ public class DownloadFile {
     public ResponseEntity<InputStreamResource> _agent_legder_proof_pdf(@PathVariable("filename") String fileName,
                                                                        @PathVariable("mode") String mode) throws IOException {
         logger.info("Downloading File::" + fileName);
-        String path = contentPath + "/_agent_legder_proof/" + fileName + "";
-        InputStreamResource resource = getFileFromPath(path);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
@@ -534,7 +532,7 @@ public class DownloadFile {
     @RequestMapping(value = "download-lead-template", method = RequestMethod.GET, produces = "application/pdf")
     public ResponseEntity<InputStreamResource> downloadLeadTemplate() throws IOException {
         String fileName = "/lead-template.xls";
-        String path = contentPath + S3Directories.LeadTemplate + "lead-template.xls";
+        String path = S3Directories.LeadTemplate + "lead-template.xls";
         logger.info("Downloading LeadTemplate File::" + path);
         InputStreamResource resource = getFileFromPath(path);
         HttpHeaders headers = new HttpHeaders();
