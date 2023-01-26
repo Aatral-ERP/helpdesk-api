@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -127,7 +128,17 @@ public class S3StorageService {
         return null;
     }
 
-
+    public File getFromS3AsFile(String key) {
+        try {
+            File tempFile = File.createTempFile("temp", null, null);
+            FileOutputStream fos = new FileOutputStream(tempFile);
+            fos.write(IOUtils.toByteArray(getFromS3(key)));
+            return tempFile;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public static File convertMultipartToFile(MultipartFile file) {
         try {

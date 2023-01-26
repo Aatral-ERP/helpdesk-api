@@ -19,6 +19,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
+import com.autolib.helpdesk.Config.aws.LocalDirectory;
+import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.common.S3StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -82,8 +85,8 @@ import net.sf.jasperreports.engine.export.JRRtfExporter;
 @Repository
 public class InvoiceDAOImpl implements InvoiceDAO {
 
-    @Value("${al.ticket.content-path}")
-    private String contentPath;
+    @Autowired
+    S3StorageService s3StorageService;
 
     @Autowired
     InvoiceEmailReminderSettingsRepository reminderSettingRepo;
@@ -591,8 +594,8 @@ public class InvoiceDAOImpl implements InvoiceDAO {
                 parameters.put("subject", "Sub: " + dealReq.getDealInvoice().getSubject());
             }
 
-            parameters.put("billing_to", dealReq.getBillingToAddress());
-            parameters.put("shipping_to", dealReq.getBillingToAddress());
+            parameters.put("billing_to", dealReq.getDealInvoice().getBillingAddress());
+            parameters.put("shipping_to", dealReq.getDealInvoice().getShippingAddress());
 
             String price_summary_label = "", price_summary_text = "";
 
@@ -685,7 +688,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Invoices/" + dealReq.getDealInvoice().getId());
+            File directory = new File(LocalDirectory.Invoices + dealReq.getDealInvoice().getId());
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -714,7 +717,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
                 // Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Invoices + dealReq.getDealInvoice().getId(), S3Directories.Invoices + dealReq.getDealInvoice().getId() + "/" + dealReq.getDealInvoice().getFilename());
             }
 
             invRepo.save(dealReq.getDealInvoice());
@@ -740,7 +743,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             System.out.println(dealReq.toString());
 
-            InputStream stream = this.getClass().getResourceAsStream("/reports/Invoice/Invoice_Template_2_Lite.jrxml");
+            InputStream stream = this.getClass().getResourceAsStream("/reports/FinalTemplates/Template_1/Template_1_Lite.jrxml");
 
             final Map<String, Object> parameters = new HashMap<>();
 
@@ -878,7 +881,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Invoices/" + dealReq.getDealInvoice().getId());
+            File directory = new File(LocalDirectory.Invoices + dealReq.getDealInvoice().getId());
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -907,7 +910,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
                 // Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Invoices + dealReq.getDealInvoice().getId(), S3Directories.Invoices + dealReq.getDealInvoice().getId() + "/" + dealReq.getDealInvoice().getFilename());
             }
 
             invRepo.save(dealReq.getDealInvoice());
@@ -1101,7 +1104,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Invoices/" + dealReq.getDealInvoice().getId());
+            File directory = new File(LocalDirectory.Invoices + dealReq.getDealInvoice().getId());
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -1130,7 +1133,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
                 // Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Invoices + dealReq.getDealInvoice().getId(), S3Directories.Invoices + dealReq.getDealInvoice().getId() + "/" + dealReq.getDealInvoice().getFilename());
             }
 
             invRepo.save(dealReq.getDealInvoice());
@@ -1387,7 +1390,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Invoices/" + dealReq.getDealInvoice().getId());
+            File directory = new File(LocalDirectory.Invoices + dealReq.getDealInvoice().getId());
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -1416,7 +1419,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
                 // Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Invoices + dealReq.getDealInvoice().getId(), S3Directories.Invoices + dealReq.getDealInvoice().getId() + "/" + dealReq.getDealInvoice().getFilename());
             }
 
             invRepo.save(dealReq.getDealInvoice());
@@ -1586,7 +1589,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Invoices/" + dealReq.getDealInvoice().getId());
+            File directory = new File(LocalDirectory.Invoices + dealReq.getDealInvoice().getId());
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -1615,7 +1618,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
                 // Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Invoices + dealReq.getDealInvoice().getId(), S3Directories.Invoices + dealReq.getDealInvoice().getId() + "/" + dealReq.getDealInvoice().getFilename());
             }
 
             invRepo.save(dealReq.getDealInvoice());
@@ -1878,7 +1881,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Invoices/" + dealReq.getDealInvoice().getId());
+            File directory = new File(LocalDirectory.Invoices + dealReq.getDealInvoice().getId());
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -1907,7 +1910,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
                 // Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Invoices + dealReq.getDealInvoice().getId(), S3Directories.Invoices + dealReq.getDealInvoice().getId() + "/" + dealReq.getDealInvoice().getFilename());
             }
 
             invRepo.save(dealReq.getDealInvoice());
@@ -1926,28 +1929,12 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
         DealInvoice di = invRepo.findById(dealInvoiceId);
 
-        File directory = new File(contentPath + "/Invoices/" + dealInvoiceId);
-        System.out.println(directory.getAbsolutePath());
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        s3StorageService.pushToAWS(S3Directories.Invoices + dealInvoiceId, file);
 
-        File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
+        di.setFilename(file.getOriginalFilename());
+        di = invRepo.save(di);
 
-        try {
-            convertFile.createNewFile();
-            FileOutputStream fout = new FileOutputStream(convertFile);
-            fout.write(file.getBytes());
-            fout.close();
-
-            di.setFilename(file.getOriginalFilename());
-            di = invRepo.save(di);
-
-            resp.putAll(Util.SuccessResponse());
-        } catch (IOException e) {
-            resp.putAll(Util.FailedResponse(e.getMessage()));
-            e.printStackTrace();
-        }
+        resp.putAll(Util.SuccessResponse());
         resp.put("DealInvoice", di);
         return resp;
     }
@@ -1957,29 +1944,11 @@ public class InvoiceDAOImpl implements InvoiceDAO {
         Map<String, Object> resp = new HashMap<>();
 
         DealInvoice di = invRepo.findById(dealInvoiceId);
+        di.setSatisfactoryCertificate("SC_" + file.getOriginalFilename());
+        di = invRepo.save(di);
 
-        File directory = new File(contentPath + "/Invoices/" + dealInvoiceId);
-        System.out.println(directory.getAbsolutePath());
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        s3StorageService.pushToAWS(S3Directories.Invoices + dealInvoiceId, file, di.getSatisfactoryCertificate());
 
-        File convertFile = new File(directory.getAbsoluteFile() + "/SC_" + file.getOriginalFilename());
-
-        try {
-            convertFile.createNewFile();
-            FileOutputStream fout = new FileOutputStream(convertFile);
-            fout.write(file.getBytes());
-            fout.close();
-
-            di.setSatisfactoryCertificate("SC_" + file.getOriginalFilename());
-            di = invRepo.save(di);
-
-            resp.putAll(Util.SuccessResponse());
-        } catch (IOException e) {
-            resp.putAll(Util.FailedResponse(e.getMessage()));
-            e.printStackTrace();
-        }
         resp.put("DealInvoice", di);
         return resp;
     }
@@ -1989,29 +1958,11 @@ public class InvoiceDAOImpl implements InvoiceDAO {
         Map<String, Object> resp = new HashMap<>();
 
         DealInvoice di = invRepo.findById(dealInvoiceId);
+        di.setWorkCompletionCertificate("WC_" + file.getOriginalFilename());
+        di = invRepo.save(di);
 
-        File directory = new File(contentPath + "/Invoices/" + dealInvoiceId);
-        System.out.println(directory.getAbsolutePath());
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        s3StorageService.pushToAWS(S3Directories.Invoices + dealInvoiceId, file, di.getWorkCompletionCertificate());
 
-        File convertFile = new File(directory.getAbsoluteFile() + "/WC_" + file.getOriginalFilename());
-
-        try {
-            convertFile.createNewFile();
-            FileOutputStream fout = new FileOutputStream(convertFile);
-            fout.write(file.getBytes());
-            fout.close();
-
-            di.setWorkCompletionCertificate("WC_" + file.getOriginalFilename());
-            di = invRepo.save(di);
-
-            resp.putAll(Util.SuccessResponse());
-        } catch (IOException e) {
-            resp.putAll(Util.FailedResponse(e.getMessage()));
-            e.printStackTrace();
-        }
         resp.put("DealInvoice", di);
         return resp;
     }
@@ -2107,7 +2058,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Delivery_Challans/");
+            File directory = new File(LocalDirectory.DeliveryChallans);
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -2120,6 +2071,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             // Export the report to a PDF file.
             JasperExportManager.exportReportToPdfFile(print, filePath);
+            s3StorageService.pushLocalFileToAWS(S3Directories.DeliveryChallans, S3Directories.DeliveryChallans + filename);
             resp.putAll(Util.SuccessResponse());
         } catch (Exception e) {
             resp.putAll(Util.FailedResponse(e.getMessage()));
@@ -2341,7 +2293,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Receipts/");
+            File directory = new File(LocalDirectory.Receipts);
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -2356,6 +2308,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             // Export the report to a PDF file.
             JasperExportManager.exportReportToPdfFile(print, filePath);
+            s3StorageService.pushLocalFileToAWS(S3Directories.Receipts, S3Directories.Receipts + dealReq.getPayment().getReceiptfilename());
             resp.putAll(Util.SuccessResponse());
         } catch (Exception e) {
             resp.putAll(Util.FailedResponse(e.getMessage()));
@@ -2433,7 +2386,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Receipts/");
+            File directory = new File(LocalDirectory.Receipts);
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -2448,6 +2401,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             // Export the report to a PDF file.
             JasperExportManager.exportReportToPdfFile(print, filePath);
+            s3StorageService.pushLocalFileToAWS(S3Directories.Receipts, S3Directories.Receipts + dealReq.getPayment().getReceiptfilename());
             resp.putAll(Util.SuccessResponse());
         } catch (Exception e) {
             resp.putAll(Util.FailedResponse(e.getMessage()));
@@ -2683,7 +2637,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Delivery_Challans/");
+            File directory = new File(LocalDirectory.DeliveryChallans);
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -2696,6 +2650,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             // Export the report to a PDF file.
             JasperExportManager.exportReportToPdfFile(print, filePath);
+            s3StorageService.pushLocalFileToAWS(S3Directories.DeliveryChallans, S3Directories.DeliveryChallans + filename);
             resp.putAll(Util.SuccessResponse());
         } catch (Exception e) {
             resp.putAll(Util.FailedResponse(e.getMessage()));
@@ -2788,7 +2743,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Delivery_Challans/");
+            File directory = new File(LocalDirectory.DeliveryChallans);
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -2801,6 +2756,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             // Export the report to a PDF file.
             JasperExportManager.exportReportToPdfFile(print, filePath);
+            s3StorageService.pushLocalFileToAWS(S3Directories.DeliveryChallans, S3Directories.DeliveryChallans + filename);
             resp.putAll(Util.SuccessResponse());
         } catch (Exception e) {
             resp.putAll(Util.FailedResponse(e.getMessage()));
@@ -2887,7 +2843,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
         InvoiceEmail invEmail = invEmailRepo.findById(invoiceEmailId);
         InvoiceEmailAttachments attach = new InvoiceEmailAttachments();
 
-        File directory = new File(contentPath + "/Invoices/" + invEmail.getInvoiceId() + "/Emails/" + invEmail.getId());
+        File directory = new File(LocalDirectory.Invoices + invEmail.getInvoiceId() + "/Emails/" + invEmail.getId());
 
         System.out.println(directory.getAbsolutePath());
         if (!directory.exists()) {
@@ -2945,7 +2901,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             emailModel.setMailText(req.getMessage());
 
-            File directory = new File(contentPath + "/Invoices/" + req.getInvoiceId() + "/" + req.getFilename());
+            File directory = new File(LocalDirectory.Invoices + req.getInvoiceId() + "/" + req.getFilename());
             System.out.println(directory.getAbsolutePath());
 
             emailModel.setContent_path(directory.getAbsolutePath());
@@ -2954,7 +2910,7 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             List<String> attachs = new ArrayList<>();
             for (InvoiceEmailAttachments attach : attachments) {
-                directory = new File(contentPath + "/Invoices/" + req.getInvoiceId() + "/Emails/" + req.getId() + "/"
+                directory = new File(LocalDirectory.Invoices + req.getInvoiceId() + "/Emails/" + req.getId() + "/"
                         + attach.getFilename());
 
                 attachs.add(directory.getAbsolutePath());

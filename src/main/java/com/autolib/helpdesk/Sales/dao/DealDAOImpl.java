@@ -1,30 +1,29 @@
 package com.autolib.helpdesk.Sales.dao;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-
+import com.autolib.helpdesk.Agents.entity.Agent;
+import com.autolib.helpdesk.Agents.entity.InfoDetails;
+import com.autolib.helpdesk.Agents.entity.StockEntry;
+import com.autolib.helpdesk.Agents.repository.AgentRepository;
+import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
+import com.autolib.helpdesk.Agents.repository.ProductsRepository;
+import com.autolib.helpdesk.Agents.service.AgentService;
+import com.autolib.helpdesk.Config.aws.LocalDirectory;
+import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.Institutes.model.Institute;
+import com.autolib.helpdesk.Institutes.model.InstituteContact;
+import com.autolib.helpdesk.Institutes.repository.InstituteAmcRepository;
+import com.autolib.helpdesk.Institutes.repository.InstituteContactRepository;
+import com.autolib.helpdesk.Institutes.repository.InstituteProductRepository;
+import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
 import com.autolib.helpdesk.Sales.model.*;
-import com.autolib.helpdesk.common.SalesUtil;
+import com.autolib.helpdesk.Sales.model.Invoice.DealInvoice;
+import com.autolib.helpdesk.Sales.repository.*;
+import com.autolib.helpdesk.Sales.repository.Invoice.DealInvoiceProductsRepository;
+import com.autolib.helpdesk.Sales.repository.Invoice.DealInvoiceRepository;
+import com.autolib.helpdesk.common.*;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.export.JRRtfExporter;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,51 +33,17 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.autolib.helpdesk.Agents.entity.Agent;
-import com.autolib.helpdesk.Agents.entity.InfoDetails;
-import com.autolib.helpdesk.Agents.entity.StockEntry;
-import com.autolib.helpdesk.Agents.repository.AgentRepository;
-import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
-import com.autolib.helpdesk.Agents.repository.ProductsRepository;
-import com.autolib.helpdesk.Agents.service.AgentService;
-import com.autolib.helpdesk.Institutes.model.Institute;
-import com.autolib.helpdesk.Institutes.model.InstituteContact;
-import com.autolib.helpdesk.Institutes.repository.InstituteAmcRepository;
-import com.autolib.helpdesk.Institutes.repository.InstituteContactRepository;
-import com.autolib.helpdesk.Institutes.repository.InstituteProductRepository;
-import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
-import com.autolib.helpdesk.Sales.model.Invoice.DealInvoice;
-import com.autolib.helpdesk.Sales.repository.DealContactsRepository;
-import com.autolib.helpdesk.Sales.repository.DealDCProductsRepository;
-import com.autolib.helpdesk.Sales.repository.DealDeliveryChallanRepository;
-import com.autolib.helpdesk.Sales.repository.DealEmailAttachmentRepository;
-import com.autolib.helpdesk.Sales.repository.DealEmailRepository;
-import com.autolib.helpdesk.Sales.repository.DealPaymentsRepository;
-import com.autolib.helpdesk.Sales.repository.DealProductsRepository;
-import com.autolib.helpdesk.Sales.repository.DealProformaInvoiceRepository;
-import com.autolib.helpdesk.Sales.repository.DealProjectImplementationCommentsAttachmentsRepository;
-import com.autolib.helpdesk.Sales.repository.DealProjectImplementationCommentsRepository;
-import com.autolib.helpdesk.Sales.repository.DealProjectImplementationRepository;
-import com.autolib.helpdesk.Sales.repository.DealPurchaseOrderRepository;
-import com.autolib.helpdesk.Sales.repository.DealQuotationRepository;
-import com.autolib.helpdesk.Sales.repository.DealSalesOrderRepository;
-import com.autolib.helpdesk.Sales.repository.DealsRepository;
-import com.autolib.helpdesk.Sales.repository.NoteAttachmentsRepository;
-import com.autolib.helpdesk.Sales.repository.NotesRepository;
-import com.autolib.helpdesk.Sales.repository.Invoice.DealInvoiceProductsRepository;
-import com.autolib.helpdesk.Sales.repository.Invoice.DealInvoiceRepository;
-import com.autolib.helpdesk.common.EmailModel;
-import com.autolib.helpdesk.common.EmailSender;
-import com.autolib.helpdesk.common.Util;
-
-import net.sf.jasperreports.engine.JRExporterParameter;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.engine.export.JRRtfExporter;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 @Transactional
@@ -149,8 +114,9 @@ public class DealDAOImpl implements DealDAO {
     @Autowired
     EntityManager em;
 
-    @Value("${al.ticket.content-path}")
-    private String contentPath;
+    @Autowired
+    S3StorageService s3StorageService;
+
     @Value("${al.ticket.web.url}")
     private String webURL;
     @Value("${al.agent.web.url}")
@@ -309,8 +275,7 @@ public class DealDAOImpl implements DealDAO {
                 proInvoiceFilter = proInvoiceFilter + " and dpi.proformaInvoiceNo like '%" + dealSearchReq.getProInvoiceNo() + "%'";
             }
             if (dealSearchReq.getProInvoiceSubject() != null && dealSearchReq.getProInvoiceSubject() != "") {
-                proInvoiceFilter = proInvoiceFilter + " and dpi.subject like '%" + dealSearchReq.getProInvoiceSubject()
-                        + "%'";
+                proInvoiceFilter = proInvoiceFilter + " and dpi.subject like '%" + dealSearchReq.getProInvoiceSubject() + "%'";
             }
             if (dealSearchReq.getProInvoiceDateFrom() != null && dealSearchReq.getProInvoiceDateTo() != null) {
                 proInvoiceFilter = proInvoiceFilter + " and dpi.invoiceDate between '" + Util.sdfFormatter(dealSearchReq.getProInvoiceDateFrom()) + "' and '" + Util.sdfFormatter(dealSearchReq.getProInvoiceDateTo()) + "'";
@@ -350,8 +315,7 @@ public class DealDAOImpl implements DealDAO {
             }
 
             if (!quoteFilter.isEmpty()) {
-                filterQuery = filterQuery + " and d.id in (select dealId from DealQuotation dq where 2>1 " + quoteFilter
-                        + ")";
+                filterQuery = filterQuery + " and d.id in (select dealId from DealQuotation dq where 2>1 " + quoteFilter + ")";
             }
 
             if (!poFilter.isEmpty()) {
@@ -359,8 +323,7 @@ public class DealDAOImpl implements DealDAO {
             }
 
             if (!soFilter.isEmpty()) {
-                filterQuery = filterQuery + " and d.id in (select dealId from DealSalesOrder dso where 2>1 " + soFilter
-                        + ")";
+                filterQuery = filterQuery + " and d.id in (select dealId from DealSalesOrder dso where 2>1 " + soFilter + ")";
             }
 
             if (!proInvoiceFilter.isEmpty()) {
@@ -368,11 +331,10 @@ public class DealDAOImpl implements DealDAO {
             }
 
             if (!invoiceFilter.isEmpty()) {
-                filterQuery = filterQuery + " and d.id in (select dealId from DealInvoice di where 2>1 " + invoiceFilter
-                        + ")";
+                filterQuery = filterQuery + " and d.id in (select dealId from DealInvoice di where 2>1 " + invoiceFilter + ")";
             }
 
-            System.out.println(filterQuery);
+            // System.out.println(filterQuery);
 
             Query query = em.createQuery("select d from Deal d where 2 > 1 " + filterQuery, Deal.class);
 
@@ -475,9 +437,9 @@ public class DealDAOImpl implements DealDAO {
 
             if (note.getNoteAttachments().size() > 0) {
 
-                File directory = new File(contentPath + "/Deals/" + note.getNote().getDealId() + "/Notes/" + note.getNote().getId());
+                File directory = new File(LocalDirectory.Deals + note.getNote().getDealId() + "/" + LocalDirectory.Notes + note.getNote().getId());
 
-                System.out.println(directory.getAbsolutePath());
+                // System.out.println(directory.getAbsolutePath());
                 if (!directory.exists()) {
                     directory.mkdirs();
                 }
@@ -491,6 +453,8 @@ public class DealDAOImpl implements DealDAO {
                         FileOutputStream fout = new FileOutputStream(convertFile);
                         fout.write(com.google.api.client.util.Base64.decodeBase64(noteAtt.getFile().getBytes()));
                         fout.close();
+
+                        s3StorageService.pushToAWS(S3Directories.Deals + note.getNote().getDealId() + "/" + S3Directories.Notes + note.getNote().getId() + "/", convertFile);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -549,31 +513,15 @@ public class DealDAOImpl implements DealDAO {
     public Map<String, Object> getNoteAttachment(NoteAttachments noteAtt) {
         Map<String, Object> resp = new HashMap<>();
         try {
-            String path = "";
-            File file = null;
             try {
-
-                path = contentPath + "/Deals/" + noteAtt.getDealId() + "/Notes/" + noteAtt.getNoteId() + "/" + noteAtt.getFilename() + "";
-
-                System.out.println(path);
-                file = new File(path);
-
-                byte[] fileContent = FileUtils.readFileToByteArray(file);
-                String encodedString = Base64.getEncoder().encodeToString(fileContent);
-
-                System.out.println(encodedString);
-
+                String encodedString = Base64.getEncoder().encodeToString(s3StorageService.getFromS3AsByteArray(S3Directories.Deals + noteAtt.getDealId() + "/" + S3Directories.Notes + noteAtt.getNoteId() + "/" + noteAtt.getFilename()));
                 noteAtt.setFile(encodedString);
 
                 resp.putAll(Util.SuccessResponse());
-            } catch (FileNotFoundException e) {
-                resp.putAll(Util.FailedResponse(e.getMessage()));
-                e.printStackTrace();
-                logger.error("\r\nFile Not FOUND Exception::: " + path);
             } catch (Exception e) {
                 resp.putAll(Util.FailedResponse(e.getMessage()));
                 e.printStackTrace();
-                logger.error("\r\nFile Download Exception::: " + path);
+                logger.error("\r\nFile Download Exception::: ");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -647,35 +595,6 @@ public class DealDAOImpl implements DealDAO {
         return resp;
     }
 
-//	String autoIncrementNo(String inNo) {
-//
-//		String outNo = "";
-//
-//		try {
-//			System.out.println(inNo);
-//			String[] bits = inNo.split("/");
-//
-//			if (inNo.contains("/"))
-//				bits = inNo.split("/");
-//			else if (inNo.contains("-"))
-//				bits = inNo.split("-");
-//
-//			String original = bits[bits.length - 1];
-//			String incremented = String.format("%0" + original.length() + "d", Integer.parseInt(original) + 1);
-//
-//			inNo = inNo.replaceAll(original, incremented);
-//			outNo = inNo;
-//
-//			System.out.println(inNo);
-//		} catch (Exception e) {
-//			System.err.println(e.getMessage());
-//			outNo = inNo + "/01";
-//		}
-//
-//		return outNo;
-//
-//	}
-
     @SuppressWarnings("deprecation")
     @Override
     public Map<String, Object> generateQuotationPDFTemplate1Lite(DealRequest dealReq) {
@@ -689,8 +608,8 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealQuotation().getDealId()));
 
-            System.out.println(dealReq.getDealQuotation().getQuoteNo());
-            System.out.println(dealReq.getDealQuotation());
+            // System.out.println(dealReq.getDealQuotation().getQuoteNo());
+            // System.out.println(dealReq.getDealQuotation());
 
             InputStream stream = this.getClass().getResourceAsStream("/reports/FinalTemplates/Template_1/Template_1_Lite.jrxml");
 
@@ -699,7 +618,7 @@ public class DealDAOImpl implements DealDAO {
 
             Agent agent = agentRepo.findByEmailId(dealReq.getSignatureBy());
 
-            System.out.println(info.toString());
+            // System.out.println(info.toString());
 
             parameters.put("cmp_name", info.getCmpName());
             parameters.put("cmp_address", info.getCompanyAddressHTML1());
@@ -708,7 +627,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -774,7 +693,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("price_summary_label", price_summary_label);
             parameters.put("price_summary_text", price_summary_text);
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -808,10 +727,10 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
 
@@ -819,44 +738,44 @@ public class DealDAOImpl implements DealDAO {
 
                 dealReq.getDealQuotation().setFilename(dealReq.getDealQuotation().getQuoteNo().replaceAll("/", "-") + ".rtf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //				 Export the report to a RTF file.
                 JRRtfExporter exporter = new JRRtfExporter();
                 exporter.setParameter(JRExporterParameter.JASPER_PRINT, print);
                 exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, filePath);
                 exporter.exportReport();
-
             } else {
                 dealReq.getDealQuotation().setFilename(dealReq.getDealQuotation().getQuoteNo().replaceAll("/", "-") + ".pdf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //		 Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
 
                 // Merge Preamble if any
-                System.out.println(dealReq.getPreamble());
+                // System.out.println(dealReq.getPreamble());
                 if (dealReq.getPreamble() != null && !dealReq.getPreamble().isEmpty()) {
+                    downloadPreamble(dealReq.getPreamble());
                     List<String> filePaths = new ArrayList<>();
                     if (dealReq.getPreamblePosition() != null) {
                         if (dealReq.getPreamblePosition().equalsIgnoreCase("Quotation First")) {
                             filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
-                            filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                            filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                         } else {
-                            filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                            filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                             filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                         }
                     } else {
-                        filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                        filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                         filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                     }
-                    System.out.println(filePaths);
-                    System.out.println(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
+                    // System.out.println(filePaths);
+                    // System.out.println(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                     Util.mergePDF(filePaths, directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                 }
             }
-
+            s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             quoteRepo.save(dealReq.getDealQuotation());
 
             resp.putAll(Util.SuccessResponse());
@@ -882,7 +801,7 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealQuotation().getDealId()));
 
-            System.out.println(dealReq.toString());
+            // System.out.println(dealReq.toString());
 
             InputStream stream = null;
 
@@ -904,7 +823,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -959,8 +878,8 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("price_summary_label", price_summary_label);
             parameters.put("price_summary_text", price_summary_text);
 
-            System.out.println(parameters.toString());
-            System.out.println("::::no:::::" + dealReq.getDealQuotation().getQuoteNo());
+            // System.out.println(parameters.toString());
+            // System.out.println("::::no:::::" + dealReq.getDealQuotation().getQuoteNo());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -990,10 +909,10 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
 
@@ -1001,44 +920,44 @@ public class DealDAOImpl implements DealDAO {
 
                 dealReq.getDealQuotation().setFilename(dealReq.getDealQuotation().getQuoteNo().replaceAll("/", "-") + ".rtf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //				 Export the report to a RTF file.
                 JRRtfExporter exporter = new JRRtfExporter();
                 exporter.setParameter(JRExporterParameter.JASPER_PRINT, print);
                 exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, filePath);
                 exporter.exportReport();
-
             } else {
                 dealReq.getDealQuotation().setFilename(dealReq.getDealQuotation().getQuoteNo().replaceAll("/", "-") + ".pdf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //		 Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
 
                 // Merge Preamble if any
-                System.out.println(dealReq.getPreamble());
+                // System.out.println(dealReq.getPreamble());
                 if (dealReq.getPreamble() != null && !dealReq.getPreamble().isEmpty()) {
+                    downloadPreamble(dealReq.getPreamble());
                     List<String> filePaths = new ArrayList<>();
                     if (dealReq.getPreamblePosition() != null) {
                         if (dealReq.getPreamblePosition().equalsIgnoreCase("Quotation First")) {
                             filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
-                            filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                            filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                         } else {
-                            filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                            filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                             filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                         }
                     } else {
-                        filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                        filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                         filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                     }
-                    System.out.println(filePaths);
-                    System.out.println(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
+                    // System.out.println(filePaths);
+                    // System.out.println(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                     Util.mergePDF(filePaths, directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                 }
             }
-
+            s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             quoteRepo.save(dealReq.getDealQuotation());
 
             resp.putAll(Util.SuccessResponse());
@@ -1065,8 +984,8 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealQuotation().getDealId()));
 
-            System.out.println(dealReq.getDealQuotation().getQuoteNo());
-            System.out.println(dealReq.getDealQuotation());
+            // System.out.println(dealReq.getDealQuotation().getQuoteNo());
+            // System.out.println(dealReq.getDealQuotation());
 
             InputStream stream = this.getClass().getResourceAsStream("/reports/FinalTemplates/Template_3/Template_3_Lite.jrxml");
 
@@ -1075,7 +994,7 @@ public class DealDAOImpl implements DealDAO {
 
             Agent agent = agentRepo.findByEmailId(dealReq.getSignatureBy());
 
-            System.out.println(info.toString());
+            // System.out.println(info.toString());
 
             parameters.put("cmp_name", info.getCmpName());
             parameters.put("cmp_address", info.getCompanyAddressHTML1());
@@ -1084,7 +1003,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -1158,7 +1077,7 @@ public class DealDAOImpl implements DealDAO {
 
             parameters.put("taxable_amount", Util.decimalFormatter(dealReq.getDeal().getSubTotal() - dealReq.getDeal().getDiscount()));
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -1192,10 +1111,10 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
 
@@ -1203,44 +1122,43 @@ public class DealDAOImpl implements DealDAO {
 
                 dealReq.getDealQuotation().setFilename(dealReq.getDealQuotation().getQuoteNo().replaceAll("/", "-") + ".rtf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //				 Export the report to a RTF file.
                 JRRtfExporter exporter = new JRRtfExporter();
                 exporter.setParameter(JRExporterParameter.JASPER_PRINT, print);
                 exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, filePath);
                 exporter.exportReport();
-
             } else {
                 dealReq.getDealQuotation().setFilename(dealReq.getDealQuotation().getQuoteNo().replaceAll("/", "-") + ".pdf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //		 Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
 
                 // Merge Preamble if any
-                System.out.println(dealReq.getPreamble());
+                // System.out.println(dealReq.getPreamble());
                 if (dealReq.getPreamble() != null && !dealReq.getPreamble().isEmpty()) {
                     List<String> filePaths = new ArrayList<>();
                     if (dealReq.getPreamblePosition() != null) {
                         if (dealReq.getPreamblePosition().equalsIgnoreCase("Quotation First")) {
                             filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
-                            filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                            filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                         } else {
-                            filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                            filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                             filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                         }
                     } else {
-                        filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                        filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                         filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                     }
-                    System.out.println(filePaths);
-                    System.out.println(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
+                    // System.out.println(filePaths);
+                    // System.out.println(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                     Util.mergePDF(filePaths, directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                 }
             }
-
+            s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             quoteRepo.save(dealReq.getDealQuotation());
 
             resp.putAll(Util.SuccessResponse());
@@ -1267,8 +1185,8 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealQuotation().getDealId()));
 
-            System.out.println(dealReq.getDealQuotation().getQuoteNo());
-            System.out.println(dealReq.getDealQuotation());
+            // System.out.println(dealReq.getDealQuotation().getQuoteNo());
+            // System.out.println(dealReq.getDealQuotation());
 
             InputStream stream = null;
 
@@ -1283,7 +1201,7 @@ public class DealDAOImpl implements DealDAO {
 
             Agent agent = agentRepo.findByEmailId(dealReq.getSignatureBy());
 
-            System.out.println(info.toString());
+            // System.out.println(info.toString());
 
             parameters.put("cmp_name", info.getCmpName());
             parameters.put("cmp_address", info.getCompanyAddressHTML1());
@@ -1292,7 +1210,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -1365,7 +1283,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("price_summary_label", price_summary_label);
             parameters.put("price_summary_text", price_summary_text);
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -1432,10 +1350,10 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
 
@@ -1443,44 +1361,43 @@ public class DealDAOImpl implements DealDAO {
 
                 dealReq.getDealQuotation().setFilename(dealReq.getDealQuotation().getQuoteNo().replaceAll("/", "-") + ".rtf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //				 Export the report to a RTF file.
                 JRRtfExporter exporter = new JRRtfExporter();
                 exporter.setParameter(JRExporterParameter.JASPER_PRINT, print);
                 exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, filePath);
                 exporter.exportReport();
-
             } else {
                 dealReq.getDealQuotation().setFilename(dealReq.getDealQuotation().getQuoteNo().replaceAll("/", "-") + ".pdf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //		 Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
 
                 // Merge Preamble if any
-                System.out.println(dealReq.getPreamble());
+                // System.out.println(dealReq.getPreamble());
                 if (dealReq.getPreamble() != null && !dealReq.getPreamble().isEmpty()) {
                     List<String> filePaths = new ArrayList<>();
                     if (dealReq.getPreamblePosition() != null) {
                         if (dealReq.getPreamblePosition().equalsIgnoreCase("Quotation First")) {
                             filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
-                            filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                            filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                         } else {
-                            filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                            filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                             filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                         }
                     } else {
-                        filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                        filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                         filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                     }
-                    System.out.println(filePaths);
-                    System.out.println(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
+                    // System.out.println(filePaths);
+                    // System.out.println(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                     Util.mergePDF(filePaths, directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                 }
             }
-
+            s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             quoteRepo.save(dealReq.getDealQuotation());
 
             resp.putAll(Util.SuccessResponse());
@@ -1506,7 +1423,7 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealQuotation().getDealId()));
 
-            System.out.println(dealReq.toString());
+            // System.out.println(dealReq.toString());
 
             InputStream stream = null;
 
@@ -1528,7 +1445,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -1583,8 +1500,8 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("price_summary_label", price_summary_label);
             parameters.put("price_summary_text", price_summary_text);
 
-            System.out.println(parameters.toString());
-            System.out.println("::::no:::::" + dealReq.getDealQuotation().getQuoteNo());
+            // System.out.println(parameters.toString());
+            // System.out.println("::::no:::::" + dealReq.getDealQuotation().getQuoteNo());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -1614,10 +1531,10 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
 
@@ -1625,44 +1542,44 @@ public class DealDAOImpl implements DealDAO {
 
                 dealReq.getDealQuotation().setFilename(dealReq.getDealQuotation().getQuoteNo().replaceAll("/", "-") + ".rtf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //				 Export the report to a RTF file.
                 JRRtfExporter exporter = new JRRtfExporter();
                 exporter.setParameter(JRExporterParameter.JASPER_PRINT, print);
                 exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, filePath);
                 exporter.exportReport();
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             } else {
                 dealReq.getDealQuotation().setFilename(dealReq.getDealQuotation().getQuoteNo().replaceAll("/", "-") + ".pdf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //		 Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
 
                 // Merge Preamble if any
-                System.out.println(dealReq.getPreamble());
+                // System.out.println(dealReq.getPreamble());
                 if (dealReq.getPreamble() != null && !dealReq.getPreamble().isEmpty()) {
                     List<String> filePaths = new ArrayList<>();
                     if (dealReq.getPreamblePosition() != null) {
                         if (dealReq.getPreamblePosition().equalsIgnoreCase("Quotation First")) {
                             filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
-                            filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                            filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                         } else {
-                            filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                            filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                             filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                         }
                     } else {
-                        filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                        filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                         filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                     }
-                    System.out.println(filePaths);
-                    System.out.println(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
+                    // System.out.println(filePaths);
+                    // System.out.println(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                     Util.mergePDF(filePaths, directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                 }
             }
-
+            s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             quoteRepo.save(dealReq.getDealQuotation());
 
             resp.putAll(Util.SuccessResponse());
@@ -1689,8 +1606,8 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealQuotation().getDealId()));
 
-            System.out.println(dealReq.getDealQuotation().getQuoteNo());
-            System.out.println(dealReq.getDealQuotation());
+            // System.out.println(dealReq.getDealQuotation().getQuoteNo());
+            // System.out.println(dealReq.getDealQuotation());
 
             InputStream stream = null;
 
@@ -1705,7 +1622,7 @@ public class DealDAOImpl implements DealDAO {
 
             Agent agent = agentRepo.findByEmailId(dealReq.getSignatureBy());
 
-            System.out.println(info.toString());
+            // System.out.println(info.toString());
 
             parameters.put("cmp_name", info.getCmpName());
             parameters.put("cmp_address", info.getCompanyAddressHTML1());
@@ -1714,7 +1631,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -1791,7 +1708,7 @@ public class DealDAOImpl implements DealDAO {
 
             parameters.put("taxable_amount", Util.decimalFormatter(dealReq.getDeal().getSubTotal() - dealReq.getDeal().getDiscount()));
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -1879,10 +1796,10 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
 
@@ -1890,44 +1807,44 @@ public class DealDAOImpl implements DealDAO {
 
                 dealReq.getDealQuotation().setFilename(dealReq.getDealQuotation().getQuoteNo().replaceAll("/", "-") + ".rtf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //				 Export the report to a RTF file.
                 JRRtfExporter exporter = new JRRtfExporter();
                 exporter.setParameter(JRExporterParameter.JASPER_PRINT, print);
                 exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, filePath);
                 exporter.exportReport();
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             } else {
                 dealReq.getDealQuotation().setFilename(dealReq.getDealQuotation().getQuoteNo().replaceAll("/", "-") + ".pdf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //		 Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
 
                 // Merge Preamble if any
-                System.out.println(dealReq.getPreamble());
+                // System.out.println(dealReq.getPreamble());
                 if (dealReq.getPreamble() != null && !dealReq.getPreamble().isEmpty()) {
                     List<String> filePaths = new ArrayList<>();
                     if (dealReq.getPreamblePosition() != null) {
                         if (dealReq.getPreamblePosition().equalsIgnoreCase("Quotation First")) {
                             filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
-                            filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                            filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                         } else {
-                            filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                            filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                             filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                         }
                     } else {
-                        filePaths.add(contentPath + "/_preamble_documents/" + dealReq.getPreamble());
+                        filePaths.add(LocalDirectory.PreambleDocuments + dealReq.getPreamble());
                         filePaths.add(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                     }
-                    System.out.println(filePaths);
-                    System.out.println(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
+                    // System.out.println(filePaths);
+                    // System.out.println(directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                     Util.mergePDF(filePaths, directory.getAbsolutePath() + "/" + dealReq.getDealQuotation().getFilename());
                 }
             }
-
+            s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             quoteRepo.save(dealReq.getDealQuotation());
 
             resp.putAll(Util.SuccessResponse());
@@ -1947,28 +1864,12 @@ public class DealDAOImpl implements DealDAO {
 
         DealQuotation dealQuote = quoteRepo.findById(dealQuoteId);
 
-        File directory = new File(contentPath + "/Deals/" + dealQuote.getDealId());
-        System.out.println(directory.getAbsolutePath());
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        s3StorageService.pushToAWS(S3Directories.Deals + dealQuote.getDealId(), file);
 
-        File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
+        dealQuote.setFilename(file.getOriginalFilename());
+        dealQuote = quoteRepo.save(dealQuote);
 
-        try {
-            convertFile.createNewFile();
-            FileOutputStream fout = new FileOutputStream(convertFile);
-            fout.write(file.getBytes());
-            fout.close();
-
-            dealQuote.setFilename(file.getOriginalFilename());
-            dealQuote = quoteRepo.save(dealQuote);
-
-            resp.putAll(Util.SuccessResponse());
-        } catch (IOException e) {
-            resp.putAll(Util.FailedResponse(e.getMessage()));
-            e.printStackTrace();
-        }
+        resp.putAll(Util.SuccessResponse());
         resp.put("DealQuotation", dealQuote);
         return resp;
     }
@@ -2053,7 +1954,7 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealProformaInvoice().getDealId()));
 
-            System.out.println(dealReq.toString());
+            // System.out.println(dealReq.toString());
 
             InputStream stream = this.getClass().getResourceAsStream("/reports/FinalTemplates/Template_1/Template_1_Lite.jrxml");
 
@@ -2072,7 +1973,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -2160,7 +2061,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("price_summary_label", price_summary_label);
             parameters.put("price_summary_text", price_summary_text);
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -2194,10 +2095,10 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
 
@@ -2205,23 +2106,23 @@ public class DealDAOImpl implements DealDAO {
 
                 dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".rtf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //				 Export the report to a RTF file.
                 JRRtfExporter exporter = new JRRtfExporter();
                 exporter.setParameter(JRExporterParameter.JASPER_PRINT, print);
                 exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, filePath);
                 exporter.exportReport();
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             } else {
 
                 dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".pdf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
                 // Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealProformaInvoice().getFilename());
             }
 
             proInvRepo.save(dealReq.getDealProformaInvoice());
@@ -2248,7 +2149,7 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealProformaInvoice().getDealId()));
 
-            System.out.println(dealReq.toString());
+            // System.out.println(dealReq.toString());
 
             InputStream stream = null;
 
@@ -2270,7 +2171,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -2339,7 +2240,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("price_summary_label", price_summary_label);
             parameters.put("price_summary_text", price_summary_text);
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -2369,10 +2270,10 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
 
@@ -2380,23 +2281,23 @@ public class DealDAOImpl implements DealDAO {
 
                 dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".rtf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //				 Export the report to a RTF file.
                 JRRtfExporter exporter = new JRRtfExporter();
                 exporter.setParameter(JRExporterParameter.JASPER_PRINT, print);
                 exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, filePath);
                 exporter.exportReport();
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             } else {
 
                 dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".pdf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
                 // Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealProformaInvoice().getFilename());
             }
 
             proInvRepo.save(dealReq.getDealProformaInvoice());
@@ -2424,7 +2325,7 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealProformaInvoice().getDealId()));
 
-            System.out.println(dealReq.toString());
+            // System.out.println(dealReq.toString());
 
             InputStream stream = this.getClass().getResourceAsStream("/reports/FinalTemplates/Template_3/Template_3_Lite.jrxml");
 
@@ -2441,7 +2342,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -2527,7 +2428,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("deal_date_label", deal_date_label);
             parameters.put("deal_date_text", deal_date_text);
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -2561,33 +2462,33 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
             if (dealReq.getExportType() != null && dealReq.getExportType().equalsIgnoreCase("rtf")) {
 
                 dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".rtf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //				 Export the report to a RTF file.
                 JRRtfExporter exporter = new JRRtfExporter();
                 exporter.setParameter(JRExporterParameter.JASPER_PRINT, print);
                 exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, filePath);
                 exporter.exportReport();
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             } else {
 
                 dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".pdf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
                 // Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealProformaInvoice().getFilename());
             }
 
             proInvRepo.save(dealReq.getDealProformaInvoice());
@@ -2615,7 +2516,7 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealProformaInvoice().getDealId()));
 
-            System.out.println(dealReq.toString());
+            // System.out.println(dealReq.toString());
 
             InputStream stream = null;
 
@@ -2640,7 +2541,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -2734,7 +2635,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("price_summary_label", price_summary_label);
             parameters.put("price_summary_text", price_summary_text);
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -2822,10 +2723,10 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
 
@@ -2833,23 +2734,23 @@ public class DealDAOImpl implements DealDAO {
 
                 dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".rtf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //				 Export the report to a RTF file.
                 JRRtfExporter exporter = new JRRtfExporter();
                 exporter.setParameter(JRExporterParameter.JASPER_PRINT, print);
                 exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, filePath);
                 exporter.exportReport();
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             } else {
 
                 dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".pdf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
                 // Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealProformaInvoice().getFilename());
             }
 
             proInvRepo.save(dealReq.getDealProformaInvoice());
@@ -2878,7 +2779,7 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealProformaInvoice().getDealId()));
 
-            System.out.println(dealReq.toString());
+            // System.out.println(dealReq.toString());
 
             InputStream stream = null;
 
@@ -2900,7 +2801,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -2969,7 +2870,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("price_summary_label", price_summary_label);
             parameters.put("price_summary_text", price_summary_text);
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -2999,10 +2900,10 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
 
@@ -3010,23 +2911,23 @@ public class DealDAOImpl implements DealDAO {
 
                 dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".rtf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //				 Export the report to a RTF file.
                 JRRtfExporter exporter = new JRRtfExporter();
                 exporter.setParameter(JRExporterParameter.JASPER_PRINT, print);
                 exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, filePath);
                 exporter.exportReport();
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             } else {
 
                 dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".pdf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
                 // Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealProformaInvoice().getFilename());
             }
 
             proInvRepo.save(dealReq.getDealProformaInvoice());
@@ -3054,7 +2955,7 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealProformaInvoice().getDealId()));
 
-            System.out.println(dealReq.toString());
+            // System.out.println(dealReq.toString());
 
             InputStream stream = null;
 
@@ -3077,7 +2978,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -3163,7 +3064,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("deal_date_label", deal_date_label);
             parameters.put("deal_date_text", deal_date_text);
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -3251,33 +3152,33 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
             if (dealReq.getExportType() != null && dealReq.getExportType().equalsIgnoreCase("rtf")) {
 
                 dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".rtf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
 //				 Export the report to a RTF file.
                 JRRtfExporter exporter = new JRRtfExporter();
                 exporter.setParameter(JRExporterParameter.JASPER_PRINT, print);
                 exporter.setParameter(JRExporterParameter.OUTPUT_FILE_NAME, filePath);
                 exporter.exportReport();
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealQuotation().getFilename());
             } else {
 
                 dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".pdf");
                 final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-                System.out.println(filePath);
+                // System.out.println(filePath);
 
                 // Export the report to a PDF file.
                 JasperExportManager.exportReportToPdfFile(print, filePath);
-
+                s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getDealProformaInvoice().getFilename());
             }
 
             proInvRepo.save(dealReq.getDealProformaInvoice());
@@ -3298,28 +3199,12 @@ public class DealDAOImpl implements DealDAO {
 
         DealProformaInvoice di = proInvRepo.findById(dealProformaInvoiceId);
 
-        File directory = new File(contentPath + "/Deals/" + di.getDealId());
-        System.out.println(directory.getAbsolutePath());
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        s3StorageService.pushToAWS(S3Directories.Deals + di.getDealId(), file);
 
-        File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
+        di.setFilename(file.getOriginalFilename());
+        di = proInvRepo.save(di);
 
-        try {
-            convertFile.createNewFile();
-            FileOutputStream fout = new FileOutputStream(convertFile);
-            fout.write(file.getBytes());
-            fout.close();
-
-            di.setFilename(file.getOriginalFilename());
-            di = proInvRepo.save(di);
-
-            resp.putAll(Util.SuccessResponse());
-        } catch (IOException e) {
-            resp.putAll(Util.FailedResponse(e.getMessage()));
-            e.printStackTrace();
-        }
+        resp.putAll(Util.SuccessResponse());
         resp.put("DealProformaInvoice", di);
         return resp;
     }
@@ -3401,28 +3286,12 @@ public class DealDAOImpl implements DealDAO {
 
         DealPurchaseOrder po = poRepo.findById(dealPurchaseOrderId);
 
-        File directory = new File(contentPath + "/Deals/" + po.getDealId());
-        System.out.println(directory.getAbsolutePath());
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        s3StorageService.pushToAWS(S3Directories.Deals + po.getDealId(), file);
 
-        File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
+        po.setFilename(file.getOriginalFilename());
+        po = poRepo.save(po);
 
-        try {
-            convertFile.createNewFile();
-            FileOutputStream fout = new FileOutputStream(convertFile);
-            fout.write(file.getBytes());
-            fout.close();
-
-            po.setFilename(file.getOriginalFilename());
-            po = poRepo.save(po);
-
-            resp.putAll(Util.SuccessResponse());
-        } catch (IOException e) {
-            resp.putAll(Util.FailedResponse(e.getMessage()));
-            e.printStackTrace();
-        }
+        resp.putAll(Util.SuccessResponse());
         resp.put("DealPurchaseOrder", po);
         return resp;
     }
@@ -3501,28 +3370,12 @@ public class DealDAOImpl implements DealDAO {
 
         DealSalesOrder so = soRepo.findById(dealSalesOrderId);
 
-        File directory = new File(contentPath + "/Deals/" + so.getDealId());
-        System.out.println(directory.getAbsolutePath());
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        s3StorageService.pushToAWS(S3Directories.Deals + so.getDealId(), file);
 
-        File convertFile = new File(directory.getAbsoluteFile() + "/" + file.getOriginalFilename());
+        so.setFilename(file.getOriginalFilename());
+        so = soRepo.save(so);
 
-        try {
-            convertFile.createNewFile();
-            FileOutputStream fout = new FileOutputStream(convertFile);
-            fout.write(file.getBytes());
-            fout.close();
-
-            so.setFilename(file.getOriginalFilename());
-            so = soRepo.save(so);
-
-            resp.putAll(Util.SuccessResponse());
-        } catch (IOException e) {
-            resp.putAll(Util.FailedResponse(e.getMessage()));
-            e.printStackTrace();
-        }
+        resp.putAll(Util.SuccessResponse());
         resp.put("DealSalesOrder", so);
         return resp;
     }
@@ -3533,7 +3386,7 @@ public class DealDAOImpl implements DealDAO {
 
         try {
 
-            System.out.println("Inside generateSalesOrderPDF DaoImpl:::::::::" + dealReq.getSalesOrder().getId());
+            // System.out.println("Inside generateSalesOrderPDF DaoImpl:::::::::" + dealReq.getSalesOrder().getId());
 
             dealReq.setSalesOrder(soRepo.findById(dealReq.getSalesOrder().getId()));
 
@@ -3570,7 +3423,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -3702,46 +3555,26 @@ public class DealDAOImpl implements DealDAO {
                 }
             }
 
-//			dealReq.getDealProducts().forEach(prod -> {
-//				Map<String, String> data = new HashMap<>();
-//
-//				data.put("name_description", prod.getNameDescHTMLText().replaceAll("\n", "<br>"));
-//				data.put("quantity", prod.getQuantityAsHTMLText());
-//				data.put("price", Util.decimalFormatter(prod.getRateAmount()));
-//				data.put("rate", Util.decimalFormatter(prod.getPrice()));
-//				data.put("total", Util.decimalFormatter(prod.getTotalAmount()));
-//				if (dealReq.getDeal().getGstType().equals("IGST")) {
-//					data.put("gst_percent", prod.getGstPercentage() + "%");
-//					data.put("gst_amount", Util.decimalFormatter(prod.getGSTAmount()));
-//				} else {
-//					data.put("sgst_percent", Util.getSGSTCGSTPercentage(prod.getGstPercentage()) + "%");
-//					data.put("sgst_amount", Util.decimalFormatter(prod.getGSTAmount() / 2));
-//					data.put("cgst_percent", Util.getSGSTCGSTPercentage(prod.getGstPercentage()) + "%");
-//					data.put("cgst_amount", Util.decimalFormatter(prod.getGSTAmount() / 2));
-//				}
-//
-//				datasource.add(data);
-//			});
-
             final JasperReport report = JasperCompileManager.compileReport(stream);
             final JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(datasource);
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
 
             dealReq.getSalesOrder().setFilename(dealReq.getSalesOrder().getSalesOrderNo().replaceAll("/", "-") + ".pdf");
             final String filePath = directory.getAbsolutePath() + "/" + dealReq.getSalesOrder().getFilename();
-            System.out.println(filePath);
+            // System.out.println(filePath);
             soRepo.save(dealReq.getSalesOrder());
 
             // Export the report to a PDF file.
             JasperExportManager.exportReportToPdfFile(print, filePath);
+            s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getSalesOrder().getFilename());
 
             resp.putAll(Util.SuccessResponse());
         } catch (Exception e) {
@@ -3758,7 +3591,7 @@ public class DealDAOImpl implements DealDAO {
 
         try {
 
-            System.out.println("Inside generateSalesOrderPDF DaoImpl:::::::::" + dealReq.getSalesOrder().getId());
+            // System.out.println("Inside generateSalesOrderPDF DaoImpl:::::::::" + dealReq.getSalesOrder().getId());
             // DecimalFormat decformatter = new DecimalFormat("###,##0.00");
             // SimpleDateFormat Util.sdfFormatter = new SimpleDateFormat("dd/MM/yyyy");
 
@@ -3789,7 +3622,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -3869,21 +3702,21 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
 
             dealReq.getSalesOrder().setFilename(dealReq.getSalesOrder().getSalesOrderNo().replaceAll("/", "-") + ".pdf");
             final String filePath = directory.getAbsolutePath() + "/" + dealReq.getSalesOrder().getFilename();
-            System.out.println(filePath);
+            // System.out.println(filePath);
             soRepo.save(dealReq.getSalesOrder());
 
             // Export the report to a PDF file.
             JasperExportManager.exportReportToPdfFile(print, filePath);
-
+            s3StorageService.pushLocalFileToAWS(S3Directories.Deals + dealReq.getDeal().getId(), S3Directories.Deals + dealReq.getDeal().getId() + "/" + dealReq.getSalesOrder().getFilename());
             resp.putAll(Util.SuccessResponse());
         } catch (Exception e) {
             resp.putAll(Util.FailedResponse(e.getMessage()));
@@ -3993,10 +3826,10 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("receipt_date", Util.sdfFormatter(new Date()));
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("logo", info.getLogoAsFile());
 
-            System.out.println("Company Logo::::::::::::::::::" + info.getLogoAsFile());
+            // System.out.println("Company Logo::::::::::::::::::" + info.getLogoAsFile());
             String payment_details_description = dealReq.getReceiptContent();
 
             parameters.put("payment_details_description", payment_details_description);
@@ -4011,21 +3844,21 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-//			File directory = new File(contentPath + "/Receipts/");
-            File directory = new File(contentPath + "/Deals/" + deal.getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Receipts);
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
             dealReq.getPayment().setReceiptfilename("Receipt_" + dealReq.getPayment().getId() + "_Rs_" + Math.round(dealReq.getPayment().getTotalAmount()) + ".pdf");
             final String filePath = directory.getAbsolutePath() + "/" + dealReq.getPayment().getReceiptfilename();
-            System.out.println(filePath);
+            // System.out.println(filePath);
 
             dealPayments = paymentRepo.save(dealReq.getPayment());
 
             // Export the report to a PDF file.
             JasperExportManager.exportReportToPdfFile(print, filePath);
+            s3StorageService.pushLocalFileToAWS(S3Directories.Receipts, S3Directories.Receipts + dealReq.getPayment().getReceiptfilename());
             resp.putAll(Util.SuccessResponse());
         } catch (Exception e) {
             resp.putAll(Util.FailedResponse(e.getMessage()));
@@ -4049,7 +3882,7 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDeal(deal);
 
-            System.out.println(dealReq);
+            // System.out.println(dealReq);
 
             InputStream stream = null;
 
@@ -4059,7 +3892,7 @@ public class DealDAOImpl implements DealDAO {
 
             String billAdd = (String) dealReq.getBillingToAddress();
             if (billAdd.startsWith(",<br>")) {
-                System.out.println(":::Inside Condition:::");
+                // System.out.println(":::Inside Condition:::");
                 billAdd = billAdd.substring(5);
             }
             InfoDetails info = infoDetailRepo.findById(1);
@@ -4078,17 +3911,17 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("amount_in_words", Util.EnglishNumberToWords(dealReq.getPayment().getTotalAmount()));
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("cmp_logo_url", info.getLogoAsFile());
             parameters.put("terms", "");
             parameters.put("designation", dealReq.getDesignation());
 
-            System.out.println("Company Logo::::::::::::::::::" + info.getLogoAsFile());
-            System.out.println(":::::Billing To:::" + dealReq.getBillingAddress().replace(",", ",<br>"));
+            // System.out.println("Company Logo::::::::::::::::::" + info.getLogoAsFile());
+            // System.out.println(":::::Billing To:::" + dealReq.getBillingAddress().replace(",", ",<br>"));
 
             parameters.put("bill_no", deal.getInvoiceNo());
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -4097,21 +3930,21 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-//			File directory = new File(contentPath + "/Receipts/");
-            File directory = new File(contentPath + "/Deals/" + deal.getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Receipts);
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
             dealReq.getPayment().setReceiptfilename("Receipt_" + dealReq.getPayment().getId() + "_Rs_" + Math.round(dealReq.getPayment().getTotalAmount()) + ".pdf");
             final String filePath = directory.getAbsolutePath() + "/" + dealReq.getPayment().getReceiptfilename();
-            System.out.println(filePath);
+            // System.out.println(filePath);
 
             dealPayments = paymentRepo.save(dealReq.getPayment());
 
             // Export the report to a PDF file.
             JasperExportManager.exportReportToPdfFile(print, filePath);
+            s3StorageService.pushLocalFileToAWS(S3Directories.Receipts, S3Directories.Receipts + dealReq.getPayment().getReceiptfilename());
             resp.putAll(Util.SuccessResponse());
         } catch (Exception e) {
             resp.putAll(Util.FailedResponse(e.getMessage()));
@@ -4139,7 +3972,7 @@ public class DealDAOImpl implements DealDAO {
 //
 ////			DealInvoice invoice = invRepo.findByDealId(dealReq.getPayment().getDealId());
 //
-//			System.out.println(dealReq);
+//			// System.out.println(dealReq);
 //
 //			InputStream stream = null;
 //
@@ -4170,10 +4003,10 @@ public class DealDAOImpl implements DealDAO {
 //
 //			parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
 //			parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-//			parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+//			parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
 //			parameters.put("logo", info.getLogoAsFile());
 //
-//			System.out.println("Company Logo::::::::::::::::::" + info.getLogoAsFile());
+//			// System.out.println("Company Logo::::::::::::::::::" + info.getLogoAsFile());
 //			String payment_details_description = dealReq.getReceiptContent();
 //
 //			payment_details_description = payment_details_description + " Received with thanks from   "
@@ -4202,7 +4035,7 @@ public class DealDAOImpl implements DealDAO {
 //			else
 //				parameters.put("bill_no", "");
 //
-//			System.out.println(parameters.toString());
+//			// System.out.println(parameters.toString());
 //
 //			List<Map<String, String>> datasource = new ArrayList<>();
 //
@@ -4211,16 +4044,16 @@ public class DealDAOImpl implements DealDAO {
 //
 //			final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 //
-//			File directory = new File(contentPath + "/Deals/" + deal.getId());
-//			System.out.println(directory.getAbsolutePath());
+//			File directory = new File(LocalDirectory.Deals + deal.getId());
+//			// System.out.println(directory.getAbsolutePath());
 //			if (!directory.exists()) {
-//				System.out.println("Directory created ::" + directory.getAbsolutePath());
+//				// System.out.println("Directory created ::" + directory.getAbsolutePath());
 //				directory.mkdirs();
 //			}
 //			dealReq.getPayment().setReceiptfilename("Receipt_" + dealReq.getPayment().getId() + "_Rs_"
 //					+ Math.round(dealReq.getPayment().getTotalAmount()) + ".pdf");
 //			final String filePath = directory.getAbsolutePath() + "/" + dealReq.getPayment().getReceiptfilename();
-//			System.out.println(filePath);
+//			// System.out.println(filePath);
 //
 //			// dealReq = paymentRepo.save(dealReq.getPayment());
 //
@@ -4271,8 +4104,7 @@ public class DealDAOImpl implements DealDAO {
 
             resp.putAll(Util.SuccessResponse());
 
-        } catch (
-                Exception Ex) {
+        } catch (Exception Ex) {
             Ex.printStackTrace();
             resp.putAll(Util.FailedResponse(Ex.getMessage()));
         }
@@ -4284,12 +4116,8 @@ public class DealDAOImpl implements DealDAO {
 
         productIds.forEach(productId -> {
 
-            Set<Integer> rawProductIds = oldDC.getProducts().stream()
-                    .flatMap(_dcp -> _dcp.getDealDCProductRawMaterials().stream()).map(DealDCProductRawMaterial::getRawMaterialProductId)
-                    .collect(Collectors.toSet());
-            rawProductIds.addAll(finalDc.getProducts().stream()
-                    .flatMap(_dcp -> _dcp.getDealDCProductRawMaterials().stream()).map(DealDCProductRawMaterial::getRawMaterialProductId)
-                    .collect(Collectors.toSet()));
+            Set<Integer> rawProductIds = oldDC.getProducts().stream().flatMap(_dcp -> _dcp.getDealDCProductRawMaterials().stream()).map(DealDCProductRawMaterial::getRawMaterialProductId).collect(Collectors.toSet());
+            rawProductIds.addAll(finalDc.getProducts().stream().flatMap(_dcp -> _dcp.getDealDCProductRawMaterials().stream()).map(DealDCProductRawMaterial::getRawMaterialProductId).collect(Collectors.toSet()));
 
             Optional<DealDCProducts> dcpOptional = finalDc.getProducts().stream().filter(_dcp -> _dcp.getProductId() == productId).findFirst();
             Optional<DealDCProducts> OldDcpOptional = oldDC.getProducts().stream().filter(_dcp -> _dcp.getProductId() == productId).findFirst();
@@ -4650,9 +4478,7 @@ public class DealDAOImpl implements DealDAO {
                 dealFilter = dealFilter + " and dpo.trackingNo like '%" + req.getPoTrackingNo() + "%'";
             }
             if (req.getPoDateFrom() != null && req.getPoDateTo() != null) {
-				dealFilter = dealFilter + " and dpo.purchaseOrderDate between '"
-						+ Util.sdfFormatter(req.getPoDateFrom()) + "' and '" + Util.sdfFormatter(req.getPoDateTo())
-						+ "'";
+                dealFilter = dealFilter + " and dpo.purchaseOrderDate between '" + Util.sdfFormatter(req.getPoDateFrom()) + "' and '" + Util.sdfFormatter(req.getPoDateTo()) + "'";
             }
             if (req.getPoDueDateFrom() != null && req.getPoDueDateTo() != null) {
                 dealFilter = dealFilter + " and dpo.dueDate between '" + Util.sdfFormatter(req.getPoDueDateFrom()) + "' and '" + Util.sdfFormatter(req.getPoDueDateTo()) + "'";
@@ -5201,9 +5027,9 @@ public class DealDAOImpl implements DealDAO {
         DealEmail dealEmail = dealEmailRepo.findById(dealEmailId);
         DealEmailAttachments attach = new DealEmailAttachments();
 
-        File directory = new File(contentPath + "/Deals/" + dealEmail.getDealId() + "/Emails/" + dealEmail.getId());
+        File directory = new File(LocalDirectory.Deals + dealEmail.getDealId() + "/Emails/" + dealEmail.getId());
 
-        System.out.println(directory.getAbsolutePath());
+        // System.out.println(directory.getAbsolutePath());
         if (!directory.exists()) {
             directory.mkdirs();
         }
@@ -5236,7 +5062,7 @@ public class DealDAOImpl implements DealDAO {
 
     @Override
     public Map<String, Object> sendDealEmail(DealEmail req) {
-        System.out.println(req);
+        // System.out.println(req);
         Map<String, Object> resp = new HashMap<>();
         try {
 
@@ -5246,9 +5072,9 @@ public class DealDAOImpl implements DealDAO {
             emailds.add(req.getMailIds());
 
             String[] emailUpdates = req.getMailIdCC().split(";");
-            System.out.println(emailUpdates.toString() + "  " + emailUpdates.length);
+            // System.out.println(emailUpdates.toString() + "  " + emailUpdates.length);
 
-            System.out.println(emailds.size());
+            // System.out.println(emailds.size());
             EmailModel emailModel = new EmailModel("Sales");
 
             emailModel.setMailTo(req.getMailIds());
@@ -5259,14 +5085,14 @@ public class DealDAOImpl implements DealDAO {
             emailModel.setMailText(req.getMessage());
             File directory = null;
 
-            System.out.println("req.getTab():::" + req.getTab());
+            // System.out.println("req.getTab():::" + req.getTab());
 
             if (req.getTab().equals("LETTERPAD")) {
-                directory = new File(contentPath + "/Letterpads/" + req.getFilename().replaceAll(".pdf", "") + "/" + req.getFilename());
+                directory = new File(LocalDirectory.LetterPads + req.getFilename().replaceAll(".pdf", "") + "/" + req.getFilename());
             } else {
-                directory = new File(contentPath + "/Deals/" + req.getDealId() + "/" + req.getFilename());
+                directory = new File(LocalDirectory.Deals + req.getDealId() + "/" + req.getFilename());
             }
-            System.out.println(directory.getAbsolutePath());
+            // System.out.println(directory.getAbsolutePath());
 
             emailModel.setContent_path(directory.getAbsolutePath());
 
@@ -5274,7 +5100,7 @@ public class DealDAOImpl implements DealDAO {
 
             List<String> attachs = new ArrayList<>();
             for (DealEmailAttachments attach : attachments) {
-                directory = new File(contentPath + "/Deals/" + req.getDealId() + "/Emails/" + req.getId() + "/" + attach.getFilename());
+                directory = new File(LocalDirectory.Deals + req.getDealId() + "/Emails/" + req.getId() + "/" + attach.getFilename());
 
                 attachs.add(directory.getAbsolutePath());
             }
@@ -5479,15 +5305,15 @@ public class DealDAOImpl implements DealDAO {
     }
 
     void sendDealProjectImplementationMailAction(DealProjectImplementation dpim) {
-        System.out.println("sendDealProjectImplementationMailAction ::" + dpim.toString());
+        // System.out.println("sendDealProjectImplementationMailAction ::" + dpim.toString());
         try {
             Deal deal = dealRepo.findById(dpim.getDealId());
             List<DealProducts> dps = dealProductsRepo.findByDealId(dpim.getDealId());
 
-            System.out.println(deal);
-            System.out.println(deal);
-            System.out.println(dps);
-            System.out.println(dpim.getMailAction());
+            // System.out.println(deal);
+            // System.out.println(deal);
+            // System.out.println(dps);
+            // System.out.println(dpim.getMailAction());
 
             String agenturl = agentWebURL + "project-implementations?expand=" + dpim.getId();
             String adminurl = agentWebURL + "sales/deals/overview/" + dpim.getDealId() + "/projectimplementation";
@@ -5733,14 +5559,14 @@ public class DealDAOImpl implements DealDAO {
 //				headers.add("Content-Type", "application/json");
 //				
 //				HttpEntity<Object> request = new HttpEntity<Object>(payload, GlobalAccessUtil.InstamojoHeader());
-//				System.out.println(request);
+//				// System.out.println(request);
 //
 //				resp = restTemp.postForObject("https://www.instamojo.com/api/1.1/payment-requests/", request, Map.class);
-//				System.out.println(resp);
+//				// System.out.println(resp);
 //
 //				if (Boolean.parseBoolean(resp.get("success").toString()) == true) {
 //					Map<String, Object> payment_request = (Map<String, Object>) resp.get("payment_request");
-//					System.out.println(payment_request);
+//					// System.out.println(payment_request);
 //					Object[] payParam = { payment_request.get("id"), payment_request.get("buyer_name"),
 //							payment_request.get("status"), payload.get("store_id"), "" };
 //					jdbcTemp.update(DBQueryUtil.Insert_Payment, payParam);
@@ -5760,7 +5586,7 @@ public class DealDAOImpl implements DealDAO {
 
         try {
 
-            System.out.println("Inside generateSalesOrderPDF DaoImpl:::::::::" + dealReq.getSalesOrder().getId());
+            // System.out.println("Inside generateSalesOrderPDF DaoImpl:::::::::" + dealReq.getSalesOrder().getId());
             // DecimalFormat decformatter = new DecimalFormat("###,##0.00");
             // SimpleDateFormat Util.sdfFormatter = new SimpleDateFormat("dd/MM/yyyy");
 
@@ -5792,7 +5618,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -5885,16 +5711,16 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
 
             dealReq.getSalesOrder().setFilename(dealReq.getSalesOrder().getSalesOrderNo().replaceAll("/", "-") + ".pdf");
             final String filePath = directory.getAbsolutePath() + "/" + dealReq.getSalesOrder().getFilename();
-            System.out.println(filePath);
+            // System.out.println(filePath);
             soRepo.save(dealReq.getSalesOrder());
 
             // Export the report to a PDF file.
@@ -5925,7 +5751,7 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealProformaInvoice().getDealId()));
 
-            System.out.println(dealReq.toString());
+            // System.out.println(dealReq.toString());
 
             InputStream stream = null;
 
@@ -5944,7 +5770,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -6025,7 +5851,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("deal_date_label", deal_date_label);
             parameters.put("deal_date_text", deal_date_text);
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -6055,15 +5881,15 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
             dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".pdf");
             final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-            System.out.println(filePath);
+            // System.out.println(filePath);
 
             proInvRepo.save(dealReq.getDealProformaInvoice());
 
@@ -6094,7 +5920,7 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealProformaInvoice().getDealId()));
 
-            System.out.println(dealReq.toString());
+            // System.out.println(dealReq.toString());
 
             InputStream stream = null;
 
@@ -6113,7 +5939,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
 
             parameters.put("amount_in_words", Util.EnglishNumberToWords((dealReq.getDeal().getGrandTotal() - dealReq.getDealProformaInvoice().getPaidAmount()) + dealReq.getDealProformaInvoice().getShippingCost()));
@@ -6140,7 +5966,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("deal_date_label", deal_date_label);
             parameters.put("deal_date_text", deal_date_text);
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -6160,15 +5986,15 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
             dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".pdf");
             final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-            System.out.println(filePath);
+            // System.out.println(filePath);
 
             proInvRepo.save(dealReq.getDealProformaInvoice());
 
@@ -6199,7 +6025,7 @@ public class DealDAOImpl implements DealDAO {
 
             dealReq.setDealProducts(dealProductsRepo.findByDealId(dealReq.getDealProformaInvoice().getDealId()));
 
-            System.out.println(dealReq.toString());
+            // System.out.println(dealReq.toString());
 
             InputStream stream = null;
 
@@ -6218,7 +6044,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("is_discount_applied", dealReq.isDiscountApplied());
             parameters.put("roundseal", dealReq.getAddRoundSeal() ? info.getRoundSealAsFile() : null);
             parameters.put("fullseal", dealReq.getAddFullSeal() ? info.getFullSealAsFile() : null);
-            parameters.put("signature", dealReq.getAddSign() ? agent.getSignatureAsFile() : null);
+            parameters.put("signature", dealReq.getAddSign() ? s3StorageService.getFromS3AsFile(S3Directories.AgentSignatures + agent.getSignatureFileName()) : null);
             parameters.put("for_label", "For " + info.getCmpName());
             parameters.put("designation", dealReq.getDesignation());
             parameters.put("bankdetails", info.getBankDetails().replaceAll("\n", "<br>").replaceAll("\r", "<br>"));
@@ -6299,7 +6125,7 @@ public class DealDAOImpl implements DealDAO {
             parameters.put("deal_date_label", deal_date_label);
             parameters.put("deal_date_text", deal_date_text);
 
-            System.out.println(parameters.toString());
+            // System.out.println(parameters.toString());
 
             List<Map<String, String>> datasource = new ArrayList<>();
 
@@ -6329,15 +6155,15 @@ public class DealDAOImpl implements DealDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "/Deals/" + dealReq.getDeal().getId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.Deals + dealReq.getDeal().getId());
+            // System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
-                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                // System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
             }
             dealReq.getDealProformaInvoice().setFilename(dealReq.getDealProformaInvoice().getProformaInvoiceNo().replaceAll("/", "-") + ".pdf");
             final String filePath = directory.getAbsolutePath() + "/" + dealReq.getDealProformaInvoice().getFilename();
-            System.out.println(filePath);
+            // System.out.println(filePath);
 
             proInvRepo.save(dealReq.getDealProformaInvoice());
 
@@ -6351,6 +6177,24 @@ public class DealDAOImpl implements DealDAO {
         resp.put("DealProformaInvoice", dealReq.getDealProformaInvoice());
         return resp;
 
+    }
+
+    void downloadPreamble(String preamble) {
+        try {
+            File directory = new File(LocalDirectory.PreambleDocuments);
+            // System.out.println(directory.getAbsolutePath());
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+
+            File convertFile = new File(directory.getAbsoluteFile() + "/" + preamble);
+            convertFile.createNewFile();
+            FileOutputStream fout = new FileOutputStream(convertFile);
+            fout.write(s3StorageService.getFromS3AsByteArray(S3Directories.PreambleDocuments + preamble));
+            fout.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

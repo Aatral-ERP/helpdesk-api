@@ -16,5 +16,10 @@ public class S3Directories {
     public static final String LeadTemplate = LeadFiles + "template-file/";
     public static final String Tickets = "_tickets/";
     public static final String CallReports = "CallReports/";
+    public static final String Deals = "Deals/";
+    public static final String Notes = "Notes/";
+    public static final String Invoices = "Invoices/";
+    public static final String DeliveryChallans = "Delivery_Challans/";
+    public static final String Receipts = "Receipts/";
 
 }

@@ -727,23 +727,8 @@ public class Util {
 			List<File> files = new ArrayList<>();
 			List<PDDocument> docs = new ArrayList<>();
 
-//			// Loading an existing PDF document
-//			File file1 = new File(
-//					"E:\\Kannadasan\\HelpDesk\\Contents\\_preamble_documents\\Library_Preamble_Document.pdf");
-//			PDDocument doc1 = PDDocument.load(file1);
-//
-//			File file2 = new File("E:\\Kannadasan\\HelpDesk\\Contents\\Invoices\\33\\Inv-test-01.pdf");
-//			PDDocument doc2 = PDDocument.load(file2);
-
 			// Instantiating PDFMergerUtility class
 			PDFMergerUtility PDFmerger = new PDFMergerUtility();
-
-			// Setting the destination file
-//			File directory = new File(destinationPath);
-//			if (!directory.exists()) {
-//				System.out.println("Directory destinationPath created ::" + directory.getAbsolutePath());
-//				directory.mkdirs();
-//			}
 			PDFmerger.setDestinationFileName(destinationPath);
 
 			// adding the source files

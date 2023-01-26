@@ -71,10 +71,11 @@ public class AgentPhotoUtil {
 
     public byte[] getProfilePhoto(String fileName) {
         try {
-            return s3StorageService.getFromS3AsByteArray(S3Directories.AgentProfilePhotos + "/" + fileName);
+            return s3StorageService.getFromS3AsByteArray(S3Directories.AgentProfilePhotos + fileName);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
+
 }
