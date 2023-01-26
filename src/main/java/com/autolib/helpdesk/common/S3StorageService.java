@@ -3,6 +3,7 @@ package com.autolib.helpdesk.common;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
+import com.autolib.helpdesk.Config.aws.LocalDirectory;
 import com.autolib.helpdesk.Config.aws.S3Directories;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -48,7 +49,7 @@ public class S3StorageService {
     }
 
     public void pushLocalFileToAWS(String s3Directory, String localPath) {
-        pushToAWS(s3Directory, new File(S3Directories.LocalDirectory + localPath));
+        pushToAWS(s3Directory, new File(LocalDirectory.Temp + localPath));
     }
 
     public void pushToAWS(String s3Directory, File file, String fileName) {

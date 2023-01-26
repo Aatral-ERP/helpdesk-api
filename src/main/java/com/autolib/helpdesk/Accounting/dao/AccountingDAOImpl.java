@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import com.autolib.helpdesk.Config.aws.LocalDirectory;
 import com.autolib.helpdesk.Config.aws.S3Directories;
 import com.autolib.helpdesk.common.S3StorageService;
 import org.apache.commons.io.FilenameUtils;
@@ -736,7 +737,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(S3Directories.LocalDirectory + S3Directories.LetterPads + lp.getId());
+            File directory = new File(LocalDirectory.Temp + S3Directories.LetterPads + lp.getId());
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -901,7 +902,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(S3Directories.LocalDirectory + S3Directories.LetterPads + lp.getId());
+            File directory = new File(LocalDirectory.Temp + S3Directories.LetterPads + lp.getId());
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -1164,7 +1165,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(S3Directories.LocalDirectory + S3Directories.LetterPads + lp.getId());
+            File directory = new File(LocalDirectory.Temp + S3Directories.LetterPads + lp.getId());
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -1346,7 +1347,7 @@ public class AccountingDAOImpl implements AccountingDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(S3Directories.LocalDirectory + S3Directories.LetterPads + lp.getId());
+            File directory = new File(LocalDirectory.Temp + S3Directories.LetterPads + lp.getId());
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());

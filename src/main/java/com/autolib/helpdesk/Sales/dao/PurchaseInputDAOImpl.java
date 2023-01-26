@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 
+import com.autolib.helpdesk.Config.aws.LocalDirectory;
 import com.autolib.helpdesk.Config.aws.S3Directories;
 import com.autolib.helpdesk.common.S3StorageService;
 import org.apache.commons.io.FileUtils;
@@ -621,7 +622,7 @@ public class PurchaseInputDAOImpl implements PurchaseInputDAO {
             final JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(datasource);
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
-            File directory = new File(S3Directories.LocalDirectory + S3Directories.PurchaseInputOrders + req.getPurchaseInputOrder().getId());
+            File directory = new File(LocalDirectory.Temp + S3Directories.PurchaseInputOrders + req.getPurchaseInputOrder().getId());
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());

@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.autolib.helpdesk.Config.aws.LocalDirectory;
 import com.autolib.helpdesk.Config.aws.S3Directories;
 import com.autolib.helpdesk.common.S3StorageService;
 import org.apache.logging.log4j.LogManager;
@@ -142,7 +143,7 @@ public class TaskFeatureController {
             jwtUtil.isValidToken(token);
 
             if (directoryName.contains("temp-files")) {
-                File directory = new File(S3Directories.LocalDirectory + S3Directories.TaskFeatureFiles + directoryName);
+                File directory = new File(LocalDirectory.Temp + S3Directories.TaskFeatureFiles + directoryName);
                 System.out.println(directory.getAbsolutePath());
                 if (!directory.exists()) {
                     directory.mkdirs();
