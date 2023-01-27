@@ -1,32 +1,5 @@
 package com.autolib.helpdesk.Sales.dao;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.transaction.Transactional;
-
-import com.autolib.helpdesk.Config.aws.LocalDirectory;
-import com.autolib.helpdesk.Config.aws.S3Directories;
-import com.autolib.helpdesk.common.S3StorageService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.autolib.helpdesk.Agents.entity.Agent;
 import com.autolib.helpdesk.Agents.entity.InfoDetails;
 import com.autolib.helpdesk.Agents.entity.Product;
@@ -34,6 +7,8 @@ import com.autolib.helpdesk.Agents.repository.AgentRepository;
 import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
 import com.autolib.helpdesk.Agents.repository.ProductsRepository;
 import com.autolib.helpdesk.Agents.service.AgentService;
+import com.autolib.helpdesk.Config.aws.LocalDirectory;
+import com.autolib.helpdesk.Config.aws.S3Directories;
 import com.autolib.helpdesk.Institutes.model.AMCDetails;
 import com.autolib.helpdesk.Institutes.model.Institute;
 import com.autolib.helpdesk.Institutes.model.InstituteContact;
@@ -44,42 +19,33 @@ import com.autolib.helpdesk.Sales.model.Deal;
 import com.autolib.helpdesk.Sales.model.DealPayments;
 import com.autolib.helpdesk.Sales.model.DealProducts;
 import com.autolib.helpdesk.Sales.model.DealRequest;
-import com.autolib.helpdesk.Sales.model.Invoice.DealInvoice;
-import com.autolib.helpdesk.Sales.model.Invoice.DealInvoiceContacts;
-import com.autolib.helpdesk.Sales.model.Invoice.DealInvoiceProducts;
-import com.autolib.helpdesk.Sales.model.Invoice.DealInvoiceReminder;
-import com.autolib.helpdesk.Sales.model.Invoice.DealInvoiceReminderRequest;
-import com.autolib.helpdesk.Sales.model.Invoice.DealInvoiceReminderResponse;
-import com.autolib.helpdesk.Sales.model.Invoice.DealInvoiceRequest;
-import com.autolib.helpdesk.Sales.model.Invoice.DealInvoiceResponse;
-import com.autolib.helpdesk.Sales.model.Invoice.DealInvoiceSearchRequest;
-import com.autolib.helpdesk.Sales.model.Invoice.InvoiceEmail;
-import com.autolib.helpdesk.Sales.model.Invoice.InvoiceEmailAttachments;
-import com.autolib.helpdesk.Sales.model.Invoice.InvoiceEmailReminderSettings;
+import com.autolib.helpdesk.Sales.model.Invoice.*;
 import com.autolib.helpdesk.Sales.repository.DealDeliveryChallanRepository;
 import com.autolib.helpdesk.Sales.repository.DealPaymentsRepository;
 import com.autolib.helpdesk.Sales.repository.DealProductsRepository;
 import com.autolib.helpdesk.Sales.repository.DealsRepository;
-import com.autolib.helpdesk.Sales.repository.Invoice.DealInvoiceContactsRepository;
-import com.autolib.helpdesk.Sales.repository.Invoice.DealInvoiceProductsRepository;
-import com.autolib.helpdesk.Sales.repository.Invoice.DealInvoiceReminderRepository;
-import com.autolib.helpdesk.Sales.repository.Invoice.DealInvoiceRepository;
-import com.autolib.helpdesk.Sales.repository.Invoice.InvoiceEmailAttachmentRepository;
-import com.autolib.helpdesk.Sales.repository.Invoice.InvoiceEmailReminderSettingsRepository;
-import com.autolib.helpdesk.Sales.repository.Invoice.InvoiceEmailRepository;
+import com.autolib.helpdesk.Sales.repository.Invoice.*;
 import com.autolib.helpdesk.common.EmailModel;
 import com.autolib.helpdesk.common.EmailSender;
 import com.autolib.helpdesk.common.EnumUtils.ServiceUnder;
+import com.autolib.helpdesk.common.S3StorageService;
 import com.autolib.helpdesk.common.Util;
-
-import net.sf.jasperreports.engine.JRExporterParameter;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.export.JRRtfExporter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.transaction.Transactional;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("deprecation")
 @Repository
@@ -2901,6 +2867,8 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             emailModel.setMailText(req.getMessage());
 
+            s3StorageService.pullFileFromS3ToLocal(S3Directories.Invoices + req.getInvoiceId() + "/" + req.getFilename(), LocalDirectory.Invoices + req.getInvoiceId(), req.getFilename());
+
             File directory = new File(LocalDirectory.Invoices + req.getInvoiceId() + "/" + req.getFilename());
             System.out.println(directory.getAbsolutePath());
 
@@ -2910,9 +2878,10 @@ public class InvoiceDAOImpl implements InvoiceDAO {
 
             List<String> attachs = new ArrayList<>();
             for (InvoiceEmailAttachments attach : attachments) {
-                directory = new File(LocalDirectory.Invoices + req.getInvoiceId() + "/Emails/" + req.getId() + "/"
+                s3StorageService.pullFileFromS3ToLocal(S3Directories.Invoices + req.getInvoiceId() + S3Directories.Emails + req.getId() + "/" + attach.getFilename(),
+                        LocalDirectory.Invoices + req.getInvoiceId() + S3Directories.Emails + req.getId(), attach.getFilename());
+                directory = new File(LocalDirectory.Invoices + req.getInvoiceId() + S3Directories.Emails + req.getId() + "/"
                         + attach.getFilename());
-
                 attachs.add(directory.getAbsolutePath());
             }
 

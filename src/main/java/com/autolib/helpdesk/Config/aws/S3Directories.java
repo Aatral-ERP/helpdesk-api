@@ -18,8 +18,14 @@ public class S3Directories {
     public static final String CallReports = "CallReports/";
     public static final String Deals = "Deals/";
     public static final String Notes = "Notes/";
+    public static final String Emails = "Emails/";
     public static final String Invoices = "Invoices/";
     public static final String DeliveryChallans = "Delivery_Challans/";
     public static final String Receipts = "Receipts/";
+    public static final String ServicesInvoices = "_service_invoices/";
+    public static final String ServiceReports = "ServiceReports/";
+    public static final String InstituteAMCInvoices = "_institute_amc_invoices/";
+    public static final String Bills = "Bills/";
+    public static final String Payslips = "Payslips/";
 
 }

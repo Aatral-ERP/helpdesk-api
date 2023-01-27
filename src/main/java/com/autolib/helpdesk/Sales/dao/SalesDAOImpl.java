@@ -1,30 +1,5 @@
 package com.autolib.helpdesk.Sales.dao;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.transaction.Transactional;
-
-import com.autolib.helpdesk.Config.aws.S3Directories;
-import com.autolib.helpdesk.common.S3StorageService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Repository;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.autolib.helpdesk.Agents.entity.Agent;
 import com.autolib.helpdesk.Agents.entity.InfoDetails;
 import com.autolib.helpdesk.Agents.entity.Product;
@@ -33,13 +8,25 @@ import com.autolib.helpdesk.Agents.repository.AgentRepository;
 import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
 import com.autolib.helpdesk.Agents.repository.ProductsRepository;
 import com.autolib.helpdesk.Agents.repository.VendorRepository;
+import com.autolib.helpdesk.Config.aws.S3Directories;
 import com.autolib.helpdesk.Institutes.model.Institute;
 import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
 import com.autolib.helpdesk.Sales.model.TermsAndConditions;
 import com.autolib.helpdesk.Sales.repository.DealsRepository;
 import com.autolib.helpdesk.Sales.repository.TermsAndConditionsRepository;
+import com.autolib.helpdesk.common.S3StorageService;
 import com.autolib.helpdesk.common.Util;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.transaction.Transactional;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 @Transactional
@@ -67,9 +54,6 @@ public class SalesDAOImpl implements SalesDAO {
     S3StorageService s3StorageService;
     @Autowired
     DealsRepository dealRepo;
-
-    @Value("${al.ticket.content-path}")
-    private String contentPath;
 
     @SuppressWarnings("unchecked")
     @Override

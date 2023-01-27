@@ -5,7 +5,6 @@ import com.autolib.helpdesk.common.S3StorageService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +22,6 @@ import java.io.IOException;
 @CrossOrigin("*")
 public class DownloadFile {
     private final Logger logger = LogManager.getLogger(this.getClass());
-
-    @Value("${al.ticket.content-path}")
-    private String contentPath;
 
     @Autowired
     S3StorageService s3StorageService;
@@ -176,62 +172,12 @@ public class DownloadFile {
     public ResponseEntity<InputStreamResource> downloadServiceInvoicePDFFile(@PathVariable("fileName") String fileName)
             throws IOException {
         logger.info("Downloading _service_invoices File::" + fileName);
-        String path = "";
-
-        InputStreamResource resource = null;
         HttpHeaders headers = new HttpHeaders();
-        File file = null;
-        try {
-
-            path = contentPath + "_service_invoices/" + fileName + "";
-
-            System.out.println(path);
-
-            file = new File(path);
-            resource = new InputStreamResource(new FileInputStream(file));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            logger.error("\r\nFile Not FOUND Exception::: " + fileName);
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            logger.error("\r\nFile Download Exception::: " + fileName);
-        }
         headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
         headers.add("Expires", "0");
-        return ResponseEntity.ok().headers(headers).contentLength(file.length()).body(resource);
-    }
-
-    @RequestMapping(value = "_receipts/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
-    public ResponseEntity<InputStreamResource> downloadReceipt(@PathVariable("fileName") String fileName)
-            throws IOException {
-        logger.info("Downloading Receipt File::" + fileName);
-        String path = "";
-
-        InputStreamResource resource = null;
-        HttpHeaders headers = new HttpHeaders();
-        File file = null;
-        try {
-
-            path = contentPath + "_receipts/" + fileName + "";
-
-            System.out.println(path);
-
-            file = new File(path);
-            resource = new InputStreamResource(new FileInputStream(file));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            logger.error("\r\nFile Not FOUND Exception::: " + fileName);
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            logger.error("\r\nFile Download Exception::: " + fileName);
-        }
-        headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
-        headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
-        headers.add("Pragma", "no-cache");
-        headers.add("Expires", "0");
-        return ResponseEntity.ok().headers(headers).contentLength(file.length()).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.ServicesInvoices + fileName));
     }
 
     @RequestMapping(value = "note-attachment/{entityId}/{noteId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
@@ -252,30 +198,12 @@ public class DownloadFile {
                                                               @PathVariable("billId") String billId) throws IOException {
 
         logger.info("Downloading File::" + billId + " : " + fileName);
-        String path = "";
-        InputStreamResource resource = null;
         HttpHeaders headers = new HttpHeaders();
-        File file = null;
-        try {
-
-            path = contentPath + "Bills/" + billId + "/" + fileName;
-
-            System.out.println(path);
-
-            file = new File(path);
-            resource = new InputStreamResource(new FileInputStream(file));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            logger.error("\r\nFile Not FOUND Exception::: " + billId + " : " + fileName);
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            logger.error("\r\nFile Download Exception:::" + billId + " : " + fileName);
-        }
         headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
         headers.add("Expires", "0");
-        return ResponseEntity.ok().headers(headers).contentLength(file.length()).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.Bills + billId + "/" + fileName));
     }
 
     @RequestMapping(value = "/download-deals-pdf/{mode}/{dealId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
@@ -385,9 +313,6 @@ public class DownloadFile {
     public ResponseEntity<InputStreamResource> payslip(@PathVariable("fileName") String fileName,
                                                        @PathVariable("employeeId") String employeeId, @PathVariable("mode") String mode) throws IOException {
         logger.info("Downloading File::" + employeeId + " : " + fileName);
-        String path = contentPath + "/Payslips/" + employeeId + "/" + fileName + "";
-        InputStreamResource resource = getFileFromPath(path);
-
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
@@ -398,7 +323,7 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.Payslips + employeeId + "/" + fileName));
     }
 
     @RequestMapping(value = "{ticketId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
@@ -447,10 +372,7 @@ public class DownloadFile {
     @RequestMapping(value = "/download-service-report-pdf/{mode}/{instituteId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")
     public ResponseEntity<InputStreamResource> downloadServiceReportPDFFile(@PathVariable("fileName") String fileName,
                                                                             @PathVariable("instituteId") String instituteId, @PathVariable("mode") String mode) throws IOException {
-
-        String path = contentPath + "/ServiceReports/" + instituteId + "/" + fileName + "";
-        logger.info("Downloading Service Report File::" + path);
-        InputStreamResource resource = getFileFromPath(path);
+        logger.info("Downloading Service Report File::");
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
@@ -461,7 +383,7 @@ public class DownloadFile {
         else
             headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
 
-        return ResponseEntity.ok().headers(headers).body(resource);
+        return ResponseEntity.ok().headers(headers).body(s3StorageService.getFromS3AsInputStreamResource(S3Directories.ServiceReports + instituteId + "/" + fileName));
     }
 
     @RequestMapping(value = "/download-lettepad-pdf/{mode}/{letterPadId}/{fileName}", method = RequestMethod.GET, produces = "application/pdf")

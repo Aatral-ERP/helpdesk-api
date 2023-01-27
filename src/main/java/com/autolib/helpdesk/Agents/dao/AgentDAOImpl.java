@@ -93,9 +93,6 @@ public class AgentDAOImpl implements AgentDAO {
     @Value("${al.agnet.raw_material_request.url}")
     String viewRawMaterialRequestURI;
 
-    @Value("${al.ticket.content-path}")
-    private String contentPath;
-
     @Override
     public Map<String, Object> getHomePageDetails(Agent agent) {
         Map<String, Object> resp = new HashMap<>();

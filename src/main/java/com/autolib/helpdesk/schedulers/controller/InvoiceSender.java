@@ -1,24 +1,5 @@
 package com.autolib.helpdesk.schedulers.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import com.autolib.helpdesk.Agents.entity.Agent;
 import com.autolib.helpdesk.Agents.entity.InfoDetails;
 import com.autolib.helpdesk.Agents.entity.Product;
@@ -31,11 +12,7 @@ import com.autolib.helpdesk.Institutes.model.InstituteProducts;
 import com.autolib.helpdesk.Institutes.repository.InstituteContactRepository;
 import com.autolib.helpdesk.Institutes.repository.InstituteProductRepository;
 import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
-import com.autolib.helpdesk.Sales.model.Deal;
-import com.autolib.helpdesk.Sales.model.DealEmail;
-import com.autolib.helpdesk.Sales.model.DealProducts;
-import com.autolib.helpdesk.Sales.model.DealProformaInvoice;
-import com.autolib.helpdesk.Sales.model.DealRequest;
+import com.autolib.helpdesk.Sales.model.*;
 import com.autolib.helpdesk.Sales.repository.DealEmailRepository;
 import com.autolib.helpdesk.Sales.service.DealService;
 import com.autolib.helpdesk.common.EmailSender;
@@ -43,6 +20,14 @@ import com.autolib.helpdesk.common.EnumUtils.ServiceUnder;
 import com.autolib.helpdesk.common.Util;
 import com.autolib.helpdesk.schedulers.model.LogsSchedulerInvoice;
 import com.autolib.helpdesk.schedulers.repository.LogsSchedulerInvoiceRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 public class InvoiceSender {
@@ -79,9 +64,6 @@ public class InvoiceSender {
 
 	@PersistenceContext
 	private EntityManager entityManager;
-
-	@Value("${al.ticket.content-path}")
-	private String contentPath;
 
 	@SuppressWarnings("unchecked")
 	void sendScheduledInvoiceReminder() {
@@ -434,103 +416,5 @@ public class InvoiceSender {
 
 		return resp;
 	}
-
-//	void createInvoice2(InstituteProducts ipp) {
-//		
-//		try {
-//			ipp.
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
-
-//	void createInvoice(InstituteProducts ipp) {
-//
-//		try {
-//
-//			final InputStream stream = this.getClass().getResourceAsStream("/reports/Amc_Quote.jrxml");
-//
-//			final JasperReport report = JasperCompileManager.compileReport(stream);
-//
-////			final JasperReport report = (JasperReport) JRLoader.loadObject(stream);
-//
-//			final JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(new ArrayList<>());
-//
-//			final Map<String, Object> parameters = new HashMap<>();
-//			parameters.put("amc_amount", "Rs." + ipp.getAmcAmount());
-//			parameters.put("institute_name", ipp.getInstitute().getInstituteName());
-//			parameters.put("address", ipp.getInstitute().getCity() + ", " + ipp.getInstitute().getState() + " - "
-//					+ ipp.getInstitute().getZipcode());
-//			parameters.put("gst", "18%");
-//
-//			Double totalAmount = ipp.getAmcAmount() + (ipp.getAmcAmount() * (18 / 100));
-//			parameters.put("total_amount", "Rs." + totalAmount);
-//			parameters.put("gst_amount", "Rs." + String.valueOf(totalAmount - ipp.getAmcAmount()));
-//			parameters.put("service_type", ipp.getProduct().getName()
-//					+ " - Annual Maintanence Charges - Online Support with UPDATES for 1 year");
-//			parameters.put("title", ipp.getProduct().getName()
-//					+ " - Annual Maintanence Charges - Online Support with UPDATES for 1 year");
-//			parameters.put("invoice_no", "");
-//
-//			final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
-//
-//			File directory = new File(contentPath + "_amc_invoices" + "/");
-//			System.out.println(directory.getAbsolutePath());
-//			if (!directory.exists()) {
-//				System.out.println("Directory created ::" + directory.getAbsolutePath());
-//				directory.mkdir();
-//			}
-//			final String filePath = directory.getAbsolutePath() + "/" + ipp.getId() + ".pdf";
-//			System.out.println(filePath);
-//			// Export the report to a PDF file.
-//			JasperExportManager.exportReportToPdfFile(print, filePath);
-//
-////			sendInvoiceMail(ipp);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
-//
-//	void sendInvoiceMail(InstituteProducts ipp) {
-//		try {
-//			EmailModel emailModel = new EmailModel();
-//
-//			String[] emailUpdates = ipp.getInstitute().getAlternateEmailId().split(";");
-//
-//			emailModel.setMailTo(ipp.getInstitute().getEmailId());
-//			emailModel.setMailList(emailUpdates);
-//			emailModel.setMailSub("AMC Quote : " + ipp.getProduct().getName());
-//
-//			StringBuffer sb = new StringBuffer();
-//			sb.append("Dear Sir/Mam, <br><br>");
-//			sb.append("Please find the attached AMC Quote.: <br><br>");
-//
-//			sb.append("<br><b>Amc Quote Details:</b>");
-//			sb.append(
-//					"<table>Institute Name</td><td>:</td><td>" + ipp.getInstitute().getInstituteName() + "</td></tr>");
-//			sb.append("<tr><td>Product</td><td>:</td><td>" + ipp.getProduct() + "</td></tr>");
-//			sb.append("<tr><td>Current Service Under</td><td>:</td><td>" + ipp.getInstitute().getServiceUnder()
-//					+ "</td></tr>");
-//			sb.append("<tr><td>AMC Amount</td> <td>:</td> <td>Rs." + ipp.getAmcAmount() + "</td></tr>");
-//			sb.append("<tr><td>GST(%)</td> <td>:</td> <td> 18% </td></tr>");
-//			Double totalAmount = ipp.getAmcAmount() + (ipp.getAmcAmount() * (18 / 100));
-//			sb.append("<tr><td>Total Payable Amount</td> <td>:</td> <td>Rs." + totalAmount + "</td></tr>");
-//			sb.append("</table>");
-//
-//			emailModel.setMailText(sb.toString());
-//
-//			File directory = new File(contentPath + "_amc_invoices" + "/" + ipp.getId() + ".pdf");
-//
-//			emailModel.setContent_path(directory.getAbsolutePath());
-//
-//			emailSender.sendmail(emailModel);
-//
-//			ISILogRepo.save(new LogsSchedulerInvoice(emailModel));// Logging the Invoice Sending
-//
-//		} catch (Exception ex) {
-//			ex.printStackTrace();
-//		}
-//	}
 
 }

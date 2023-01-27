@@ -1,63 +1,33 @@
 package com.autolib.helpdesk.Sales.dao;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.transaction.Transactional;
-
-import com.autolib.helpdesk.Config.aws.LocalDirectory;
-import com.autolib.helpdesk.Config.aws.S3Directories;
-import com.autolib.helpdesk.common.S3StorageService;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.autolib.helpdesk.Agents.entity.Agent;
 import com.autolib.helpdesk.Agents.entity.InfoDetails;
 import com.autolib.helpdesk.Agents.entity.Vendor;
 import com.autolib.helpdesk.Agents.repository.AgentRepository;
 import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
-import com.autolib.helpdesk.Sales.model.Inputs.Bill;
-import com.autolib.helpdesk.Sales.model.Inputs.BillAttachments;
-import com.autolib.helpdesk.Sales.model.Inputs.BillPaymentResponse;
-import com.autolib.helpdesk.Sales.model.Inputs.BillPaymentSearchRequest;
-import com.autolib.helpdesk.Sales.model.Inputs.BillPayments;
-import com.autolib.helpdesk.Sales.model.Inputs.BillProducts;
-import com.autolib.helpdesk.Sales.model.Inputs.BillRequest;
-import com.autolib.helpdesk.Sales.model.Inputs.BillSearchRequest;
-import com.autolib.helpdesk.Sales.model.Inputs.PurchaseInputOrderProduct;
-import com.autolib.helpdesk.Sales.model.Inputs.PurchaseInputOrderRequest;
-import com.autolib.helpdesk.Sales.model.Inputs.PurchaseInputOrders;
-import com.autolib.helpdesk.Sales.repository.Inputs.BillAttachmentsRepository;
-import com.autolib.helpdesk.Sales.repository.Inputs.BillPaymentsRepository;
-import com.autolib.helpdesk.Sales.repository.Inputs.BillProductsRepository;
-import com.autolib.helpdesk.Sales.repository.Inputs.BillRepository;
-import com.autolib.helpdesk.Sales.repository.Inputs.PurchaseInputOrderProductsRepository;
-import com.autolib.helpdesk.Sales.repository.Inputs.PurchaseInputOrdersRepository;
+import com.autolib.helpdesk.Config.aws.LocalDirectory;
+import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.Sales.model.Inputs.*;
+import com.autolib.helpdesk.Sales.repository.Inputs.*;
+import com.autolib.helpdesk.common.S3StorageService;
 import com.autolib.helpdesk.common.Util;
-
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.transaction.Transactional;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Repository
 @Transactional
@@ -85,9 +55,6 @@ public class PurchaseInputDAOImpl implements PurchaseInputDAO {
 
     @Autowired
     EntityManager em;
-
-    @Value("${al.ticket.content-path}")
-    private String contentPath;
 
     @Autowired
     S3StorageService s3StorageService;
@@ -123,7 +90,7 @@ public class PurchaseInputDAOImpl implements PurchaseInputDAO {
 
             bill.setBillAttachments(billAttachRepo.saveAll(bill.getBillAttachments()));
 
-            File directory = new File(contentPath + "/Bills/" + bill.getBill().getId());
+            File directory = new File(LocalDirectory.Bills + bill.getBill().getId());
 
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
@@ -141,6 +108,8 @@ public class PurchaseInputDAOImpl implements PurchaseInputDAO {
                         FileOutputStream fout = new FileOutputStream(convertFile);
                         fout.write(com.google.api.client.util.Base64.decodeBase64(billAtt.getFile().getBytes()));
                         fout.close();
+
+                        s3StorageService.pushLocalFileToAWS(S3Directories.Bills + bill.getBill().getId(), S3Directories.Bills + bill.getBill().getId() + billAtt.getFilename());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -282,36 +251,13 @@ public class PurchaseInputDAOImpl implements PurchaseInputDAO {
     @Override
     public Map<String, Object> getBillAttachment(BillAttachments attach) {
         Map<String, Object> resp = new HashMap<>();
-        try {
-            String path = "";
-            File file = null;
-            try {
+        byte[] fileContent = s3StorageService.getFromS3AsByteArray(S3Directories.Bills + attach.getBillId() + "/" + attach.getFilename());
+        String encodedString = Base64.getEncoder().encodeToString(fileContent);
 
-                path = contentPath + "/Bills/" + attach.getBillId() + "/" + attach.getFilename() + "";
+        attach.setFile(encodedString);
 
-                System.out.println(path);
-                file = new File(path);
+        resp.putAll(Util.SuccessResponse());
 
-                byte[] fileContent = FileUtils.readFileToByteArray(file);
-                String encodedString = Base64.getEncoder().encodeToString(fileContent);
-
-                System.out.println(encodedString);
-
-                attach.setFile(encodedString);
-
-                resp.putAll(Util.SuccessResponse());
-            } catch (FileNotFoundException e) {
-                resp.putAll(Util.FailedResponse(e.getMessage()));
-                e.printStackTrace();
-                logger.error("\r\nFile Not FOUND Exception::: " + path);
-            } catch (Exception e) {
-                resp.putAll(Util.FailedResponse(e.getMessage()));
-                e.printStackTrace();
-                logger.error("\r\nFile Download Exception::: " + path);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         resp.put("BillAttachment", attach);
         return resp;
     }

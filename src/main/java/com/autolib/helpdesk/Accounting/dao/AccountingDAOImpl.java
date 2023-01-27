@@ -1,23 +1,23 @@
 
 package com.autolib.helpdesk.Accounting.dao;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-
+import com.autolib.helpdesk.Accounting.model.*;
+import com.autolib.helpdesk.Accounting.repository.AccountStatementRepository;
+import com.autolib.helpdesk.Accounting.repository.IncomeExpenseRepository;
+import com.autolib.helpdesk.Accounting.repository.LetterpadRepository;
+import com.autolib.helpdesk.Agents.entity.*;
+import com.autolib.helpdesk.Agents.repository.AgentLedgerRepository;
+import com.autolib.helpdesk.Agents.repository.AgentRepository;
+import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
+import com.autolib.helpdesk.Agents.repository.VendorRepository;
 import com.autolib.helpdesk.Config.aws.LocalDirectory;
 import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.Institutes.model.Institute;
+import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
 import com.autolib.helpdesk.common.S3StorageService;
+import com.autolib.helpdesk.common.Util;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,38 +25,16 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.autolib.helpdesk.Accounting.model.AccountBankStatementReq;
-import com.autolib.helpdesk.Accounting.model.AccountCategory;
-import com.autolib.helpdesk.Accounting.model.AccountStatementRequest;
-import com.autolib.helpdesk.Accounting.model.AccountingReportRequest;
-import com.autolib.helpdesk.Accounting.model.AmcReportRequest;
-import com.autolib.helpdesk.Accounting.model.IncomeExpense;
-import com.autolib.helpdesk.Accounting.model.IncomeExpenseRequest;
-import com.autolib.helpdesk.Accounting.model.LetterPad;
-import com.autolib.helpdesk.Accounting.model.LetterpadRequest;
-import com.autolib.helpdesk.Accounting.repository.AccountStatementRepository;
-import com.autolib.helpdesk.Accounting.repository.IncomeExpenseRepository;
-import com.autolib.helpdesk.Accounting.repository.LetterpadRepository;
-import com.autolib.helpdesk.Agents.entity.Agent;
-import com.autolib.helpdesk.Agents.entity.AgentLedger;
-import com.autolib.helpdesk.Agents.entity.InfoDetails;
-import com.autolib.helpdesk.Agents.entity.Product;
-import com.autolib.helpdesk.Agents.entity.Vendor;
-import com.autolib.helpdesk.Agents.repository.AgentLedgerRepository;
-import com.autolib.helpdesk.Agents.repository.AgentRepository;
-import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
-import com.autolib.helpdesk.Agents.repository.VendorRepository;
-import com.autolib.helpdesk.Institutes.model.Institute;
-import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
-import com.autolib.helpdesk.LeadManagement.model.Lead;
-import com.autolib.helpdesk.common.Util;
-
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import java.io.File;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 public class AccountingDAOImpl implements AccountingDAO {
@@ -81,9 +59,6 @@ public class AccountingDAOImpl implements AccountingDAO {
 
     @Autowired
     EntityManager em;
-
-//	@Value("${al.ticket.content-path}")
-//	private String contentPath;
 
     @Autowired
     LetterpadRepository letterpadRepo;
@@ -316,18 +291,6 @@ public class AccountingDAOImpl implements AccountingDAO {
             String filename = ledgerId + "_" + photo.getOriginalFilename();
 
             if (legder != null) {
-
-//				File directory = new File(contentPath + "/_agent_legder_proof" + "/");
-//				System.out.println(directory.getAbsolutePath());
-//				if (!directory.exists()) {
-//					directory.mkdirs();
-//				}
-//
-//				File convertFile = new File(directory.getAbsoluteFile() + "/" + filename);
-//				convertFile.createNewFile();
-//				FileOutputStream fout = new FileOutputStream(convertFile);
-//				fout.write(photo.getBytes());
-//				fout.close();
 
                 legder.setFilename(filename);
 

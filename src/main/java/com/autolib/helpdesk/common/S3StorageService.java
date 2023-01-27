@@ -4,7 +4,7 @@ package com.autolib.helpdesk.common;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.autolib.helpdesk.Config.aws.LocalDirectory;
-import com.autolib.helpdesk.Config.aws.S3Directories;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -54,7 +53,7 @@ public class S3StorageService {
     }
 
     public void pushToAWS(String s3Directory, File file, String fileName) {
-        s3Directory = s3Directory.endsWith("/") ? s3Directory : s3Directory + "/";
+        s3Directory = s3Directory.endsWith("/") ? s3Directory : (s3Directory + "/");
         String key = CLIENT_FOLDER_NAME + SLASH + s3Directory + fileName;
         logger.info("PUT :: " + CLIENT_FOLDER_NAME + "::" + key);
         try {
@@ -138,6 +137,15 @@ public class S3StorageService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void pullFileFromS3ToLocal(String key, String localPath, String fileName) {
+        localPath = localPath.endsWith("/") ? localPath : (localPath + "/");
+        try {
+            FileUtils.writeByteArrayToFile(new File(localPath + fileName), getFromS3AsByteArray(key));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static File convertMultipartToFile(MultipartFile file) {

@@ -24,7 +24,6 @@ import com.autolib.helpdesk.common.*;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.export.JRRtfExporter;
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +34,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -5088,8 +5088,12 @@ public class DealDAOImpl implements DealDAO {
             // System.out.println("req.getTab():::" + req.getTab());
 
             if (req.getTab().equals("LETTERPAD")) {
+                s3StorageService.pullFileFromS3ToLocal(S3Directories.LetterPads + req.getFilename().replaceAll(".pdf", ""),
+                        S3Directories.LetterPads + req.getFilename().replaceAll(".pdf", ""), req.getFilename());
                 directory = new File(LocalDirectory.LetterPads + req.getFilename().replaceAll(".pdf", "") + "/" + req.getFilename());
             } else {
+                s3StorageService.pullFileFromS3ToLocal(S3Directories.Deals + req.getDealId() + "/" + req.getFilename(),
+                        S3Directories.Deals + req.getDealId() + "/" + req.getFilename(), req.getFilename());
                 directory = new File(LocalDirectory.Deals + req.getDealId() + "/" + req.getFilename());
             }
             // System.out.println(directory.getAbsolutePath());
@@ -5100,7 +5104,9 @@ public class DealDAOImpl implements DealDAO {
 
             List<String> attachs = new ArrayList<>();
             for (DealEmailAttachments attach : attachments) {
-                directory = new File(LocalDirectory.Deals + req.getDealId() + "/Emails/" + req.getId() + "/" + attach.getFilename());
+                s3StorageService.pullFileFromS3ToLocal(S3Directories.Deals + req.getDealId() + "/" + S3Directories.Emails + req.getId() + "/" + attach.getFilename(),
+                        LocalDirectory.Deals + req.getDealId() + "/" + S3Directories.Emails + req.getId(), attach.getFilename());
+                directory = new File(LocalDirectory.Deals + req.getDealId() + "/" + S3Directories.Emails + req.getId() + "/" + attach.getFilename());
 
                 attachs.add(directory.getAbsolutePath());
             }

@@ -1,23 +1,20 @@
 package com.autolib.helpdesk.Institutes.dao;
 
-import java.io.File;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.transaction.Transactional;
-
+import com.autolib.helpdesk.Agents.entity.Product;
+import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
+import com.autolib.helpdesk.Agents.repository.ProductsRepository;
+import com.autolib.helpdesk.Config.aws.LocalDirectory;
 import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.Institutes.model.*;
+import com.autolib.helpdesk.Institutes.repository.InstituteAmcRepository;
+import com.autolib.helpdesk.Institutes.repository.InstituteContactRepository;
+import com.autolib.helpdesk.Institutes.repository.InstituteProductRepository;
+import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
 import com.autolib.helpdesk.common.*;
+import com.autolib.helpdesk.common.EnumUtils.ServiceUnder;
+import com.autolib.helpdesk.schedulers.model.LogsSchedulerInvoice;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.apache.commons.io.FilenameUtils;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
@@ -30,35 +27,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.autolib.helpdesk.Agents.entity.Product;
-import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
-import com.autolib.helpdesk.Agents.repository.ProductsRepository;
-import com.autolib.helpdesk.Institutes.model.AMCDetailResp;
-import com.autolib.helpdesk.Institutes.model.AMCDetails;
-import com.autolib.helpdesk.Institutes.model.AMCReminderRequest;
-import com.autolib.helpdesk.Institutes.model.AMCSearchRequest;
-import com.autolib.helpdesk.Institutes.model.Institute;
-import com.autolib.helpdesk.Institutes.model.InstituteContact;
-import com.autolib.helpdesk.Institutes.model.InstituteContactRequest;
-import com.autolib.helpdesk.Institutes.model.InstituteContactResponse;
-import com.autolib.helpdesk.Institutes.model.InstituteImportReq;
-import com.autolib.helpdesk.Institutes.model.InstituteProducts;
-import com.autolib.helpdesk.Institutes.model.InstituteProductsRequest;
-import com.autolib.helpdesk.Institutes.model.InstituteRequest;
-import com.autolib.helpdesk.Institutes.model.InvoiceRequest;
-import com.autolib.helpdesk.Institutes.repository.InstituteAmcRepository;
-import com.autolib.helpdesk.Institutes.repository.InstituteContactRepository;
-import com.autolib.helpdesk.Institutes.repository.InstituteProductRepository;
-import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
-import com.autolib.helpdesk.common.EnumUtils.ServiceUnder;
-import com.autolib.helpdesk.schedulers.model.LogsSchedulerInvoice;
-
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.transaction.Transactional;
+import java.io.File;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class InstituteDAOImpl implements InstituteDAO {
@@ -87,9 +64,6 @@ public class InstituteDAOImpl implements InstituteDAO {
 
     @Autowired
     S3StorageService s3StorageService;
-
-    @Value("${al.ticket.content-path}")
-    private String contentPath;
     @Value("${al.ticket.web.url}")
     private String webURL;
 
@@ -1174,7 +1148,7 @@ public class InstituteDAOImpl implements InstituteDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "_institute_amc_invoices" + "/");
+            File directory = new File(LocalDirectory.InstituteAMCInvoices);
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
@@ -1184,6 +1158,7 @@ public class InstituteDAOImpl implements InstituteDAO {
             System.out.println(filePath);
             // Export the report to a PDF file.
             JasperExportManager.exportReportToPdfFile(print, filePath);
+            s3StorageService.pushLocalFileToAWS(S3Directories.InstituteAMCInvoices, S3Directories.InstituteAMCInvoices + ir.getInvoice().getInvoiceNo() + ".pdf");
 
         } catch (Exception Ex) {
             Ex.printStackTrace();

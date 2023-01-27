@@ -1,495 +1,473 @@
 package com.autolib.helpdesk.HR.dao;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.transaction.Transactional;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-
 import com.autolib.helpdesk.Agents.entity.Agent;
 import com.autolib.helpdesk.Agents.entity.InfoDetails;
 import com.autolib.helpdesk.Agents.repository.AgentRepository;
 import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
-import com.autolib.helpdesk.HR.entity.SalaryDetailProperty;
-import com.autolib.helpdesk.HR.entity.SalaryDetails;
-import com.autolib.helpdesk.HR.entity.SalaryDetailsRequest;
-import com.autolib.helpdesk.HR.entity.SalaryDetailsResponse;
-import com.autolib.helpdesk.HR.entity.SalaryEntries;
-import com.autolib.helpdesk.HR.entity.SalaryEntriesProperty;
-import com.autolib.helpdesk.HR.entity.SalaryEntriesRequest;
-import com.autolib.helpdesk.HR.repository.LeaveAppliedDatesRepository;
-import com.autolib.helpdesk.HR.repository.LeaveAppliedRepository;
-import com.autolib.helpdesk.HR.repository.LeaveBalanceRepository;
-import com.autolib.helpdesk.HR.repository.LeaveMasterRepository;
-import com.autolib.helpdesk.HR.repository.SalaryDetailPropertyRepository;
-import com.autolib.helpdesk.HR.repository.SalaryDetailsRepository;
-import com.autolib.helpdesk.HR.repository.SalaryEntriesPropertyRepository;
-import com.autolib.helpdesk.HR.repository.SalaryEntriesRepository;
+import com.autolib.helpdesk.Config.aws.LocalDirectory;
+import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.HR.entity.*;
+import com.autolib.helpdesk.HR.repository.*;
 import com.autolib.helpdesk.common.EmailModel;
 import com.autolib.helpdesk.common.EmailSender;
+import com.autolib.helpdesk.common.S3StorageService;
 import com.autolib.helpdesk.common.Util;
-
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.transaction.Transactional;
+import java.io.File;
+import java.io.InputStream;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 @Transactional
 
 public class SalaryDAOImpl implements SalaryDAO {
 
-	@Autowired
-	SalaryDetailsRepository salaryRepo;
+    @Autowired
+    SalaryDetailsRepository salaryRepo;
 
-	@Autowired
-	SalaryDetailPropertyRepository salaryPropRepo;
+    @Autowired
+    SalaryDetailPropertyRepository salaryPropRepo;
 
-	@Autowired
-	AgentRepository agentRepo;
+    @Autowired
+    AgentRepository agentRepo;
 
-	@Autowired
-	SalaryDetailsRepository sdRepo;
+    @Autowired
+    SalaryDetailsRepository sdRepo;
 
-	@Autowired
-	SalaryDetailPropertyRepository sdpService;
+    @Autowired
+    SalaryDetailPropertyRepository sdpService;
 
-	@Autowired
-	SalaryEntriesRepository seRepo;
+    @Autowired
+    SalaryEntriesRepository seRepo;
 
-	@Autowired
-	SalaryEntriesPropertyRepository sepRepo;
-	@Autowired
-	InfoDetailsRepository infoDetailRepo;
+    @Autowired
+    SalaryEntriesPropertyRepository sepRepo;
+    @Autowired
+    InfoDetailsRepository infoDetailRepo;
 
-	@Autowired
-	LeaveAppliedRepository laRepo;
+    @Autowired
+    LeaveAppliedRepository laRepo;
 
-	@Autowired
-	LeaveBalanceRepository leaveBalanceRepo;
+    @Autowired
+    LeaveBalanceRepository leaveBalanceRepo;
 
-	@Autowired
-	LeaveAppliedDatesRepository leaveAppDatedRepo;
+    @Autowired
+    LeaveAppliedDatesRepository leaveAppDatedRepo;
 
-	@Autowired
-	LeaveMasterRepository lmRepo;
+    @Autowired
+    LeaveMasterRepository lmRepo;
 
-	@Autowired
-	EntityManager em;
+    @Autowired
+    EntityManager em;
 
-	@Autowired
-	EmailSender emailSender;
+    @Autowired
+    EmailSender emailSender;
 
-	@Value("${al.ticket.content-path}")
-	private String contentPath;
+    @Autowired
+    S3StorageService s3StorageService;
 
-	private final Logger logger = LogManager.getLogger(this.getClass());
+    private final Logger logger = LogManager.getLogger(this.getClass());
 
-	@Override
-	public List<String> bankname() {
-		logger.info("BankName DAOImpl starts::");
-		List<String> bankname = new ArrayList<>();
-		try {
-			bankname = salaryRepo.findBankName();
-		} catch (Exception ex) {
-			logger.error(ex);
-			ex.printStackTrace();
-		}
-		logger.info("BankName DAOImpl ends::");
-		return bankname;
-	}
+    @Override
+    public List<String> bankname() {
+        logger.info("BankName DAOImpl starts::");
+        List<String> bankname = new ArrayList<>();
+        try {
+            bankname = salaryRepo.findBankName();
+        } catch (Exception ex) {
+            logger.error(ex);
+            ex.printStackTrace();
+        }
+        logger.info("BankName DAOImpl ends::");
+        return bankname;
+    }
 
-	@Override
-	public Map<String, Object> saveSalaryDetails(SalaryDetailsRequest salary) {
+    @Override
+    public Map<String, Object> saveSalaryDetails(SalaryDetailsRequest salary) {
 
-		logger.info("saveSalaryDetails DAOImpl starts:::::");
-		Map<String, Object> resp = new HashMap<String, Object>();
-		try {
+        logger.info("saveSalaryDetails DAOImpl starts:::::");
+        Map<String, Object> resp = new HashMap<String, Object>();
+        try {
 
-			salary.setSalaryDetail(salaryRepo.save(salary.getSalaryDetail()));
+            salary.setSalaryDetail(salaryRepo.save(salary.getSalaryDetail()));
 
-			salaryPropRepo.deleteAllByEmployeeId(salary.getSalaryDetail().getEmployeeId());
+            salaryPropRepo.deleteAllByEmployeeId(salary.getSalaryDetail().getEmployeeId());
 
-			salary.setSalaryDetailProperty(salaryPropRepo.saveAll(salary.getSalaryDetailProperty()));
+            salary.setSalaryDetailProperty(salaryPropRepo.saveAll(salary.getSalaryDetailProperty()));
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			resp.putAll(Util.FailedResponse(ex.getMessage()));
-		}
-		resp.put("SalaryDetail", salary.getSalaryDetail());
-		resp.put("SalaryDetailProperties", salary.getSalaryDetailProperty());
-		return resp;
-	}
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            resp.putAll(Util.FailedResponse(ex.getMessage()));
+        }
+        resp.put("SalaryDetail", salary.getSalaryDetail());
+        resp.put("SalaryDetailProperties", salary.getSalaryDetailProperty());
+        return resp;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public Map<String, Object> getStaffDetails() {
+    @SuppressWarnings("unchecked")
+    @Override
+    public Map<String, Object> getStaffDetails() {
 
-		logger.info("Get StaffDetails DAOImpl Starts:::::::");
-		Map<String, Object> resp = new HashMap<>();
-		List<SalaryDetailsResponse> salaryDetails = new ArrayList<>();
-		try {
+        logger.info("Get StaffDetails DAOImpl Starts:::::::");
+        Map<String, Object> resp = new HashMap<>();
+        List<SalaryDetailsResponse> salaryDetails = new ArrayList<>();
+        try {
 
-			Query query = em.createQuery(
-					"select new com.autolib.helpdesk.HR.entity.SalaryDetailsResponse(sd)"
-							+ " from SalaryDetails sd left join Agent a on (sd.employeeId = a.employeeId) ",
-					SalaryDetailsResponse.class);
+            Query query = em.createQuery(
+                    "select new com.autolib.helpdesk.HR.entity.SalaryDetailsResponse(sd)"
+                            + " from SalaryDetails sd left join Agent a on (sd.employeeId = a.employeeId) ",
+                    SalaryDetailsResponse.class);
 
-			salaryDetails = query.getResultList();
+            salaryDetails = query.getResultList();
 
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		resp.put("salaryDetails", salaryDetails);
-		logger.info("Get StaffDetails DAOImpl Ends:::::::");
-		return resp;
-	}
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        resp.put("salaryDetails", salaryDetails);
+        logger.info("Get StaffDetails DAOImpl Ends:::::::");
+        return resp;
+    }
 
-	@Override
-	public Map<String, Object> getStaffDetailsEdit(String sid) {
-		logger.info("Get StaffDetails DAOImpl Starts:::::::" + sid);
-		Map<String, Object> resp = new HashMap<>();
-		SalaryDetails sd = new SalaryDetails();
-		List<SalaryDetailProperty> sdps = new ArrayList<>();
-		try {
+    @Override
+    public Map<String, Object> getStaffDetailsEdit(String sid) {
+        logger.info("Get StaffDetails DAOImpl Starts:::::::" + sid);
+        Map<String, Object> resp = new HashMap<>();
+        SalaryDetails sd = new SalaryDetails();
+        List<SalaryDetailProperty> sdps = new ArrayList<>();
+        try {
 
-			sd = salaryRepo.findByEmployeeId(sid);
+            sd = salaryRepo.findByEmployeeId(sid);
 
-			sdps = salaryPropRepo.findByEmployeeId(sd.getEmployeeId());
+            sdps = salaryPropRepo.findByEmployeeId(sd.getEmployeeId());
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse(e.getMessage()));
-			e.printStackTrace();
-		}
-		resp.put("Salarydetails", sd);
-		resp.put("SalaryDetailProperties", sdps);
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse(e.getMessage()));
+            e.printStackTrace();
+        }
+        resp.put("Salarydetails", sd);
+        resp.put("SalaryDetailProperties", sdps);
 
-		return resp;
-	}
+        return resp;
+    }
 
-	@Override
-	public Map<String, Object> deleteStaffDetails(SalaryDetails salaryDetail) {
+    @Override
+    public Map<String, Object> deleteStaffDetails(SalaryDetails salaryDetail) {
 
-		logger.info("deleteStaffDetails DAOImpl starts:::::");
-		Map<String, Object> resp = new HashMap<String, Object>();
-		try {
+        logger.info("deleteStaffDetails DAOImpl starts:::::");
+        Map<String, Object> resp = new HashMap<String, Object>();
+        try {
 
-			salaryRepo.delete(salaryDetail);
+            salaryRepo.delete(salaryDetail);
 
-			salaryPropRepo.deleteAllByEmployeeId(salaryDetail.getEmployeeId());
+            salaryPropRepo.deleteAllByEmployeeId(salaryDetail.getEmployeeId());
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			resp.putAll(Util.FailedResponse(ex.getMessage()));
-		}
-		return resp;
-	}
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            resp.putAll(Util.FailedResponse(ex.getMessage()));
+        }
+        return resp;
+    }
 
-	@Override
-	public Map<String, Object> generateSalarayEntry(SalaryEntriesRequest req) {
+    @Override
+    public Map<String, Object> generateSalarayEntry(SalaryEntriesRequest req) {
 
-		logger.info("saveSalaryDetails DAOImpl starts:::::");
-		Map<String, Object> resp = new HashMap<String, Object>();
-		try {
+        logger.info("saveSalaryDetails DAOImpl starts:::::");
+        Map<String, Object> resp = new HashMap<String, Object>();
+        try {
 
-			req.setSalaryEntry(seRepo.save(req.getSalaryEntry()));
+            req.setSalaryEntry(seRepo.save(req.getSalaryEntry()));
 
-			sepRepo.deleteAllBySalaryEntryId(req.getSalaryEntry().getId());
+            sepRepo.deleteAllBySalaryEntryId(req.getSalaryEntry().getId());
 
-			req.getSalaryEntriesProperties().stream()
-					.forEach(sep -> sep.setSalaryEntryId(req.getSalaryEntry().getId()));
+            req.getSalaryEntriesProperties().stream()
+                    .forEach(sep -> sep.setSalaryEntryId(req.getSalaryEntry().getId()));
 
-			req.setSalaryEntriesProperties(sepRepo.saveAll(req.getSalaryEntriesProperties()));
+            req.setSalaryEntriesProperties(sepRepo.saveAll(req.getSalaryEntriesProperties()));
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			resp.putAll(Util.FailedResponse(ex.getMessage()));
-		}
-		resp.put("SalaryEntries", req.getSalaryEntry());
-		resp.put("SalaryEntriesProperties", req.getSalaryEntriesProperties());
-		return resp;
-	}
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            resp.putAll(Util.FailedResponse(ex.getMessage()));
+        }
+        resp.put("SalaryEntries", req.getSalaryEntry());
+        resp.put("SalaryEntriesProperties", req.getSalaryEntriesProperties());
+        return resp;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public Map<String, Object> getSalaryEntries(SalaryEntriesRequest request) {
+    @SuppressWarnings("unchecked")
+    @Override
+    public Map<String, Object> getSalaryEntries(SalaryEntriesRequest request) {
 
-		logger.info("getSalaryEntries DAOImpl starts:::::");
-		Map<String, Object> resp = new HashMap<String, Object>();
-		List<SalaryEntries> entries = new ArrayList<>();
-		List<SalaryEntriesProperty> properties = new ArrayList<>();
-		List<Map<String, Object>> rowDatasEarnings = new ArrayList<>();
-		List<Map<String, Object>> rowDatasDeductions = new ArrayList<>();
+        logger.info("getSalaryEntries DAOImpl starts:::::");
+        Map<String, Object> resp = new HashMap<String, Object>();
+        List<SalaryEntries> entries = new ArrayList<>();
+        List<SalaryEntriesProperty> properties = new ArrayList<>();
+        List<Map<String, Object>> rowDatasEarnings = new ArrayList<>();
+        List<Map<String, Object>> rowDatasDeductions = new ArrayList<>();
 
-		try {
+        try {
 
-			String filterQuery = "";
+            String filterQuery = "";
 
-			if (request.getAgents() != null && request.getAgents().size() > 0) {
-				String agents = "'0'";
-				for (Agent agnt : request.getAgents()) {
-					agents = agents + ",'" + agnt.getEmployeeId() + "'";
-				}
-				filterQuery = filterQuery + " and se.employeeId in (" + agents + ") ";
-			}
+            if (request.getAgents() != null && request.getAgents().size() > 0) {
+                String agents = "'0'";
+                for (Agent agnt : request.getAgents()) {
+                    agents = agents + ",'" + agnt.getEmployeeId() + "'";
+                }
+                filterQuery = filterQuery + " and se.employeeId in (" + agents + ") ";
+            }
 
-			if (request.getSalaryMonth() != null && !request.getSalaryMonth().isEmpty()) {
-				filterQuery = filterQuery + " and se.salaryMonth = '" + request.getSalaryMonth() + "'";
-			}
+            if (request.getSalaryMonth() != null && !request.getSalaryMonth().isEmpty()) {
+                filterQuery = filterQuery + " and se.salaryMonth = '" + request.getSalaryMonth() + "'";
+            }
 
-			if (request.getSalaryYear() != null && !request.getSalaryYear().isEmpty()) {
-				filterQuery = filterQuery + " and se.salaryYear = '" + request.getSalaryYear() + "'";
-			}
+            if (request.getSalaryYear() != null && !request.getSalaryYear().isEmpty()) {
+                filterQuery = filterQuery + " and se.salaryYear = '" + request.getSalaryYear() + "'";
+            }
 
-			if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-				filterQuery = filterQuery + " and se.status = '" + request.getStatus() + "'";
-			}
+            if (request.getStatus() != null && !request.getStatus().isEmpty()) {
+                filterQuery = filterQuery + " and se.status = '" + request.getStatus() + "'";
+            }
 
-			Query query = em.createQuery("select se from SalaryEntries se where 2 > 1 " + filterQuery,
-					SalaryEntries.class);
+            Query query = em.createQuery("select se from SalaryEntries se where 2 > 1 " + filterQuery,
+                    SalaryEntries.class);
 
-			entries = query.getResultList();
+            entries = query.getResultList();
 
-			List<Integer> ids = entries.stream().map(se -> se.getId()).collect(Collectors.toList());
+            List<Integer> ids = entries.stream().map(se -> se.getId()).collect(Collectors.toList());
 
-			properties = sepRepo.findAllBySalaryEntryIdIn(ids);
+            properties = sepRepo.findAllBySalaryEntryIdIn(ids);
 
-			rowDatasEarnings = pivotTableEarningRowDatas(entries, properties);
+            rowDatasEarnings = pivotTableEarningRowDatas(entries, properties);
 
-			rowDatasDeductions = pivotTableDeductionRowDatas(entries, properties);
+            rowDatasDeductions = pivotTableDeductionRowDatas(entries, properties);
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			resp.putAll(Util.FailedResponse(ex.getMessage()));
-		}
-		resp.put("SalaryEntries", entries);
-		resp.put("SalaryEntriesProperties", properties);
-		resp.put("rowDatasEarnings", rowDatasEarnings);
-		resp.put("rowDatasDeductions", rowDatasDeductions);
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            resp.putAll(Util.FailedResponse(ex.getMessage()));
+        }
+        resp.put("SalaryEntries", entries);
+        resp.put("SalaryEntriesProperties", properties);
+        resp.put("rowDatasEarnings", rowDatasEarnings);
+        resp.put("rowDatasDeductions", rowDatasDeductions);
 
-		return resp;
-	}
+        return resp;
+    }
 
-	List<Map<String, Object>> pivotTableEarningRowDatas(List<SalaryEntries> ses, List<SalaryEntriesProperty> seps) {
-		List<Map<String, Object>> rowDatas = new ArrayList<>();
-		try {
-			Set<String> _e_props = seps.parallelStream().filter(se -> se.getPropertyType().equalsIgnoreCase("earning"))
-					.map(se -> se.getProperty()).collect(Collectors.toSet());
+    List<Map<String, Object>> pivotTableEarningRowDatas(List<SalaryEntries> ses, List<SalaryEntriesProperty> seps) {
+        List<Map<String, Object>> rowDatas = new ArrayList<>();
+        try {
+            Set<String> _e_props = seps.parallelStream().filter(se -> se.getPropertyType().equalsIgnoreCase("earning"))
+                    .map(se -> se.getProperty()).collect(Collectors.toSet());
 //			Set<String> _d_props = seps.parallelStream()
 //					.filter(se -> se.getPropertyType().equalsIgnoreCase("deduction")).map(se -> se.getProperty())
 //					.collect(Collectors.toSet());
 
-			System.out.println(_e_props);
+            System.out.println(_e_props);
 //			System.out.println(_d_props);
 
-			rowDatas = ses.parallelStream().map(se -> {
-				Map<String, Object> rowData = new HashMap<>();
-				rowData.put("salaryEntryId", se.getId());
+            rowDatas = ses.parallelStream().map(se -> {
+                Map<String, Object> rowData = new HashMap<>();
+                rowData.put("salaryEntryId", se.getId());
 
-				_e_props.stream().forEach(props -> {
-					rowData.put(props, 0);
-				});
+                _e_props.stream().forEach(props -> {
+                    rowData.put(props, 0);
+                });
 
 //				_d_props.stream().forEach(props -> {
 //					rowData.put(props, 0);
 //				});
 
-				System.out.println(rowData);
-				seps.stream().filter(sep -> sep.getSalaryEntryId() == se.getId()
-						&& sep.getPropertyType().equalsIgnoreCase("earning")).forEach(sep -> {
-							rowData.put(sep.getProperty(), sep.getAmount());
-						});
-				System.out.println(rowData);
+                System.out.println(rowData);
+                seps.stream().filter(sep -> sep.getSalaryEntryId() == se.getId()
+                        && sep.getPropertyType().equalsIgnoreCase("earning")).forEach(sep -> {
+                    rowData.put(sep.getProperty(), sep.getAmount());
+                });
+                System.out.println(rowData);
 
-				return rowData;
-			}).collect(Collectors.toList());
+                return rowData;
+            }).collect(Collectors.toList());
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return rowDatas;
-	}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return rowDatas;
+    }
 
-	List<Map<String, Object>> pivotTableDeductionRowDatas(List<SalaryEntries> ses, List<SalaryEntriesProperty> seps) {
-		List<Map<String, Object>> rowDatas = new ArrayList<>();
-		try {
+    List<Map<String, Object>> pivotTableDeductionRowDatas(List<SalaryEntries> ses, List<SalaryEntriesProperty> seps) {
+        List<Map<String, Object>> rowDatas = new ArrayList<>();
+        try {
 //			Set<String> _e_props = seps.parallelStream().filter(se -> se.getPropertyType().equalsIgnoreCase("earning"))
 //					.map(se -> se.getProperty()).collect(Collectors.toSet());
-			Set<String> _d_props = seps.parallelStream()
-					.filter(se -> se.getPropertyType().equalsIgnoreCase("deduction")).map(se -> se.getProperty())
-					.collect(Collectors.toSet());
+            Set<String> _d_props = seps.parallelStream()
+                    .filter(se -> se.getPropertyType().equalsIgnoreCase("deduction")).map(se -> se.getProperty())
+                    .collect(Collectors.toSet());
 
 //			System.out.println(_e_props);
-			System.out.println(_d_props);
+            System.out.println(_d_props);
 
-			rowDatas = ses.parallelStream().map(se -> {
-				Map<String, Object> rowData = new HashMap<>();
-				rowData.put("salaryEntryId", se.getId());
+            rowDatas = ses.parallelStream().map(se -> {
+                Map<String, Object> rowData = new HashMap<>();
+                rowData.put("salaryEntryId", se.getId());
 
 //				_e_props.stream().forEach(props -> {
 //					rowData.put(props, 0);
 //				});
 
-				_d_props.stream().forEach(props -> {
-					rowData.put(props, 0);
-				});
+                _d_props.stream().forEach(props -> {
+                    rowData.put(props, 0);
+                });
 
-				System.out.println(rowData);
-				seps.stream().filter(sep -> sep.getSalaryEntryId() == se.getId()
-						&& sep.getPropertyType().equalsIgnoreCase("deduction")).forEach(sep -> {
-							rowData.put(sep.getProperty(), sep.getAmount());
-						});
-				System.out.println(rowData);
+                System.out.println(rowData);
+                seps.stream().filter(sep -> sep.getSalaryEntryId() == se.getId()
+                        && sep.getPropertyType().equalsIgnoreCase("deduction")).forEach(sep -> {
+                    rowData.put(sep.getProperty(), sep.getAmount());
+                });
+                System.out.println(rowData);
 
-				return rowData;
-			}).collect(Collectors.toList());
+                return rowData;
+            }).collect(Collectors.toList());
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return rowDatas;
-	}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return rowDatas;
+    }
 
-	@Override
-	public Map<String, Object> generateSalaryEntries(SalaryDetailsRequest request) {
+    @Override
+    public Map<String, Object> generateSalaryEntries(SalaryDetailsRequest request) {
 
-		Map<String, Object> resp = new HashMap<String, Object>();
-		List<SalaryEntries> entries = new ArrayList<>();
-		try {
+        Map<String, Object> resp = new HashMap<String, Object>();
+        List<SalaryEntries> entries = new ArrayList<>();
+        try {
 
-			List<String> agents = request.getSalaryDetails().stream().map(SalaryDetails::getEmployeeId)
-					.collect(Collectors.toList());
+            List<String> agents = request.getSalaryDetails().stream().map(SalaryDetails::getEmployeeId)
+                    .collect(Collectors.toList());
 
-			System.out.println(agents);
+            System.out.println(agents);
 
-			List<SalaryDetails> salaryDetails = sdRepo.findByEmployeeIdIn(agents);
+            List<SalaryDetails> salaryDetails = sdRepo.findByEmployeeIdIn(agents);
 
-			for (SalaryDetails sd : salaryDetails) {
+            for (SalaryDetails sd : salaryDetails) {
 
-				Agent agent = agentRepo.findByEmployeeId(sd.getEmployeeId());
+                Agent agent = agentRepo.findByEmployeeId(sd.getEmployeeId());
 
-				SalaryEntries se = seRepo.findByEmployeeIdAndSalaryMonthAndSalaryYear(sd.getEmployeeId(),
-						request.getSalaryMonth(), request.getSalaryYear());
+                SalaryEntries se = seRepo.findByEmployeeIdAndSalaryMonthAndSalaryYear(sd.getEmployeeId(),
+                        request.getSalaryMonth(), request.getSalaryYear());
 
-				List<SalaryDetailProperty> sdps = sdpService.findByEmployeeId(sd.getEmployeeId());
+                List<SalaryDetailProperty> sdps = sdpService.findByEmployeeId(sd.getEmployeeId());
 
-				SalaryEntries seTemp = new SalaryEntries();
+                SalaryEntries seTemp = new SalaryEntries();
 
-				if (se != null) {
-					seTemp.setId(se.getId());
-				}
+                if (se != null) {
+                    seTemp.setId(se.getId());
+                }
 
-				seTemp.setEmployeeId(sd.getEmployeeId());
-				seTemp.setEmployeeName(agent.getFirstName() + " " + agent.getLastName());
-				seTemp.setDesignation(agent.getDesignation());
-				seTemp.setDoj(Util.sdfFormatter(agent.getDateOfJoining(), "dd/MM/YYYY"));
+                seTemp.setEmployeeId(sd.getEmployeeId());
+                seTemp.setEmployeeName(agent.getFirstName() + " " + agent.getLastName());
+                seTemp.setDesignation(agent.getDesignation());
+                seTemp.setDoj(Util.sdfFormatter(agent.getDateOfJoining(), "dd/MM/YYYY"));
 
-				seTemp.setPfNumber(sd.getPfNumber());
-				seTemp.setPanNumber(sd.getPanNumber());
-				seTemp.setUanNumber(sd.getUanNumber());
-				seTemp.setEsicNumber(sd.getEsicNumber());
+                seTemp.setPfNumber(sd.getPfNumber());
+                seTemp.setPanNumber(sd.getPanNumber());
+                seTemp.setUanNumber(sd.getUanNumber());
+                seTemp.setEsicNumber(sd.getEsicNumber());
 
-				seTemp.setBankName(sd.getBankName());
-				seTemp.setAccountNumber(sd.getAccountNumber());
+                seTemp.setBankName(sd.getBankName());
+                seTemp.setAccountNumber(sd.getAccountNumber());
 
-				seTemp.setSalaryMonth(request.getSalaryMonth());
-				seTemp.setSalaryYear(request.getSalaryYear());
-				seTemp.setModeOfPayment(sd.getModeOfPayment());
+                seTemp.setSalaryMonth(request.getSalaryMonth());
+                seTemp.setSalaryYear(request.getSalaryYear());
+                seTemp.setModeOfPayment(sd.getModeOfPayment());
 
-				seTemp.setSalaryCreditedDate(request.getSalaryCreditedDate());
+                seTemp.setSalaryCreditedDate(request.getSalaryCreditedDate());
 
-				if (request.getIsSalaryCredited())
-					seTemp.setStatus("Credited");
-				else
-					seTemp.setStatus("Generated");
+                if (request.getIsSalaryCredited())
+                    seTemp.setStatus("Credited");
+                else
+                    seTemp.setStatus("Generated");
 
-				List<SalaryEntriesProperty> seps = new ArrayList<>();
-				for (SalaryDetailProperty sdp : sdps) {
-					seps.add(new SalaryEntriesProperty(sdp));
-				}
+                List<SalaryEntriesProperty> seps = new ArrayList<>();
+                for (SalaryDetailProperty sdp : sdps) {
+                    seps.add(new SalaryEntriesProperty(sdp));
+                }
 
-				// Calculating Casual Leave and LOP starts
+                // Calculating Casual Leave and LOP starts
 
-				List<Map<String, Object>> workingCounts = seRepo.getEmployeeWorkingAndLeaveDays(sd.getEmployeeId(),
-						request.getSalaryMonth(), request.getSalaryYear());
+                List<Map<String, Object>> workingCounts = seRepo.getEmployeeWorkingAndLeaveDays(sd.getEmployeeId(),
+                        request.getSalaryMonth(), request.getSalaryYear());
 
-				int noOFDaysLeave = workingCounts.stream()
-						.filter(count -> !String.valueOf(count.get("working_status")).equalsIgnoreCase("w"))
-						.mapToInt(count -> Integer.parseInt(count.get("cnt").toString())).sum();
+                int noOFDaysLeave = workingCounts.stream()
+                        .filter(count -> !String.valueOf(count.get("working_status")).equalsIgnoreCase("w"))
+                        .mapToInt(count -> Integer.parseInt(count.get("cnt").toString())).sum();
 
-				int noOfWorkingDays = workingCounts.stream()
-						.mapToInt(count -> Integer.parseInt(count.get("cnt").toString())).sum();
+                int noOfWorkingDays = workingCounts.stream()
+                        .mapToInt(count -> Integer.parseInt(count.get("cnt").toString())).sum();
 
-				System.out.println("noFoDaysLeave:::" + noOFDaysLeave);
+                System.out.println("noFoDaysLeave:::" + noOFDaysLeave);
 
-				seTemp.setNoOfDaysLeave(noOFDaysLeave);
-				seTemp.setNoOfWorkingDays(noOfWorkingDays);
+                seTemp.setNoOfDaysLeave(noOFDaysLeave);
+                seTemp.setNoOfWorkingDays(noOfWorkingDays);
 
 //				int lopDays = noOFDaysLeave - sd.getCasualLeave();
 
-				double lop = leaveAppDatedRepo.getLOPForMonthYear(request.getSalaryMonth(), request.getSalaryYear(),
-						agent.getEmployeeId(), agent.getEmailId());
+                double lop = leaveAppDatedRepo.getLOPForMonthYear(request.getSalaryMonth(), request.getSalaryYear(),
+                        agent.getEmployeeId(), agent.getEmailId());
 
 //				double lop = leaveAppDatedRepo.getLOPForMonthYear(request.getSalaryMonth(), request.getSalaryYear());
 
-				if (lop > 0.00) {
-					SalaryEntriesProperty sep = new SalaryEntriesProperty();
-					sep.setEmployeeId(sd.getEmployeeId());
-					sep.setProperty("LOP");
-					sep.setPropertyType("deduction");
-					sep.setAmount(lop);
-					seps.add(sep);
-				}
+                if (lop > 0.00) {
+                    SalaryEntriesProperty sep = new SalaryEntriesProperty();
+                    sep.setEmployeeId(sd.getEmployeeId());
+                    sep.setProperty("LOP");
+                    sep.setPropertyType("deduction");
+                    sep.setAmount(lop);
+                    seps.add(sep);
+                }
 
-				// Calculating Casual Leave and LOP ends
+                // Calculating Casual Leave and LOP ends
 
-				Double totalEarnings = seps.stream().filter(_sep -> _sep.getPropertyType().equalsIgnoreCase("earning"))
-						.mapToDouble(SalaryEntriesProperty::getAmount).sum();
+                Double totalEarnings = seps.stream().filter(_sep -> _sep.getPropertyType().equalsIgnoreCase("earning"))
+                        .mapToDouble(SalaryEntriesProperty::getAmount).sum();
 
-				Double totalDeductions = seps.stream()
-						.filter(_sep -> _sep.getPropertyType().equalsIgnoreCase("deduction"))
-						.mapToDouble(SalaryEntriesProperty::getAmount).sum();
+                Double totalDeductions = seps.stream()
+                        .filter(_sep -> _sep.getPropertyType().equalsIgnoreCase("deduction"))
+                        .mapToDouble(SalaryEntriesProperty::getAmount).sum();
 
-				seTemp.setTotalEarnings(totalEarnings);
-				seTemp.setTotalDeductions(totalDeductions);
-				seTemp.setNetPay(totalEarnings - totalDeductions);
+                seTemp.setTotalEarnings(totalEarnings);
+                seTemp.setTotalDeductions(totalDeductions);
+                seTemp.setNetPay(totalEarnings - totalDeductions);
 
-				Map<String, Object> generateSalarayEntryResp = generateSalarayEntry(
-						new SalaryEntriesRequest(seTemp, seps));
+                Map<String, Object> generateSalarayEntryResp = generateSalarayEntry(
+                        new SalaryEntriesRequest(seTemp, seps));
 
-				if (generateSalarayEntryResp.get("StatusCode").toString().equalsIgnoreCase("00")) {
-					entries.add((SalaryEntries) generateSalarayEntryResp.get("SalaryEntries"));
-				}
-			}
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			resp.putAll(Util.FailedResponse(ex.getMessage()));
-		}
-		resp.put("SalaryEntries", entries);
-		resp.put("GeneratedSalaryEntriesCount", entries.size());
-		return resp;
-	}
+                if (generateSalarayEntryResp.get("StatusCode").toString().equalsIgnoreCase("00")) {
+                    entries.add((SalaryEntries) generateSalarayEntryResp.get("SalaryEntries"));
+                }
+            }
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            resp.putAll(Util.FailedResponse(ex.getMessage()));
+        }
+        resp.put("SalaryEntries", entries);
+        resp.put("GeneratedSalaryEntriesCount", entries.size());
+        return resp;
+    }
 
 //	int getAgentLOPDays(Agent agent, String month, int year) {
 //		System.out.println("Started getAgentLOPDays:" + agent.getEmailId());
@@ -687,241 +665,242 @@ public class SalaryDAOImpl implements SalaryDAO {
 //
 //	}
 
-	@Override
-	public Map<String, Object> getStaffEntriesEdit(String sid) {
-		logger.info("Get StaffDetails DAOImpl Starts:::::::" + sid);
-		Map<String, Object> resp = new HashMap<>();
-		SalaryEntries se = new SalaryEntries();
-		List<SalaryEntriesProperty> seps = new ArrayList<>();
-		try {
+    @Override
+    public Map<String, Object> getStaffEntriesEdit(String sid) {
+        logger.info("Get StaffDetails DAOImpl Starts:::::::" + sid);
+        Map<String, Object> resp = new HashMap<>();
+        SalaryEntries se = new SalaryEntries();
+        List<SalaryEntriesProperty> seps = new ArrayList<>();
+        try {
 
-			se = seRepo.findById(Integer.parseInt(sid));
+            se = seRepo.findById(Integer.parseInt(sid));
 
-			seps = sepRepo.findBySalaryEntryId(se.getId());
+            seps = sepRepo.findBySalaryEntryId(se.getId());
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception e) {
-			resp.putAll(Util.FailedResponse(e.getMessage()));
-			e.printStackTrace();
-		}
-		resp.put("SalaryEntries", se);
-		resp.put("SalaryEntriesProperties", seps);
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception e) {
+            resp.putAll(Util.FailedResponse(e.getMessage()));
+            e.printStackTrace();
+        }
+        resp.put("SalaryEntries", se);
+        resp.put("SalaryEntriesProperties", seps);
 
-		return resp;
-	}
+        return resp;
+    }
 
-	@Override
-	public Map<String, Object> deleteStaffEntries(SalaryEntries salaryEntry) {
-		Map<String, Object> resp = new HashMap<String, Object>();
-		try {
+    @Override
+    public Map<String, Object> deleteStaffEntries(SalaryEntries salaryEntry) {
+        Map<String, Object> resp = new HashMap<String, Object>();
+        try {
 
-			seRepo.delete(salaryEntry);
+            seRepo.delete(salaryEntry);
 
-			sepRepo.deleteAllBySalaryEntryId(salaryEntry.getId());
+            sepRepo.deleteAllBySalaryEntryId(salaryEntry.getId());
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			resp.putAll(Util.FailedResponse(ex.getMessage()));
-		}
-		return resp;
-	}
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            resp.putAll(Util.FailedResponse(ex.getMessage()));
+        }
+        return resp;
+    }
 
-	@Override
-	public Map<String, Object> updateSalaryEntries(SalaryEntriesRequest request) {
-		Map<String, Object> resp = new HashMap<String, Object>();
-		try {
+    @Override
+    public Map<String, Object> updateSalaryEntries(SalaryEntriesRequest request) {
+        Map<String, Object> resp = new HashMap<String, Object>();
+        try {
 
-			seRepo.saveAll(request.getSalaryEntries());
+            seRepo.saveAll(request.getSalaryEntries());
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			resp.putAll(Util.FailedResponse(ex.getMessage()));
-		}
-		return resp;
-	}
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            resp.putAll(Util.FailedResponse(ex.getMessage()));
+        }
+        return resp;
+    }
 
-	@Override
-	public Map<String, Object> generateSalaryEntryPayslip(SalaryEntries se) {
-		Map<String, Object> resp = new HashMap<String, Object>();
-		List<SalaryEntriesProperty> seps = new ArrayList<>();
-		try {
+    @Override
+    public Map<String, Object> generateSalaryEntryPayslip(SalaryEntries se) {
+        Map<String, Object> resp = new HashMap<String, Object>();
+        List<SalaryEntriesProperty> seps = new ArrayList<>();
+        try {
 
-			se = seRepo.findById(se.getId());
+            se = seRepo.findById(se.getId());
 
-			seps = sepRepo.findBySalaryEntryId(se.getId());
+            seps = sepRepo.findBySalaryEntryId(se.getId());
 
-			final Map<String, Object> parameters = new HashMap<>();
-			InfoDetails info = infoDetailRepo.findById(1);
+            final Map<String, Object> parameters = new HashMap<>();
+            InfoDetails info = infoDetailRepo.findById(1);
 
-			System.out.println(info.toString());
+            System.out.println(info.toString());
 
-			parameters.put("cmp_name", info.getCmpName());
-			parameters.put("cmp_address", info.getCompanyAddress());
-			parameters.put("logo", info.getLogoAsFile());
+            parameters.put("cmp_name", info.getCmpName());
+            parameters.put("cmp_address", info.getCompanyAddress());
+            parameters.put("logo", info.getLogoAsFile());
 
-			parameters.put("month_year_header",
-					"Payslip for " + se.getSalaryMonth().toUpperCase() + " " + se.getSalaryYear());
+            parameters.put("month_year_header",
+                    "Payslip for " + se.getSalaryMonth().toUpperCase() + " " + se.getSalaryYear());
 
-			parameters.put("employee_id", se.getEmployeeId());
-			parameters.put("employee_name", se.getEmployeeName());
-			parameters.put("designation", se.getDesignation());
-			parameters.put("doj", se.getDoj());
+            parameters.put("employee_id", se.getEmployeeId());
+            parameters.put("employee_name", se.getEmployeeName());
+            parameters.put("designation", se.getDesignation());
+            parameters.put("doj", se.getDoj());
 
-			parameters.put("bank_name", se.getBankName());
-			parameters.put("bank_acc_no", se.getAccountNumber());
-			parameters.put("pf_number", se.getPfNumber());
-			parameters.put("pan_number", se.getPanNumber());
-			parameters.put("uan_number", se.getUanNumber());
-			parameters.put("esic_number", se.getEsicNumber());
+            parameters.put("bank_name", se.getBankName());
+            parameters.put("bank_acc_no", se.getAccountNumber());
+            parameters.put("pf_number", se.getPfNumber());
+            parameters.put("pan_number", se.getPanNumber());
+            parameters.put("uan_number", se.getUanNumber());
+            parameters.put("esic_number", se.getEsicNumber());
 
-			parameters.put("working_days", String.valueOf(se.getNoOfWorkingDays()));
-			parameters.put("leave_days", String.valueOf(se.getNoOfDaysLeave()));
+            parameters.put("working_days", String.valueOf(se.getNoOfWorkingDays()));
+            parameters.put("leave_days", String.valueOf(se.getNoOfDaysLeave()));
 
-			parameters.put("gross_earning", "Rs." + Util.decimalFormatter(se.getTotalEarnings()));
-			parameters.put("gross_deduction", "Rs." + Util.decimalFormatter(se.getTotalDeductions()));
-			parameters.put("net_pay", "Rs." + Util.decimalFormatter(se.getNetPay()));
-			parameters.put("amount_in_words", Util.EnglishNumberToWords(se.getNetPay()));
+            parameters.put("gross_earning", "Rs." + Util.decimalFormatter(se.getTotalEarnings()));
+            parameters.put("gross_deduction", "Rs." + Util.decimalFormatter(se.getTotalDeductions()));
+            parameters.put("net_pay", "Rs." + Util.decimalFormatter(se.getNetPay()));
+            parameters.put("amount_in_words", Util.EnglishNumberToWords(se.getNetPay()));
 
-			List<SalaryEntriesProperty> earningdatasource = seps.stream()
-					.filter(sep -> sep.getPropertyType().equalsIgnoreCase("earning")).collect(Collectors.toList());
-			List<SalaryEntriesProperty> deductionsource = seps.stream()
-					.filter(sep -> sep.getPropertyType().equalsIgnoreCase("deduction")).collect(Collectors.toList());
+            List<SalaryEntriesProperty> earningdatasource = seps.stream()
+                    .filter(sep -> sep.getPropertyType().equalsIgnoreCase("earning")).collect(Collectors.toList());
+            List<SalaryEntriesProperty> deductionsource = seps.stream()
+                    .filter(sep -> sep.getPropertyType().equalsIgnoreCase("deduction")).collect(Collectors.toList());
 
-			List<Map<String, String>> datasource = new ArrayList<>();
+            List<Map<String, String>> datasource = new ArrayList<>();
 
-			int rows = earningdatasource.size() > deductionsource.size() ? earningdatasource.size()
-					: deductionsource.size();
-			// 1 4 2
-			for (int i = 0; i < rows; i++) {
-				Map<String, String> data = new HashMap<>();
-				System.out.println(i + " " + earningdatasource.size() + " " + deductionsource.size() + " "
-						+ String.valueOf(earningdatasource.size() > i) + " "
-						+ String.valueOf(deductionsource.size() > i));
+            int rows = earningdatasource.size() > deductionsource.size() ? earningdatasource.size()
+                    : deductionsource.size();
+            // 1 4 2
+            for (int i = 0; i < rows; i++) {
+                Map<String, String> data = new HashMap<>();
+                System.out.println(i + " " + earningdatasource.size() + " " + deductionsource.size() + " "
+                        + String.valueOf(earningdatasource.size() > i) + " "
+                        + String.valueOf(deductionsource.size() > i));
 
-				if (earningdatasource.size() > i) {
-					SalaryEntriesProperty _se = earningdatasource.get(i);
-					data.put("earning_property", _se.getProperty());
-					data.put("earning_amount", Util.decimalFormatter(_se.getAmount()));
-				} else {
-					data.put("earning_property", "");
-					data.put("earning_amount", "");
-				}
+                if (earningdatasource.size() > i) {
+                    SalaryEntriesProperty _se = earningdatasource.get(i);
+                    data.put("earning_property", _se.getProperty());
+                    data.put("earning_amount", Util.decimalFormatter(_se.getAmount()));
+                } else {
+                    data.put("earning_property", "");
+                    data.put("earning_amount", "");
+                }
 
-				if (deductionsource.size() > i) {
-					SalaryEntriesProperty _se = deductionsource.get(i);
-					data.put("deduction_property", _se.getProperty());
-					data.put("deduction_amount", Util.decimalFormatter(_se.getAmount()));
-				} else {
-					data.put("deduction_property", "");
-					data.put("deduction_amount", "");
-				}
-				datasource.add(data);
-			}
+                if (deductionsource.size() > i) {
+                    SalaryEntriesProperty _se = deductionsource.get(i);
+                    data.put("deduction_property", _se.getProperty());
+                    data.put("deduction_amount", Util.decimalFormatter(_se.getAmount()));
+                } else {
+                    data.put("deduction_property", "");
+                    data.put("deduction_amount", "");
+                }
+                datasource.add(data);
+            }
 
-			System.out.println(datasource);
-			System.out.println(parameters);
+            System.out.println(datasource);
+            System.out.println(parameters);
 
-			InputStream stream = this.getClass().getResourceAsStream("/reports/Payslip.jrxml");
+            InputStream stream = this.getClass().getResourceAsStream("/reports/Payslip.jrxml");
 
-			final JasperReport report = JasperCompileManager.compileReport(stream);
-			final JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(datasource);
+            final JasperReport report = JasperCompileManager.compileReport(stream);
+            final JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(datasource);
 //
-			final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
+            final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-			File directory = new File(contentPath + "/Payslips/" + se.getEmployeeId());
-			System.out.println(directory.getAbsolutePath());
-			if (!directory.exists()) {
-				System.out.println("Directory created ::" + directory.getAbsolutePath());
-				directory.mkdirs();
-			}
+            File directory = new File(LocalDirectory.Payslips + se.getEmployeeId());
+            System.out.println(directory.getAbsolutePath());
+            if (!directory.exists()) {
+                System.out.println("Directory created ::" + directory.getAbsolutePath());
+                directory.mkdirs();
+            }
 
-			String filename = "Payslip_" + se.getSalaryMonth().toUpperCase() + "_" + se.getSalaryYear() + "_"
-					+ se.getEmployeeId() + "_" + String.valueOf(Util.generateRandomPassword()) + ".pdf";
+            String filename = "Payslip_" + se.getSalaryMonth().toUpperCase() + "_" + se.getSalaryYear() + "_"
+                    + se.getEmployeeId() + "_" + String.valueOf(Util.generateRandomPassword()) + ".pdf";
 
-			se.setFilename(filename);
-			final String filePath = directory.getAbsolutePath() + "/" + se.getFilename();
-			System.out.println(filePath);
+            se.setFilename(filename);
+            final String filePath = directory.getAbsolutePath() + "/" + se.getFilename();
+            System.out.println(filePath);
 
-			seRepo.save(se);
+            seRepo.save(se);
 
-			// Export the report to a PDF file.
-			JasperExportManager.exportReportToPdfFile(print, filePath);
+            // Export the report to a PDF file.
+            JasperExportManager.exportReportToPdfFile(print, filePath);
+            s3StorageService.pushLocalFileToAWS(S3Directories.Payslips + se.getEmployeeId(), S3Directories.Payslips + se.getEmployeeId() + "/" + se.getFilename());
+            resp.putAll(Util.SuccessResponse());
 
-			resp.putAll(Util.SuccessResponse());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        resp.put("SalaryEntry", se);
+        return resp;
+    }
 
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		resp.put("SalaryEntry", se);
-		return resp;
-	}
+    @Override
+    public Map<String, Object> generatePayslips(SalaryEntriesRequest request) {
+        Map<String, Object> resp = new HashMap<String, Object>();
 
-	@Override
-	public Map<String, Object> generatePayslips(SalaryEntriesRequest request) {
-		Map<String, Object> resp = new HashMap<String, Object>();
+        int successCounts = 0;
+        int failedcounts = 0;
 
-		int successCounts = 0;
-		int failedcounts = 0;
+        try {
 
-		try {
+            for (SalaryEntries se : request.getSalaryEntries()) {
+                Map<String, Object> _res = generateSalaryEntryPayslip(se);
+                if (_res.get("StatusCode").toString().equals("00"))
+                    successCounts++;
+                else
+                    failedcounts++;
+            }
 
-			for (SalaryEntries se : request.getSalaryEntries()) {
-				Map<String, Object> _res = generateSalaryEntryPayslip(se);
-				if (_res.get("StatusCode").toString().equals("00"))
-					successCounts++;
-				else
-					failedcounts++;
-			}
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            resp.putAll(Util.FailedResponse(ex.getMessage()));
+        }
+        resp.put("SuccessCounts", successCounts);
+        resp.put("FailedCounts", failedcounts);
+        return resp;
+    }
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			resp.putAll(Util.FailedResponse(ex.getMessage()));
-		}
-		resp.put("SuccessCounts", successCounts);
-		resp.put("FailedCounts", failedcounts);
-		return resp;
-	}
+    @Override
+    public Map<String, Object> sendPayslipsMail(SalaryEntriesRequest request) {
+        Map<String, Object> resp = new HashMap<>();
+        try {
+            List<Integer> ids = request.getSalaryEntries().stream().map(se -> se.getId()).collect(Collectors.toList());
 
-	@Override
-	public Map<String, Object> sendPayslipsMail(SalaryEntriesRequest request) {
-		Map<String, Object> resp = new HashMap<>();
-		try {
-			List<Integer> ids = request.getSalaryEntries().stream().map(se -> se.getId()).collect(Collectors.toList());
+            request.setSalaryEntries(seRepo.findAllById(ids));
 
-			request.setSalaryEntries(seRepo.findAllById(ids));
+            request.getSalaryEntries().stream().parallel()
+                    .filter(se -> se.getFilename() != null && !se.getFilename().isEmpty()).forEach(se -> {
+                        se = seRepo.findById(se.getId());
 
-			request.getSalaryEntries().stream().parallel()
-					.filter(se -> se.getFilename() != null && !se.getFilename().isEmpty()).forEach(se -> {
-						se = seRepo.findById(se.getId());
+                        Agent agent = agentRepo.findMinDetailsByEmployeeId(se.getEmployeeId());
 
-						Agent agent = agentRepo.findMinDetailsByEmployeeId(se.getEmployeeId());
+                        EmailModel emailModel = new EmailModel("Common");
 
-						EmailModel emailModel = new EmailModel("Common");
+                        emailModel.setMailTo(agent.getEmailId());
+                        emailModel.setOtp(String.valueOf(Util.generateOTP()));
+                        emailModel.setMailSub("Payslip for " + se.getSalaryMonth() + " - " + se.getSalaryYear());
 
-						emailModel.setMailTo(agent.getEmailId());
-						emailModel.setOtp(String.valueOf(Util.generateOTP()));
-						emailModel.setMailSub("Payslip for " + se.getSalaryMonth() + " - " + se.getSalaryYear());
+                        emailModel.setMailText("Hi " + agent.getFirstName() + "<br><br>Find the attached payslip.");
 
-						emailModel.setMailText("Hi " + agent.getFirstName() + "<br><br>Find the attached payslip.");
+                        s3StorageService.pullFileFromS3ToLocal(S3Directories.Payslips + se.getEmployeeId() + "/" + se.getFilename(), LocalDirectory.Payslips + se.getEmployeeId(), se.getFilename());
 
-						File directory = new File(
-								contentPath + "/Payslips/" + se.getEmployeeId() + "/" + se.getFilename());
-						System.out.println(directory.getAbsolutePath());
+                        File directory = new File(LocalDirectory.Payslips + se.getEmployeeId() + "/" + se.getFilename());
+                        System.out.println(directory.getAbsolutePath());
 
-						emailModel.setContent_path(directory.getAbsolutePath());
+                        emailModel.setContent_path(directory.getAbsolutePath());
 
-						emailSender.sendmail(emailModel);
-					});
+                        emailSender.sendmail(emailModel);
+                    });
 
-			resp.putAll(Util.SuccessResponse());
-		} catch (Exception e) {
-			e.printStackTrace();
-			resp.putAll(Util.FailedResponse(e.getMessage()));
-		}
-		return resp;
-	}
+            resp.putAll(Util.SuccessResponse());
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.putAll(Util.FailedResponse(e.getMessage()));
+        }
+        return resp;
+    }
 
 }

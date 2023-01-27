@@ -1,31 +1,20 @@
 package com.autolib.helpdesk.LeadManagement.dao;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-
 import com.autolib.helpdesk.Config.aws.S3Directories;
-import com.autolib.helpdesk.common.S3StorageService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-
-import com.autolib.helpdesk.LeadManagement.model.LeadMailSentSearchRequest;
-import com.autolib.helpdesk.LeadManagement.model.LeadMailSentStatusResponse;
-import com.autolib.helpdesk.LeadManagement.model.LeadMailTemplate;
-import com.autolib.helpdesk.LeadManagement.model.LeadMailTemplateRequest;
-import com.autolib.helpdesk.LeadManagement.model.LeadMailTemplateSearchRequest;
+import com.autolib.helpdesk.LeadManagement.model.*;
 import com.autolib.helpdesk.LeadManagement.repository.LeadContactRepository;
 import com.autolib.helpdesk.LeadManagement.repository.LeadMailTemplateRepository;
 import com.autolib.helpdesk.LeadManagement.repository.LeadRepository;
+import com.autolib.helpdesk.common.S3StorageService;
 import com.autolib.helpdesk.common.Util;
 import com.autolib.helpdesk.schedulers.controller.SendLeadMailsScheduler;
 import com.autolib.helpdesk.schedulers.model.LeadMailSentStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import java.util.*;
 
 @Repository
 public class LeadMailDAOImpl implements LeadMailDAO {
@@ -44,9 +33,6 @@ public class LeadMailDAOImpl implements LeadMailDAO {
 
     @Autowired
     EntityManager em;
-
-    @Value("${al.ticket.content-path}")
-    private String contentPath;
 
     @Autowired
     S3StorageService s3StorageService;

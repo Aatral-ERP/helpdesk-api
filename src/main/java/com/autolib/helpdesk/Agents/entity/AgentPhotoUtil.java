@@ -18,9 +18,6 @@ public class AgentPhotoUtil {
     @Autowired
     S3StorageService s3StorageService;
 
-    @Value("${al.ticket.content-path}")
-    private String contentPath;
-
     public String createDefaultProfilePicture(String firstName, String lastName, String employeeId) {
         String filename = employeeId + ".png";
         try {

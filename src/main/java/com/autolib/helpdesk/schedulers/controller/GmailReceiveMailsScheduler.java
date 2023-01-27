@@ -1,34 +1,5 @@
 package com.autolib.helpdesk.schedulers.controller;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.security.GeneralSecurityException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.autolib.helpdesk.Institutes.model.Institute;
 import com.autolib.helpdesk.Institutes.model.InstituteContact;
 import com.autolib.helpdesk.Institutes.repository.InstituteContactRepository;
@@ -49,6 +20,24 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePart;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.security.GeneralSecurityException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Controller
 @RestController
@@ -61,9 +50,6 @@ public class GmailReceiveMailsScheduler {
 	GoogleMailAsTicketRepository gmRepo;
 	@Autowired
 	InstituteContactRepository icRepo;
-
-	@Value("${al.ticket.content-path}")
-	private String contentPath;
 
 	private final String APPLICATION_NAME = "HelpDesk";
 	private final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();

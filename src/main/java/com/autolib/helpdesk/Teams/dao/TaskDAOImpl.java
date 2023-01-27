@@ -1,37 +1,29 @@
 package com.autolib.helpdesk.Teams.dao;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.transaction.Transactional;
-
+import com.autolib.helpdesk.Agents.entity.PushNotification;
 import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.Institutes.model.Institute;
+import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
 import com.autolib.helpdesk.Teams.model.Tasks.*;
+import com.autolib.helpdesk.Teams.model.TeamEmailSetting;
+import com.autolib.helpdesk.Teams.model.TeamMembers;
+import com.autolib.helpdesk.Teams.model.TeamPushNotifySetting;
+import com.autolib.helpdesk.Teams.model.Teams;
 import com.autolib.helpdesk.Teams.repository.*;
+import com.autolib.helpdesk.Teams.repository.Tasks.TaskCommentRepository;
+import com.autolib.helpdesk.Teams.repository.Tasks.TaskHistoryRepository;
+import com.autolib.helpdesk.Teams.repository.Tasks.TaskRepository;
 import com.autolib.helpdesk.common.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
-import com.autolib.helpdesk.Agents.entity.PushNotification;
-import com.autolib.helpdesk.Institutes.model.Institute;
-import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
-import com.autolib.helpdesk.Teams.model.TeamEmailSetting;
-import com.autolib.helpdesk.Teams.model.TeamMembers;
-import com.autolib.helpdesk.Teams.model.TeamPushNotifySetting;
-import com.autolib.helpdesk.Teams.model.Teams;
-import com.autolib.helpdesk.Teams.repository.Tasks.TaskCommentRepository;
-import com.autolib.helpdesk.Teams.repository.Tasks.TaskHistoryRepository;
-import com.autolib.helpdesk.Teams.repository.Tasks.TaskRepository;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.transaction.Transactional;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Repository
 public class TaskDAOImpl implements TaskDAO {
@@ -71,9 +63,6 @@ public class TaskDAOImpl implements TaskDAO {
 
     @Autowired
     private EntityManager em;
-
-    @Value("${al.ticket.content-path}")
-    private String contentPath;
     @Value("${al.agent.web.url}")
     private String agentWebURL;
 

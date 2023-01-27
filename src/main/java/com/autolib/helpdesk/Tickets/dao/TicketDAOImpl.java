@@ -1,64 +1,24 @@
 package com.autolib.helpdesk.Tickets.dao;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.transaction.Transactional;
-
-import com.autolib.helpdesk.Config.aws.LocalDirectory;
-import com.autolib.helpdesk.Config.aws.S3Directories;
-import com.autolib.helpdesk.common.S3StorageService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Repository;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.autolib.helpdesk.Agents.entity.Agent;
 import com.autolib.helpdesk.Agents.entity.InfoDetails;
 import com.autolib.helpdesk.Agents.entity.PushNotification;
 import com.autolib.helpdesk.Agents.repository.AgentRepository;
 import com.autolib.helpdesk.Agents.repository.InfoDetailsRepository;
+import com.autolib.helpdesk.Config.aws.LocalDirectory;
+import com.autolib.helpdesk.Config.aws.S3Directories;
 import com.autolib.helpdesk.Institutes.model.Institute;
 import com.autolib.helpdesk.Institutes.model.InstituteContact;
 import com.autolib.helpdesk.Institutes.repository.InstituteContactRepository;
 import com.autolib.helpdesk.Institutes.repository.InstituteRepository;
-import com.autolib.helpdesk.Tickets.model.CallReport;
-import com.autolib.helpdesk.Tickets.model.CallReportRequest;
-import com.autolib.helpdesk.Tickets.model.GmailAsTicketRequest;
-import com.autolib.helpdesk.Tickets.model.ServiceReportRequest;
-import com.autolib.helpdesk.Tickets.model.Ticket;
-import com.autolib.helpdesk.Tickets.model.TicketAttachment;
-import com.autolib.helpdesk.Tickets.model.TicketRating;
-import com.autolib.helpdesk.Tickets.model.TicketReply;
-import com.autolib.helpdesk.Tickets.model.TicketReportRequest;
-import com.autolib.helpdesk.Tickets.model.TicketRequest;
-import com.autolib.helpdesk.Tickets.model.TicketServiceInvoice;
-import com.autolib.helpdesk.Tickets.repository.CallReportRepository;
-import com.autolib.helpdesk.Tickets.repository.TicketAttachmentRepository;
-import com.autolib.helpdesk.Tickets.repository.TicketRatingRepository;
-import com.autolib.helpdesk.Tickets.repository.TicketReplyRepository;
-import com.autolib.helpdesk.Tickets.repository.TicketRepository;
-import com.autolib.helpdesk.Tickets.repository.TicketServiceInvoiceRepository;
+import com.autolib.helpdesk.Tickets.model.*;
+import com.autolib.helpdesk.Tickets.repository.*;
 import com.autolib.helpdesk.common.EmailModel;
 import com.autolib.helpdesk.common.EmailSender;
 import com.autolib.helpdesk.common.EnumUtils.ServiceUnder;
 import com.autolib.helpdesk.common.EnumUtils.TicketPriority;
 import com.autolib.helpdesk.common.EnumUtils.TicketStatus;
+import com.autolib.helpdesk.common.S3StorageService;
 import com.autolib.helpdesk.common.Util;
 import com.autolib.helpdesk.jwt.JwtTokenUtil;
 import com.autolib.helpdesk.schedulers.controller.GmailReceiveMailsScheduler;
@@ -71,13 +31,25 @@ import com.google.api.services.gmail.Gmail.Users.Messages.Attachments.Get;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePart;
 import com.google.api.services.gmail.model.MessagePartBody;
-
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.transaction.Transactional;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Repository
 public class TicketDAOImpl implements TicketDAO {
@@ -123,9 +95,6 @@ public class TicketDAOImpl implements TicketDAO {
 
     @Autowired
     S3StorageService s3StorageService;
-
-    @Value("${al.ticket.content-path}")
-    private String contentPath;
     @Value("${al.ticket.view.rooturi}")
     private String viewTicketRootURI;
 
@@ -845,7 +814,9 @@ public class TicketDAOImpl implements TicketDAO {
 
             emailModel.setMailText(sb.toString());
 
-            File directory = new File(contentPath + "_service_invoices" + "/" + tsi.getInvoiceNo() + ".pdf");
+            s3StorageService.pullFileFromS3ToLocal(S3Directories.ServicesInvoices + tsi.getInvoiceFileName(), LocalDirectory.ServicesInvoices, tsi.getInvoiceFileName());
+
+            File directory = new File(LocalDirectory.ServicesInvoices + tsi.getInvoiceFileName());
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 createInvoice(tsi);
@@ -865,9 +836,6 @@ public class TicketDAOImpl implements TicketDAO {
             final InputStream stream = this.getClass().getResourceAsStream("/reports/ServiceCall_Quote.jrxml");
 
             final JasperReport report = JasperCompileManager.compileReport(stream);
-
-//			final JasperReport report = (JasperReport) JRLoader.loadObject(stream);
-
             final JRBeanCollectionDataSource source = new JRBeanCollectionDataSource(new ArrayList<>());
 
             final Map<String, Object> parameters = new HashMap<>();
@@ -884,17 +852,17 @@ public class TicketDAOImpl implements TicketDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            File directory = new File(contentPath + "_service_invoices" + "/");
+            File directory = new File(LocalDirectory.ServicesInvoices);
             System.out.println(directory.getAbsolutePath());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdir();
             }
-            final String filePath = directory.getAbsolutePath() + "/" + tsi.getInvoiceNo() + ".pdf";
+            final String filePath = directory.getAbsolutePath() + "/" + tsi.getInvoiceFileName();
             System.out.println(filePath);
             // Export the report to a PDF file.
             JasperExportManager.exportReportToPdfFile(print, filePath);
-
+            s3StorageService.pushLocalFileToAWS(S3Directories.ServicesInvoices, S3Directories.ServicesInvoices + tsi.getInvoiceFileName());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -984,25 +952,7 @@ public class TicketDAOImpl implements TicketDAO {
                     MessagePartBody mpd = mpb.execute();
                     byte[] data = Base64.decodeBase64(mpd.getData());
 
-//					File directory = new File(contentPath + "_google_email_attachments/" + msg.getIdMail() + "/");
-//					System.out.println(directory.getAbsolutePath());
-//					if (!directory.exists()) {
-//						System.out.println("Directory created::" + directory.getAbsolutePath());
-//						directory.mkdir();
-//					}
-//					File convertFile = new File(directory.getAbsolutePath() + "/" + mp2s.getFilename());
-//					convertFile.createNewFile();
-//					FileOutputStream fout = new FileOutputStream(convertFile);
-//					fout.write(data);
-//					fout.close();
-
-//					System.out.println(file.getSize());
-//					System.out.println(file.getContentType());
-//					System.out.println(file.getName());
-//					System.out.println(file.getOriginalFilename());
-//					System.out.println(contentPath + ticketId + "/" + file.getOriginalFilename());
-//
-                    File directory = new File(contentPath + msg.getTicketId() + "/");
+                    File directory = new File(LocalDirectory.Tickets + msg.getTicketId() + "/");
                     System.out.println(directory.getAbsolutePath());
                     if (!directory.exists()) {
                         directory.mkdir();
@@ -1358,11 +1308,6 @@ public class TicketDAOImpl implements TicketDAO {
 
             inst = instRepo.findByInstituteId(ticket.getInstitutes().get(0).getInstituteId());
 
-            // resp.put("ServiceReport",
-            // ticketRepo.findByInstitute(ticket.getInstitutes().get(0)));
-
-            // System.out.println("ServiceReport::::::::::::::"+resp.toString());
-
             parameters.put("institute_name", "Institute Name : " + inst.getInstituteName());
 
             List<Map<String, String>> datasource = new ArrayList<>();
@@ -1386,11 +1331,7 @@ public class TicketDAOImpl implements TicketDAO {
 
             final JasperPrint print = JasperFillManager.fillReport(report, parameters, source);
 
-            // File directory = new File(contentPath + "/ServiceReports/" +
-            // ticket.getInstitutes().get(0).getInstituteName());
-            File directory = new File(
-                    contentPath + "/ServiceReports/" + ticket.getInstitutes().get(0).getInstituteId());
-            System.out.println(directory.getAbsolutePath());
+            File directory = new File(LocalDirectory.ServiceReports + ticket.getInstitutes().get(0).getInstituteId());
             if (!directory.exists()) {
                 System.out.println("Directory created ::" + directory.getAbsolutePath());
                 directory.mkdirs();
@@ -1402,8 +1343,10 @@ public class TicketDAOImpl implements TicketDAO {
 
             // Export the report to a PDF file.
             JasperExportManager.exportReportToPdfFile(print, filePath);
-
-            // Merge Preamble if any
+            s3StorageService.pushLocalFileToAWS(
+                    S3Directories.ServiceReports + ticket.getInstitutes().get(0).getInstituteId(),
+                    S3Directories.ServiceReports + ticket.getInstitutes().get(0).getInstituteId()
+                            + "/" + ticket.getInstitutes().get(0).getInstituteName() + ".pdf");
 
             resp.putAll(Util.SuccessResponse());
         } catch (Exception e) {

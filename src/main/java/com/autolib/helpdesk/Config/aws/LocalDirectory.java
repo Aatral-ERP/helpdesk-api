@@ -1,7 +1,5 @@
 package com.autolib.helpdesk.Config.aws;
 
-import java.io.File;
-
 public class LocalDirectory {
 
     public static final String Temp = System.getProperty("java.io.tmpdir");
@@ -16,5 +14,11 @@ public class LocalDirectory {
     public static final String Invoices = Temp + S3Directories.Invoices;
     public static final String DeliveryChallans = Temp + S3Directories.DeliveryChallans;
     public static final String Receipts = Temp + S3Directories.Receipts;
+    public static final String ServicesInvoices = Temp + S3Directories.ServicesInvoices;
+    public static final String ServiceReports = Temp + S3Directories.ServiceReports;
+    public static final String Tickets = Temp + S3Directories.Tickets;
+    public static final String InstituteAMCInvoices = Temp + S3Directories.InstituteAMCInvoices;
+    public static final String Bills = Temp + S3Directories.Bills;
+    public static final String Payslips = Temp + S3Directories.Payslips;
 
 }

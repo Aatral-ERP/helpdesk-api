@@ -1,45 +1,23 @@
 package com.autolib.helpdesk.LeadManagement.dao;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-
+import com.autolib.helpdesk.Agents.entity.Agent;
 import com.autolib.helpdesk.Config.aws.S3Directories;
+import com.autolib.helpdesk.LeadManagement.model.*;
+import com.autolib.helpdesk.LeadManagement.repository.*;
 import com.autolib.helpdesk.common.S3StorageService;
+import com.autolib.helpdesk.common.Util;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.autolib.helpdesk.Agents.entity.Agent;
-import com.autolib.helpdesk.LeadManagement.model.Lead;
-import com.autolib.helpdesk.LeadManagement.model.LeadActivityReportRequest;
-import com.autolib.helpdesk.LeadManagement.model.LeadContact;
-import com.autolib.helpdesk.LeadManagement.model.LeadDashboardRequest;
-import com.autolib.helpdesk.LeadManagement.model.LeadMeeting;
-import com.autolib.helpdesk.LeadManagement.model.LeadRequest;
-import com.autolib.helpdesk.LeadManagement.model.LeadSearchRequest;
-import com.autolib.helpdesk.LeadManagement.model.LeadTask;
-import com.autolib.helpdesk.LeadManagement.model.LeadUploadDetail;
-import com.autolib.helpdesk.LeadManagement.repository.LeadActivityReportResponse;
-import com.autolib.helpdesk.LeadManagement.repository.LeadContactRepository;
-import com.autolib.helpdesk.LeadManagement.repository.LeadMeetingRepository;
-import com.autolib.helpdesk.LeadManagement.repository.LeadRepository;
-import com.autolib.helpdesk.LeadManagement.repository.LeadTaskRepository;
-import com.autolib.helpdesk.common.Util;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class LeadDAOImpl implements LeadDAO {
-
-	@Value("${al.ticket.content-path}")
-	private String contentPath;
 
 	@Autowired
 	LeadRepository leadRepo;
