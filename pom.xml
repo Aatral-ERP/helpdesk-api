@@ -139,6 +139,18 @@
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
 			<version>6.11.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.lowagie</groupId>
+					<artifactId>itext</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!--        "jasperreports" can't resolve "itext" dependency on jenkins.so it added independently-->
+		<dependency>
+			<groupId>com.lowagie</groupId>
+			<artifactId>itext</artifactId>
+			<version>2.1.7</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/ar.com.fdvs/DynamicJasper-core-fonts -->
@@ -147,13 +159,6 @@
 			<artifactId>DynamicJasper-core-fonts</artifactId>
 			<version>1.0</version>
 		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/net.sf.jasperreports/jasperreports-fonts -->
-		<!-- <dependency> -->
-		<!-- <groupId>net.sf.jasperreports</groupId> -->
-		<!-- <artifactId>jasperreports-fonts</artifactId> -->
-		<!-- <version>6.11.0</version> -->
-		<!-- </dependency> -->
 
 		<!-- https://mvnrepository.com/artifact/org.apache.poi/poi -->
 		<dependency>
@@ -217,11 +222,12 @@
 			</plugin>
 		</plugins>
 		<resources>
-        		<resource>
-            			<directory>src/main/resources</directory>
-            			<filtering>true</filtering>
-        		</resource>
-    		</resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<finalName>helpdesk-api</finalName>
 	</build>
 
 	<repositories>
