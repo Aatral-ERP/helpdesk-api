@@ -37,6 +37,6 @@ public class AWSS3StorageConfig {
         else if (AWSSecretKey.startsWith("DEC-"))
             System.out.println(GlobalAccessUtil.decrypt(AWSSecretKey.replaceAll("DEC-", "")));
 
-        return new AmazonS3Client(new BasicAWSCredentials(AWSAccessKeyId, AWSSecretKey));
+        return new AmazonS3Client(new BasicAWSCredentials(GlobalAccessUtil.decrypt(AWSAccessKeyId), GlobalAccessUtil.decrypt(AWSSecretKey)));
     }
 }
