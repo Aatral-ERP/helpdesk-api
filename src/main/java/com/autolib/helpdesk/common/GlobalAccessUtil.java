@@ -62,7 +62,7 @@ public class GlobalAccessUtil extends JdbcDaoSupport {
 
 	private static final String ALGORITMO = "AES/CBC/PKCS5Padding";
 	private static final String CODIFICACION = "UTF-8";
-	public static final String PrivateKey = "E1BC425D57CAF7ACDBBE8091A9CD73BE";
+	public static final String PrivateKey = "e04fd020ea3a6910a2d808002b30309d";
 	public static final String AWSAccessKeyId = "";
 	public static final String AWSSecretKey = "";
 	public static final String S3BucketName = "autolib";
@@ -548,9 +548,9 @@ public class GlobalAccessUtil extends JdbcDaoSupport {
 		return dbTime;
 	}
 
-	public static String encrypt(String plaintext, String key) throws NoSuchAlgorithmException, NoSuchPaddingException,
+	public static String encrypt(String plaintext) throws NoSuchAlgorithmException, NoSuchPaddingException,
 			InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException {
-		byte[] raw = DatatypeConverter.parseHexBinary(key);
+		byte[] raw = DatatypeConverter.parseHexBinary(PrivateKey);
 		SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
 		Cipher cipher = Cipher.getInstance(ALGORITMO);
 		cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
@@ -564,11 +564,11 @@ public class GlobalAccessUtil extends JdbcDaoSupport {
 		return encodedFinalData;
 	}
 
-	public static String decrypt(String encodedInitialData, String key)
+	public static String decrypt(String encodedInitialData)
 			throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException,
 			NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
 		byte[] encryptedData = DatatypeConverter.parseBase64Binary(encodedInitialData);
-		byte[] raw = DatatypeConverter.parseHexBinary(key);
+		byte[] raw = DatatypeConverter.parseHexBinary(PrivateKey);
 		SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
 		Cipher cipher = Cipher.getInstance(ALGORITMO);
 		byte[] iv = Arrays.copyOfRange(encryptedData, 0, 16);
